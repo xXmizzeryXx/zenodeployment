@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeno — Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --bg:#050508;--bg2:#0a0a12;--neon-cyan:#00f5ff;--neon-pink:#ff006e;
+    --neon-purple:#bf00ff;--neon-green:#00ff88;--card-bg:rgba(255,255,255,0.03);
+    --card-border:rgba(0,245,255,0.12);--text:#e0e8ff;--muted:#556;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  body::after{content:'';position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(191,0,255,0.06) 0%,transparent 70%);top:-200px;right:-200px;pointer-events:none;z-index:0;animation:float 8s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(30px)}}
+  .scanlines{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999}
+  .top-bar{position:sticky;top:0;z-index:100;display:flex;align-items:center;padding:12px 28px;background:rgba(5,5,8,0.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,245,255,0.08);gap:16px}
+  .tb-left{flex:1;display:flex;align-items:center;gap:12px}
+  .tb-center{flex:2;display:flex;justify-content:center}
+  .tb-right{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:10px}
+  .btn-back{display:flex;align-items:center;gap:7px;text-decoration:none;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);border:1px solid rgba(0,245,255,0.12);border-radius:4px;padding:7px 13px;transition:all .2s;white-space:nowrap}
+  .btn-back:hover{color:var(--neon-cyan);border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.05);box-shadow:0 0 14px rgba(0,245,255,0.1)}
+  .search-wrap{position:relative;display:flex;align-items:center;background:rgba(255,255,255,0.04);border:1px solid rgba(0,245,255,0.12);border-radius:8px;width:340px;max-width:100%}
+  .search-wrap .search-icon{position:absolute;left:12px;color:var(--neon-cyan);opacity:.4;font-size:13px;pointer-events:none}
+  #searchInput{width:100%;background:transparent;border:none;padding:9px 12px 9px 34px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;letter-spacing:.5px;outline:none}
+  #searchInput::placeholder{color:var(--muted)}
+  .game-count{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);white-space:nowrap}
+  .greeting{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;color:var(--muted);white-space:nowrap}
+  .greeting span{color:var(--neon-cyan);text-shadow:0 0 12px rgba(0,245,255,0.4)}
+  .btn-upload{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--neon-green);border:1px solid rgba(0,255,136,0.25);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
+  .btn-upload:hover{background:rgba(0,255,136,0.06);border-color:var(--neon-green);box-shadow:0 0 14px rgba(0,255,136,0.12)}
+  .sw-badge{display:flex;align-items:center;gap:6px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;padding:5px 10px;border-radius:4px;border:1px solid;transition:all .4s;white-space:nowrap}
+  .sw-badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .sw-badge.pending{color:#556;border-color:rgba(85,85,102,.3)}.sw-badge.pending .dot{background:#556}
+  .sw-badge.ready{color:var(--neon-green);border-color:rgba(0,255,136,.25)}.sw-badge.ready .dot{background:var(--neon-green);box-shadow:0 0 6px var(--neon-green);animation:pulse 2s infinite}
+  .sw-badge.error{color:var(--neon-pink);border-color:rgba(255,0,110,.25)}.sw-badge.error .dot{background:var(--neon-pink)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  main{position:relative;z-index:1;padding:28px}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;animation:fadeUp .5s ease both}
+  .empty-icon{width:96px;height:96px;border-radius:50%;border:1px solid rgba(0,245,255,0.15);background:linear-gradient(135deg,rgba(0,245,255,.06),rgba(191,0,255,.06));display:flex;align-items:center;justify-content:center;font-size:36px;color:rgba(0,245,255,.35);margin-bottom:28px;position:relative}
+  .empty-icon::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px dashed rgba(0,245,255,.08);animation:spinSlow 12s linear infinite}
+  @keyframes spinSlow{to{transform:rotate(360deg)}}
+  .empty-title{font-family:'Orbitron',monospace;font-size:14px;letter-spacing:4px;color:var(--text);margin-bottom:12px}
+  .empty-sub{font-size:14px;color:var(--muted);letter-spacing:1px;line-height:1.6;margin-bottom:32px;max-width:420px}
+  .empty-sub em{color:var(--neon-cyan);font-style:normal}
+  /* SLOTS */
+  .drop-zone-outer{width:540px;max-width:100%;margin-bottom:16px}
+  .drop-slots{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+  .drop-slot{aspect-ratio:1;border:1px dashed rgba(0,245,255,.18);border-radius:10px;background:rgba(0,245,255,.02);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+  .drop-slot input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .drop-slot:hover,.drop-slot.dragover{border-color:rgba(0,245,255,.5);background:rgba(0,245,255,.05);box-shadow:0 0 20px rgba(0,245,255,.07)}
+  .drop-slot .slot-icon{font-size:20px;color:rgba(0,245,255,.3);transition:all .2s}
+  .drop-slot:hover .slot-icon{color:rgba(0,245,255,.6)}
+  .drop-slot .slot-num{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:rgba(0,245,255,.2)}
+  .drop-slot.filled{border-color:rgba(0,255,136,.35);background:rgba(0,255,136,.04)}
+  .drop-slot.filled .slot-icon{color:var(--neon-green);font-size:16px}
+  .drop-slot.filled .slot-name{font-size:9px;letter-spacing:.5px;color:var(--neon-green);text-align:center;padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  .slot-clear{position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:rgba(255,0,110,.15);border:1px solid rgba(255,0,110,.3);color:var(--neon-pink);font-size:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;opacity:0;transition:opacity .15s}
+  .drop-slot.filled:hover .slot-clear{opacity:1}
+  .drop-zone-main{width:100%;border:1px dashed rgba(0,245,255,.12);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(0,245,255,.01);position:relative}
+  .drop-zone-main input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .drop-zone-main:hover,.drop-zone-main.dragover{border-color:rgba(0,245,255,.4);background:rgba(0,245,255,.03)}
+  .drop-zone-main-text{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted)}
+  .drop-zone-main-text em{color:var(--neon-cyan);font-style:normal}
+  .upload-actions{display:flex;gap:10px;margin-top:12px;justify-content:center}
+  .upload-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:9px 20px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid}
+  .upload-btn-go{background:linear-gradient(135deg,rgba(0,245,255,.12),rgba(191,0,255,.12));border-color:rgba(0,245,255,.3);color:var(--neon-cyan)}
+  .upload-btn-go:hover{border-color:var(--neon-cyan);box-shadow:0 0 20px rgba(0,245,255,.15)}
+  .upload-btn-go:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+  .upload-btn-clear{background:transparent;border-color:rgba(255,255,255,.08);color:var(--muted)}
+  .upload-btn-clear:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+  .upload-hint{font-size:11px;color:rgba(85,85,102,.7);letter-spacing:1px;margin-top:12px}
+  /* GAME GRID */
+  .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .game-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;animation:fadeUp .3s ease both}
+  .game-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,245,255,.04),transparent);opacity:0;transition:opacity .2s}
+  .game-card:hover{border-color:rgba(0,245,255,.4);box-shadow:0 0 24px rgba(0,245,255,.08),inset 0 0 24px rgba(0,245,255,.03);transform:translateY(-2px)}
+  .game-card:hover::before{opacity:1}
+  .game-icon{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(0,245,255,.08),rgba(191,0,255,.08));border:1px solid rgba(0,245,255,.2);display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--neon-cyan);transition:color .2s,box-shadow .2s;overflow:hidden}
+  .game-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .game-card:hover .game-icon{box-shadow:0 0 16px rgba(0,245,255,.3);color:#fff}
+  .game-name{font-size:12px;font-weight:600;letter-spacing:.5px;text-align:center;line-height:1.3;color:var(--text)}
+  .game-delete{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:rgba(255,0,110,.1);border:1px solid rgba(255,0,110,.2);color:rgba(255,0,110,.5);font-size:9px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;cursor:pointer;z-index:2}
+  .game-card:hover .game-delete{opacity:1}
+  .game-delete:hover{background:rgba(255,0,110,.2);border-color:var(--neon-pink);color:var(--neon-pink);box-shadow:0 0 8px rgba(255,0,110,.2)}
+  .no-results{display:none;text-align:center;padding:80px 20px;color:var(--muted);font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;grid-column:1/-1}
+  .add-card{background:rgba(0,255,136,.02);border:1px dashed rgba(0,255,136,.18);border-radius:8px;padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;min-height:116px}
+  .add-card:hover{border-color:rgba(0,255,136,.45);background:rgba(0,255,136,.04);box-shadow:0 0 20px rgba(0,255,136,.06)}
+  .add-card-icon{font-size:22px;color:rgba(0,255,136,.4)}
+  .add-card span{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:rgba(0,255,136,.5)}
+  /* PROGRESS */
+  .progress-overlay{position:fixed;inset:0;background:rgba(5,5,8,.92);backdrop-filter:blur(16px);z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+  .progress-overlay.open{display:flex}
+  .progress-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:4px;color:var(--neon-cyan)}
+  .progress-sub{font-size:13px;color:var(--muted);letter-spacing:1px;min-width:280px;text-align:center}
+  .progress-bar-wrap{width:320px;height:4px;background:rgba(0,245,255,.08);border-radius:4px;overflow:hidden}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));border-radius:4px;transition:width .1s;width:0%}
+  .progress-queue{display:flex;gap:8px;align-items:center}
+  .progress-pip{width:8px;height:8px;border-radius:50%;background:rgba(0,245,255,.15);border:1px solid rgba(0,245,255,.2);transition:all .3s}
+  .progress-pip.done{background:var(--neon-green);border-color:var(--neon-green);box-shadow:0 0 6px var(--neon-green)}
+  .progress-pip.active{background:var(--neon-cyan);border-color:var(--neon-cyan);box-shadow:0 0 8px var(--neon-cyan);animation:pulse .8s infinite}
+  .progress-pip.fail{background:var(--neon-pink);border-color:var(--neon-pink)}
+  /* GAME MODAL */
+  .game-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:400;align-items:center;justify-content:center}
+  .game-modal-overlay.open{display:flex}
+  .game-modal{position:relative;width:92vw;height:88vh;max-width:1280px;background:var(--bg2);border:1px solid rgba(0,245,255,.2);border-radius:12px;box-shadow:0 0 80px rgba(0,245,255,.07),0 0 160px rgba(191,0,255,.04);display:flex;flex-direction:column;overflow:hidden;animation:slideIn .2s ease}
+  @keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .game-modal-header{display:flex;align-items:center;padding:10px 16px;background:rgba(0,245,255,.02);border-bottom:1px solid rgba(0,245,255,.08);gap:10px;flex-shrink:0}
+  .game-modal-icon{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,rgba(0,245,255,.1),rgba(191,0,255,.1));border:1px solid rgba(0,245,255,.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--neon-cyan);flex-shrink:0;overflow:hidden}
+  .game-modal-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .game-modal-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--neon-cyan);text-shadow:0 0 12px rgba(0,245,255,.4);text-transform:uppercase;flex:1}
+  .game-modal-btn{background:none;border:1px solid rgba(0,245,255,.15);border-radius:4px;color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s;flex-shrink:0}
+  .game-modal-btn:hover{color:var(--neon-cyan);border-color:var(--neon-cyan);box-shadow:0 0 10px rgba(0,245,255,.15)}
+  .game-modal-btn.close:hover{color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:0 0 10px rgba(255,0,110,.2)}
+  .game-modal iframe{flex:1;width:100%;border:none;background:#000}
+  .game-modal-loading{position:absolute;inset:49px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg2);gap:14px;transition:opacity .3s}
+  .game-modal-loading.hidden{opacity:0;pointer-events:none}
+  .loader-ring{width:44px;height:44px;border:2px solid rgba(0,245,255,.08);border-top-color:var(--neon-cyan);border-radius:50%;animation:spinLoader .75s linear infinite}
+  @keyframes spinLoader{to{transform:rotate(360deg)}}
+  .loader-text{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:4px;color:var(--muted);text-transform:uppercase}
+  /* WELCOME */
+  .welcome-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(16px);z-index:500;align-items:center;justify-content:center}
+  .welcome-overlay.open{display:flex}
+  .welcome-modal{background:var(--bg2);border:1px solid rgba(0,245,255,.2);border-radius:16px;padding:48px 44px 40px;width:440px;text-align:center;box-shadow:0 0 80px rgba(0,245,255,.07);animation:slideIn .3s ease}
+  .welcome-logo{font-family:'Orbitron',monospace;font-size:32px;font-weight:900;letter-spacing:10px;color:var(--neon-cyan);text-shadow:0 0 30px rgba(0,245,255,.5);margin-bottom:8px}
+  .welcome-sub{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:36px}
+  .welcome-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--neon-cyan),transparent);margin:0 auto 32px}
+  .welcome-question{font-size:18px;font-weight:600;color:var(--text);letter-spacing:1px;margin-bottom:20px}
+  .welcome-input{width:100%;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.2);border-radius:8px;padding:12px 16px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;outline:none;text-align:center;margin-bottom:20px;transition:border-color .2s}
+  .welcome-input:focus{border-color:rgba(0,245,255,.6)}
+  .welcome-input::placeholder{color:var(--muted)}
+  .welcome-btn{width:100%;background:linear-gradient(135deg,rgba(0,245,255,.15),rgba(191,0,255,.15));border:1px solid rgba(0,245,255,.3);border-radius:8px;padding:12px;color:var(--neon-cyan);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:4px;cursor:pointer;transition:all .2s}
+  .welcome-btn:hover{box-shadow:0 0 28px rgba(0,245,255,.15)}
+  .welcome-skip{margin-top:14px;font-size:11px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:'Rajdhani',sans-serif;transition:color .2s;display:block;width:100%}
+  .welcome-skip:hover{color:var(--text)}
+  /* TOAST */
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(10,10,18,.95);border:1px solid rgba(0,245,255,.2);border-radius:8px;padding:12px 24px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--neon-cyan);box-shadow:0 0 30px rgba(0,245,255,.1);z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.error{border-color:rgba(255,0,110,.3);color:var(--neon-pink);box-shadow:0 0 30px rgba(255,0,110,.08)}
+  /* ADD GAMES MODAL */
+  .add-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);z-index:450;align-items:center;justify-content:center}
+  .add-modal-overlay.open{display:flex}
+  .add-modal{background:var(--bg2);border:1px solid rgba(0,245,255,.2);border-radius:16px;padding:32px 36px 28px;width:600px;max-width:95vw;box-shadow:0 0 80px rgba(0,245,255,.07);animation:slideIn .25s ease}
+  .add-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .add-modal-title{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:4px;color:var(--neon-cyan);text-shadow:0 0 12px rgba(0,245,255,.3)}
+  .add-modal-close{background:none;border:1px solid rgba(0,245,255,.15);border-radius:4px;color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s}
+  .add-modal-close:hover{color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:0 0 10px rgba(255,0,110,.2)}
+  .add-modal .drop-zone-outer{width:100%;margin-bottom:0}
+
+  /* GITHUB MODAL */
+  .gh-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);z-index:460;align-items:center;justify-content:center}
+  .gh-modal-overlay.open{display:flex}
+  .gh-modal{background:var(--bg2);border:1px solid rgba(0,245,255,.2);border-radius:16px;padding:32px 36px 28px;width:660px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(0,245,255,.07);animation:slideIn .25s ease}
+  .gh-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-shrink:0}
+  .gh-modal-title{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:4px;color:var(--neon-cyan);text-shadow:0 0 12px rgba(0,245,255,.3)}
+  .gh-modal-close{background:none;border:1px solid rgba(0,245,255,.15);border-radius:4px;color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s}
+  .gh-modal-close:hover{color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:0 0 10px rgba(255,0,110,.2)}
+  .gh-url-row{display:flex;gap:10px;margin-bottom:18px;flex-shrink:0}
+  .gh-url-input{flex:1;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.2);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+  .gh-url-input:focus{border-color:rgba(0,245,255,.5)}
+  .gh-url-input::placeholder{color:var(--muted)}
+  .gh-scan-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 18px;border-radius:8px;cursor:pointer;border:1px solid rgba(0,245,255,.3);background:linear-gradient(135deg,rgba(0,245,255,.1),rgba(191,0,255,.1));color:var(--neon-cyan);white-space:nowrap;transition:all .2s;flex-shrink:0}
+  .gh-scan-btn:hover{border-color:var(--neon-cyan);box-shadow:0 0 16px rgba(0,245,255,.15)}
+  .gh-scan-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+  .gh-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:14px;min-height:16px;flex-shrink:0}
+  .gh-status.err{color:var(--neon-pink)}
+  .gh-status.ok{color:var(--neon-green)}
+  .gh-game-list{flex:1;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;min-height:0}
+  .gh-game-list::-webkit-scrollbar{width:4px}
+  .gh-game-list::-webkit-scrollbar-track{background:rgba(0,245,255,.03)}
+  .gh-game-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,.15);border-radius:4px}
+  .gh-game-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(0,245,255,.08);border-radius:8px;cursor:pointer;transition:all .2s;background:rgba(0,245,255,.02);user-select:none}
+  .gh-game-item:hover{border-color:rgba(0,245,255,.25);background:rgba(0,245,255,.04)}
+  .gh-game-item.selected{border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.05)}
+  .gh-game-check{width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,245,255,.2);background:transparent;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--neon-green);flex-shrink:0;transition:all .2s}
+  .gh-game-item.selected .gh-game-check{background:rgba(0,255,136,.15);border-color:rgba(0,255,136,.5)}
+  .gh-game-name{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gh-game-files{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;color:var(--muted);margin-left:auto;flex-shrink:0}
+  .gh-footer{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .gh-select-all{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);background:none;border:none;cursor:pointer;transition:color .2s;padding:0}
+  .gh-select-all:hover{color:var(--neon-cyan)}
+  .gh-load-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 22px;border-radius:8px;cursor:pointer;border:1px solid rgba(0,255,136,.3);background:linear-gradient(135deg,rgba(0,255,136,.1),rgba(0,245,255,.1));color:var(--neon-green);transition:all .2s}
+  .gh-load-btn:hover{border-color:var(--neon-green);box-shadow:0 0 16px rgba(0,255,136,.15)}
+  .gh-load-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+  .gh-btn-github{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;border:1px solid rgba(167,139,250,.25);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
+  .gh-btn-github:hover{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.5);box-shadow:0 0 14px rgba(167,139,250,.12)}
+
+  /* R2 IMPORT MODAL */
+  .r2-btn{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:#f6821f;border:1px solid rgba(246,130,31,.25);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
+  .r2-btn:hover{background:rgba(246,130,31,.06);border-color:rgba(246,130,31,.6);box-shadow:0 0 14px rgba(246,130,31,.12)}
+  .r2-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);z-index:460;align-items:center;justify-content:center}
+  .r2-modal-overlay.open{display:flex}
+  .r2-modal{background:var(--bg2);border:1px solid rgba(246,130,31,.25);border-radius:16px;padding:32px 36px 28px;width:580px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(246,130,31,.06);animation:slideIn .25s ease}
+  .r2-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-shrink:0}
+  .r2-modal-title{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:4px;color:#f6821f;text-shadow:0 0 12px rgba(246,130,31,.3)}
+  .r2-modal-close{background:none;border:1px solid rgba(246,130,31,.2);border-radius:4px;color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s}
+  .r2-modal-close:hover{color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:0 0 10px rgba(255,0,110,.2)}
+  .r2-base-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-shrink:0}
+  .r2-base-label{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);white-space:nowrap}
+  .r2-base-input{flex:1;background:rgba(246,130,31,.04);border:1px solid rgba(246,130,31,.2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+  .r2-base-input:focus{border-color:rgba(246,130,31,.5)}
+  .r2-base-input::placeholder{color:var(--muted)}
+  .r2-input-row{display:flex;gap:8px;margin-bottom:14px;flex-shrink:0}
+  .r2-link-input{flex:1;background:rgba(246,130,31,.03);border:1px solid rgba(246,130,31,.15);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+  .r2-link-input:focus{border-color:rgba(246,130,31,.45)}
+  .r2-link-input::placeholder{color:var(--muted)}
+  .r2-add-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:9px 16px;border-radius:8px;cursor:pointer;border:1px solid rgba(246,130,31,.35);background:linear-gradient(135deg,rgba(246,130,31,.1),rgba(255,60,0,.08));color:#f6821f;white-space:nowrap;transition:all .2s;flex-shrink:0}
+  .r2-add-btn:hover{border-color:#f6821f;box-shadow:0 0 14px rgba(246,130,31,.15)}
+  .r2-queue{flex:1;overflow-y:auto;min-height:0;margin-bottom:16px;display:flex;flex-direction:column;gap:6px}
+  .r2-queue::-webkit-scrollbar{width:4px}
+  .r2-queue::-webkit-scrollbar-thumb{background:rgba(246,130,31,.2);border-radius:4px}
+  .r2-queue-empty{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-align:center;padding:24px 0}
+  .r2-queue-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid rgba(246,130,31,.15);border-radius:8px;background:rgba(246,130,31,.03)}
+  .r2-queue-icon{font-size:14px;color:#f6821f;flex-shrink:0}
+  .r2-queue-name{flex:1;font-size:13px;font-weight:600;color:var(--text);letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .r2-queue-url{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+  .r2-queue-remove{background:none;border:none;color:rgba(255,0,110,.4);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color .15s;flex-shrink:0}
+  .r2-queue-remove:hover{color:var(--neon-pink)}
+  .r2-footer{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .r2-count{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted)}
+  .r2-load-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 22px;border-radius:8px;cursor:pointer;border:1px solid rgba(246,130,31,.35);background:linear-gradient(135deg,rgba(246,130,31,.12),rgba(255,100,0,.08));color:#f6821f;transition:all .2s}
+  .r2-load-btn:hover{border-color:#f6821f;box-shadow:0 0 16px rgba(246,130,31,.15)}
+  .r2-load-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+  .r2-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;min-height:14px;flex-shrink:0}
+  .r2-status.err{color:var(--neon-pink)}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+
+<!-- WELCOME -->
+<div class="welcome-overlay" id="welcomeModal">
+  <div class="welcome-modal">
+    <div class="welcome-logo">ZENO</div>
+    <div class="welcome-sub">// Part of the Eclipse Family</div>
+    <div class="welcome-divider"></div>
+    <div class="welcome-question">What would you like to be called?</div>
+    <input class="welcome-input" type="text" id="welcomeInput" placeholder="Enter your name..." maxlength="24"/>
+    <button class="welcome-btn" onclick="saveUsername()">LET'S GO</button>
+    <button class="welcome-skip" onclick="skipUsername()">skip for now</button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-overlay" id="progressOverlay">
+  <div class="progress-title">LOADING GAME FILES</div>
+  <div class="progress-queue" id="progressQueue"></div>
+  <div class="progress-sub" id="progressSub">Preparing...</div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+</div>
+
+<!-- GAME MODAL -->
+<div class="game-modal-overlay" id="gameModal">
+  <div class="game-modal">
+    <div class="game-modal-header">
+      <div class="game-modal-icon" id="gameModalIcon"></div>
+      <div class="game-modal-title" id="gameModalTitle">LOADING...</div>
+      <button class="game-modal-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
+      <button class="game-modal-btn close" onclick="closeGameModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="game-modal-loading" id="gameModalLoading">
+      <div class="loader-ring"></div>
+      <div class="loader-text">LAUNCHING GAME</div>
+    </div>
+    <iframe id="gameModalFrame" src="" allowfullscreen allow="autoplay; fullscreen"></iframe>
+  </div>
+</div>
+
+<!-- ADD GAMES MODAL (5-slot, shown when grid already has games) -->
+<div class="add-modal-overlay" id="addGamesModal">
+  <div class="add-modal">
+    <div class="add-modal-header">
+      <div class="add-modal-title">ADD GAMES</div>
+      <button class="add-modal-close" onclick="closeAddGamesModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drop-zone-outer">
+      <div class="drop-slots" id="addDropSlots"></div>
+      <div class="drop-zone-main" id="addDropZoneMain">
+        <input type="file" id="addBulkFileInput" webkitdirectory multiple onchange="addHandleBulkInput(this.files)">
+        <div class="drop-zone-main-text"><em>Drop multiple folders here</em> to auto-fill slots</div>
+      </div>
+      <div class="upload-actions">
+        <button class="upload-btn upload-btn-go" id="addUploadGoBtn" disabled onclick="addCommitUpload()">
+          <i class="fa-solid fa-bolt"></i>&nbsp; LOAD GAMES
+        </button>
+        <button class="upload-btn upload-btn-clear" onclick="addClearAllSlots()">CLEAR ALL</button>
+      </div>
+    </div>
+    <div class="upload-hint" style="text-align:center;margin-top:14px">All assets (JS, CSS, audio, images) served via Service Worker</div>
+  </div>
+</div>
+
+
+<!-- GITHUB IMPORT MODAL -->
+<div class="gh-modal-overlay" id="ghModal">
+  <div class="gh-modal">
+    <div class="gh-modal-header">
+      <div class="gh-modal-title"><i class="fa-solid fa-code-branch"></i>&nbsp; IMPORT FROM GIT</div>
+      <button class="gh-modal-close" onclick="closeGHModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gh-url-row">
+      <input class="gh-url-input" id="ghUrlInput" type="text" placeholder="https://git.gay/user/repo  or  github.com/user/repo" spellcheck="false"/>
+      <button class="gh-scan-btn" id="ghScanBtn" onclick="ghScan()"><i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN</button>
+    </div>
+    <div class="gh-status" id="ghStatus"></div>
+    <div class="gh-game-list" id="ghGameList"></div>
+    <div class="gh-footer">
+      <button class="gh-select-all" id="ghSelectAll" onclick="ghToggleAll()" style="display:none">SELECT ALL</button>
+      <button class="gh-load-btn" id="ghLoadBtn" disabled onclick="ghLoadSelected()"><i class="fa-solid fa-bolt"></i>&nbsp; LOAD SELECTED</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- R2 IMPORT MODAL -->
+<div class="r2-modal-overlay" id="r2Modal">
+  <div class="r2-modal">
+    <div class="r2-modal-header">
+      <div class="r2-modal-title"><i class="fa-solid fa-cloud"></i>&nbsp; R2 IMPORT</div>
+      <button class="r2-modal-close" onclick="closeR2Modal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="r2-base-row">
+      <span class="r2-base-label">BASE URL</span>
+      <input class="r2-base-input" id="r2BaseInput" placeholder="https://pub-xxx.r2.dev" spellcheck="false"/>
+    </div>
+    <div class="r2-input-row">
+      <input class="r2-link-input" id="r2LinkInput" placeholder="Paste full link or just folder name..." spellcheck="false"/>
+      <button class="r2-add-btn" onclick="r2AddLink()"><i class="fa-solid fa-plus"></i>&nbsp; ADD</button>
+    </div>
+    <div class="r2-status" id="r2Status"></div>
+    <div class="r2-queue" id="r2Queue">
+      <div class="r2-queue-empty">No games queued yet</div>
+    </div>
+    <div class="r2-footer">
+      <span class="r2-count" id="r2Count"></span>
+      <button class="r2-load-btn" id="r2LoadBtn" disabled onclick="r2LoadAll()"><i class="fa-solid fa-bolt"></i>&nbsp; LOAD ALL</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="tb-left">
+    <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> HOME</a>
+    <span class="game-count" id="gameCount"></span>
+  </div>
+  <div class="tb-center">
+    <div class="search-wrap">
+      <i class="fa-solid fa-search search-icon"></i>
+      <input type="text" id="searchInput" placeholder="Search games..." oninput="filterGames()"/>
+    </div>
+  </div>
+  <div class="tb-right">
+    <div class="greeting" id="greeting"></div>
+    <div class="sw-badge pending" id="swBadge"><div class="dot"></div><span id="swLabel">SW</span></div>
+    <button class="btn-upload" onclick="openAddGamesModal()">
+      <i class="fa-solid fa-folder-plus"></i> ADD GAMES
+    </button>
+    <button class="gh-btn-github" onclick="openGHModal()">
+      <i class="fa-solid fa-code-branch"></i> GIT IMPORT
+    </button>
+    <button class="r2-btn" onclick="openR2Modal()">
+      <i class="fa-solid fa-cloud"></i> R2 IMPORT
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon"><i class="fa-solid fa-gamepad"></i></div>
+    <div class="empty-title">NO GAMES LOADED</div>
+    <div class="empty-sub">Upload up to <em>5 game folders</em> at once using the slots below, or drop folders anywhere on the page.</div>
+    <div class="drop-zone-outer">
+      <div class="drop-slots" id="dropSlots"></div>
+      <div class="drop-zone-main" id="dropZoneMain">
+        <input type="file" id="bulkFileInput" webkitdirectory multiple onchange="handleBulkInput(this.files)">
+        <div class="drop-zone-main-text"><em>Drop multiple folders here</em> to auto-fill slots</div>
+      </div>
+      <div class="upload-actions">
+        <button class="upload-btn upload-btn-go" id="uploadGoBtn" disabled onclick="commitUpload()">
+          <i class="fa-solid fa-bolt"></i>&nbsp; LOAD GAMES
+        </button>
+        <button class="upload-btn upload-btn-clear" onclick="clearAllSlots()">CLEAR ALL</button>
+      </div>
+    </div>
+    <div class="upload-hint">All assets (JS, CSS, audio, images) served via Service Worker</div>
+  </div>
+  <div class="game-grid" id="gameGrid" style="display:none">
+    <div class="no-results" id="noResults">NO GAMES FOUND</div>
+  </div>
+</main>
+
+<script>
+const MAX_SLOTS = 5;
+const MIME_MAP = {
+  html:'text/html',htm:'text/html',js:'application/javascript',mjs:'application/javascript',
+  cjs:'application/javascript',css:'text/css',json:'application/json',
+  png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',
+  webp:'image/webp',svg:'image/svg+xml',bmp:'image/bmp',ico:'image/x-icon',
+  mp3:'audio/mpeg',ogg:'audio/ogg',wav:'audio/wav',mp4:'video/mp4',webm:'video/webm',
+  woff:'font/woff',woff2:'font/woff2',ttf:'font/ttf',eot:'application/vnd.ms-fontobject',
+  txt:'text/plain',xml:'application/xml',wasm:'application/wasm',
+};
+const getMime = n => MIME_MAP[n.split('.').pop().toLowerCase()] || 'application/octet-stream';
+
+// ── SW ──────────────────────────────────────────────────────────
+let swReady = false;
+async function initSW() {
+  if (!('serviceWorker' in navigator)) { setSWBadge('error','NO SW'); return; }
+  try {
+    await navigator.serviceWorker.register('./zeno-game-sw.js', { scope: './' });
+    await navigator.serviceWorker.ready;
+    swReady = true; setSWBadge('ready','SW LIVE');
+  } catch(e) { console.error(e); setSWBadge('error','SW ERR'); showToast('SW FAILED — use HTTP server',true); }
+}
+function setSWBadge(s,l) { document.getElementById('swBadge').className='sw-badge '+s; document.getElementById('swLabel').textContent=l; }
+function getSW() { return navigator.serviceWorker?.controller||null; }
+function postSW(msg, xfer=[]) {
+  return new Promise((res,rej) => {
+    const sw=getSW(); if(!sw){rej(new Error('no controller'));return;}
+    const ch=new MessageChannel(); ch.port1.onmessage=e=>res(e.data);
+    sw.postMessage(msg,[ch.port2,...xfer]);
+  });
+}
+
+// ── SLOT STATE (empty-state) ─────────────────────────────────────
+const slotData = new Array(MAX_SLOTS).fill(null);
+let games = [];
+
+function buildSlots() {
+  const c = document.getElementById('dropSlots'); c.innerHTML='';
+  for (let i=0;i<MAX_SLOTS;i++) {
+    const slot = document.createElement('div');
+    slot.className='drop-slot'; slot.id='slot-'+i;
+    slot.innerHTML=`<input type="file" webkitdirectory multiple onchange="handleSlotFile(this,${i})"><div class="slot-icon"><i class="fa-solid fa-folder-plus"></i></div><div class="slot-num">SLOT ${i+1}</div>`;
+    slot.addEventListener('dragover', e=>{e.preventDefault();e.stopPropagation();slot.classList.add('dragover');});
+    slot.addEventListener('dragleave', ()=>slot.classList.remove('dragover'));
+    slot.addEventListener('drop', async e=>{
+      e.preventDefault();e.stopPropagation();slot.classList.remove('dragover');
+      const files=[];
+      await Promise.all([...(e.dataTransfer.items||[])].map(item=>{
+        const en=item.webkitGetAsEntry?.();
+        if(en?.isDirectory) return readDir(en,files,en.name);
+      }).filter(Boolean));
+      if(files.length) assignSlot(i,files); else showToast('DROP A GAME FOLDER',true);
+    });
+    c.appendChild(slot);
+  }
+  refreshSlots();
+}
+
+function handleSlotFile(inp,i) {
+  if(!inp.files?.length) return;
+  assignSlot(i,[...inp.files]);
+  inp.value='';
+}
+
+function handleBulkInput(fileList) {
+  if(!fileList?.length) return;
+  const folders={};
+  for(const f of fileList){const t=f.webkitRelativePath.split('/')[0];if(!folders[t])folders[t]=[];folders[t].push(f);}
+  const names=Object.keys(folders); let filled=0;
+  for(let i=0;i<MAX_SLOTS&&filled<names.length;i++){if(!slotData[i]){assignSlot(i,folders[names[filled]]);filled++;}}
+  if(filled<names.length) showToast(`${names.length-filled} FOLDER(S) SKIPPED — SLOTS FULL`,true);
+  document.getElementById('bulkFileInput').value='';
+}
+
+function assignSlot(idx, files) {
+  const top = files[0]?.webkitRelativePath.split('/')[0]||'Game';
+  const hasIdx = files.some(f=>{const p=f.webkitRelativePath.split('/');return p.length===2&&p[1].toLowerCase()==='index.html';});
+  if(!hasIdx){showToast(`SLOT ${idx+1}: NO INDEX.HTML`,true);return;}
+  slotData[idx]={folderName:top,files};
+  refreshSlots();
+}
+
+function clearSlot(idx){slotData[idx]=null;refreshSlots();}
+function clearAllSlots(){slotData.fill(null);refreshSlots();}
+
+function refreshSlots() {
+  for(let i=0;i<MAX_SLOTS;i++){
+    const s=document.getElementById('slot-'+i); if(!s)continue;
+    const d=slotData[i];
+    if(d){
+      s.className='drop-slot filled';
+      s.querySelector('input').style.display='none';
+      [...s.children].forEach(c=>{if(c.tagName!=='INPUT')c.remove();});
+      s.insertAdjacentHTML('beforeend',`<div class="slot-clear" onclick="event.stopPropagation();clearSlot(${i})"><i class="fa-solid fa-xmark"></i></div><div class="slot-icon"><i class="fa-solid fa-check"></i></div><div class="slot-name">${esc(d.folderName)}</div><div class="slot-num">${d.files.length} FILES</div>`);
+    } else {
+      s.className='drop-slot';
+      const inp=s.querySelector('input'); if(inp)inp.style.display='';
+      [...s.children].forEach(c=>{if(c.tagName!=='INPUT')c.remove();});
+      s.insertAdjacentHTML('beforeend',`<div class="slot-icon"><i class="fa-solid fa-folder-plus"></i></div><div class="slot-num">SLOT ${i+1}</div>`);
+    }
+  }
+  document.getElementById('uploadGoBtn').disabled=!slotData.some(Boolean);
+}
+
+// ── COMMIT (empty-state) ─────────────────────────────────────────
+async function commitUpload() {
+  const toLoad=slotData.map((d,i)=>d?{...d,idx:i}:null).filter(Boolean);
+  if(!toLoad.length) return;
+  if(!swReady){showToast('WAITING FOR SW...',true);await initSW();if(!swReady)return;}
+  if(!getSW()){showToast('ACTIVATING SW — reloading...');setTimeout(()=>location.reload(),1200);return;}
+  buildPips(toLoad.length); showProgress(true,`Loading 1 of ${toLoad.length}...`);
+  let added=0;
+  for(let i=0;i<toLoad.length;i++){
+    setPip(i,'active'); showProgress(true,`Game ${i+1}/${toLoad.length}: ${toLoad[i].folderName}`);
+    const ok=await processFolder(toLoad[i].folderName,toLoad[i].files);
+    setPip(i,ok?'done':'fail'); if(ok)added++;
+  }
+  showProgress(false); clearAllSlots();
+  if(added>0){showToast(`+${added} GAME${added>1?'S':''} ADDED`);renderGrid();}
+  else showToast('NO GAMES LOADED',true);
+}
+
+// ── ADD GAMES MODAL slot state ────────────────────────────────────
+const addSlotData = new Array(MAX_SLOTS).fill(null);
+
+function buildAddSlots() {
+  const c = document.getElementById('addDropSlots'); c.innerHTML='';
+  for (let i=0;i<MAX_SLOTS;i++) {
+    const slot = document.createElement('div');
+    slot.className='drop-slot'; slot.id='addslot-'+i;
+    slot.innerHTML=`<input type="file" webkitdirectory multiple onchange="addHandleSlotFile(this,${i})"><div class="slot-icon"><i class="fa-solid fa-folder-plus"></i></div><div class="slot-num">SLOT ${i+1}</div>`;
+    slot.addEventListener('dragover', e=>{e.preventDefault();e.stopPropagation();slot.classList.add('dragover');});
+    slot.addEventListener('dragleave', ()=>slot.classList.remove('dragover'));
+    slot.addEventListener('drop', async e=>{
+      e.preventDefault();e.stopPropagation();slot.classList.remove('dragover');
+      const files=[];
+      await Promise.all([...(e.dataTransfer.items||[])].map(item=>{
+        const en=item.webkitGetAsEntry?.();
+        if(en?.isDirectory) return readDir(en,files,en.name);
+      }).filter(Boolean));
+      if(files.length) addAssignSlot(i,files); else showToast('DROP A GAME FOLDER',true);
+    });
+    c.appendChild(slot);
+  }
+  addRefreshSlots();
+}
+
+function addHandleSlotFile(inp,i) {
+  if(!inp.files?.length) return;
+  addAssignSlot(i,[...inp.files]);
+  inp.value='';
+}
+
+function addHandleBulkInput(fileList) {
+  if(!fileList?.length) return;
+  const folders={};
+  for(const f of fileList){const t=f.webkitRelativePath.split('/')[0];if(!folders[t])folders[t]=[];folders[t].push(f);}
+  const names=Object.keys(folders); let filled=0;
+  for(let i=0;i<MAX_SLOTS&&filled<names.length;i++){if(!addSlotData[i]){addAssignSlot(i,folders[names[filled]]);filled++;}}
+  if(filled<names.length) showToast(`${names.length-filled} FOLDER(S) SKIPPED — SLOTS FULL`,true);
+  document.getElementById('addBulkFileInput').value='';
+}
+
+function addAssignSlot(idx, files) {
+  const top = files[0]?.webkitRelativePath.split('/')[0]||'Game';
+  const hasIdx = files.some(f=>{const p=f.webkitRelativePath.split('/');return p.length===2&&p[1].toLowerCase()==='index.html';});
+  if(!hasIdx){showToast(`SLOT ${idx+1}: NO INDEX.HTML`,true);return;}
+  addSlotData[idx]={folderName:top,files};
+  addRefreshSlots();
+}
+
+function addClearSlot(idx){addSlotData[idx]=null;addRefreshSlots();}
+function addClearAllSlots(){addSlotData.fill(null);addRefreshSlots();}
+
+function addRefreshSlots() {
+  for(let i=0;i<MAX_SLOTS;i++){
+    const s=document.getElementById('addslot-'+i); if(!s)continue;
+    const d=addSlotData[i];
+    if(d){
+      s.className='drop-slot filled';
+      s.querySelector('input').style.display='none';
+      [...s.children].forEach(c=>{if(c.tagName!=='INPUT')c.remove();});
+      s.insertAdjacentHTML('beforeend',`<div class="slot-clear" onclick="event.stopPropagation();addClearSlot(${i})"><i class="fa-solid fa-xmark"></i></div><div class="slot-icon"><i class="fa-solid fa-check"></i></div><div class="slot-name">${esc(d.folderName)}</div><div class="slot-num">${d.files.length} FILES</div>`);
+    } else {
+      s.className='drop-slot';
+      const inp=s.querySelector('input'); if(inp)inp.style.display='';
+      [...s.children].forEach(c=>{if(c.tagName!=='INPUT')c.remove();});
+      s.insertAdjacentHTML('beforeend',`<div class="slot-icon"><i class="fa-solid fa-folder-plus"></i></div><div class="slot-num">SLOT ${i+1}</div>`);
+    }
+  }
+  document.getElementById('addUploadGoBtn').disabled=!addSlotData.some(Boolean);
+}
+
+function openAddGamesModal() {
+  addSlotData.fill(null);
+  buildAddSlots();
+  document.getElementById('addGamesModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeAddGamesModal() {
+  document.getElementById('addGamesModal').classList.remove('open');
+  document.body.style.overflow='';
+  addSlotData.fill(null);
+}
+
+async function addCommitUpload() {
+  const toLoad=addSlotData.map((d,i)=>d?{...d,idx:i}:null).filter(Boolean);
+  if(!toLoad.length) return;
+  if(!swReady){showToast('WAITING FOR SW...',true);await initSW();if(!swReady)return;}
+  if(!getSW()){showToast('ACTIVATING SW — reloading...');setTimeout(()=>location.reload(),1200);return;}
+  closeAddGamesModal();
+  buildPips(toLoad.length); showProgress(true,`Loading 1 of ${toLoad.length}...`);
+  let added=0;
+  for(let i=0;i<toLoad.length;i++){
+    setPip(i,'active'); showProgress(true,`Game ${i+1}/${toLoad.length}: ${toLoad[i].folderName}`);
+    const ok=await processFolder(toLoad[i].folderName,toLoad[i].files);
+    setPip(i,ok?'done':'fail'); if(ok)added++;
+  }
+  showProgress(false);
+  if(added>0){showToast(`+${added} GAME${added>1?'S':''} ADDED`);renderGrid();}
+  else showToast('NO GAMES LOADED',true);
+}
+
+document.getElementById('addGamesModal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('addGamesModal')) closeAddGamesModal();
+});
+
+// Drop zone for add modal
+const addDzMain = document.getElementById('addDropZoneMain');
+addDzMain.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();addDzMain.classList.add('dragover');});
+addDzMain.addEventListener('dragleave',()=>addDzMain.classList.remove('dragover'));
+addDzMain.addEventListener('drop',async e=>{
+  e.preventDefault();e.stopPropagation();addDzMain.classList.remove('dragover');
+  const files=[];
+  await Promise.all([...(e.dataTransfer.items||[])].map(item=>{const en=item.webkitGetAsEntry?.();if(en?.isDirectory)return readDir(en,files,en.name);}).filter(Boolean));
+  if(files.length)addHandleBulkInput(files);
+});
+
+// ── PROCESS SINGLE FOLDER ────────────────────────────────────────
+async function processFolder(folderName, files) {
+  const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const iconNames=new Set(['favicon.ico','favicon.png','icon.png','logo.png','thumbnail.png','cover.png','icon.jpg']);
+  // Store original File objects — browser keeps them readable as long as the page is open
+  const fileRecords=[]; let iconUrl=null;
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    const relPath=f.webkitRelativePath.split('/').slice(1).join('/');
+    const mime=getMime(f.name);
+    setProgress(Math.round((i/files.length)*80),`${folderName}: ${i+1}/${files.length}`);
+    if(!iconUrl&&iconNames.has(f.name.toLowerCase())){
+      const buf=await f.arrayBuffer();
+      iconUrl=await blobToDataUrl(new Blob([buf],{type:mime}));
+    }
+    fileRecords.push({file:f, path:relPath, mimeType:mime});
+  }
+  setProgress(88,`${folderName}: sending to SW...`);
+  const ok = await registerGameWithSW(id, fileRecords);
+  if(!ok){ showToast(`FAILED: ${folderName}`,true); return false; }
+  setProgress(100,`${folderName}: ready!`); await sleep(180);
+  // Keep fileRecords (original File objects) so we can re-feed SW after it restarts
+  const gameEntry = {id, name:folderName, icon:iconUrl, entryPath:`./zeno-games/${id}/index.html`, fileCount:files.length, fileRecords};
+  games.push(gameEntry);
+  saveGameToDB(gameEntry).catch(e => console.error('Failed to save game to DB:', e));
+  return true;
+}
+
+// Re-read files fresh from disk and send to SW — safe to call any number of times
+async function registerGameWithSW(gameId, fileRecords) {
+  try {
+    const meta=[], bufs=[];
+    for(const r of fileRecords){
+      const buf = await r.file.arrayBuffer(); // always re-reads from the original File
+      meta.push({path:r.path, mimeType:r.mimeType});
+      bufs.push(buf);
+    }
+    // Slice to clone before transfer — originals in fileRecords stay intact
+    const clones = bufs.map(b => b.slice(0));
+    const res = await postSW({type:'REGISTER_GAME', payload:{gameId, filesMeta:meta, buffers:clones}}, clones);
+    return res?.type === 'GAME_REGISTERED';
+  } catch(e){ console.error('registerGameWithSW failed:', e); return false; }
+}
+
+// ── PROGRESS ─────────────────────────────────────────────────────
+function buildPips(n){const c=document.getElementById('progressQueue');c.innerHTML='';for(let i=0;i<n;i++){const p=document.createElement('div');p.className='progress-pip';p.id='pip-'+i;c.appendChild(p);}}
+function setPip(i,s){const p=document.getElementById('pip-'+i);if(p)p.className='progress-pip '+s;}
+function showProgress(show,text=''){document.getElementById('progressOverlay').classList.toggle('open',show);if(text)document.getElementById('progressSub').textContent=text;if(!show){document.getElementById('progressBar').style.width='0%';document.getElementById('progressQueue').innerHTML='';}}
+function setProgress(pct,text){document.getElementById('progressBar').style.width=pct+'%';if(text)document.getElementById('progressSub').textContent=text;}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+const blobToDataUrl=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b);});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ── GRID ──────────────────────────────────────────────────────────
+function renderGrid(){
+  const grid=document.getElementById('gameGrid'),empty=document.getElementById('emptyState'),noRes=document.getElementById('noResults');
+  if(!games.length){empty.style.display='flex';grid.style.display='none';document.getElementById('gameCount').textContent='';return;}
+  empty.style.display='none';grid.style.display='grid';
+  grid.querySelectorAll('.game-card,.add-card').forEach(el=>el.remove());
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const filtered=q?games.filter(g=>g.name.toLowerCase().includes(q)):games;
+  filtered.forEach((g,i)=>{
+    const card=document.createElement('div');card.className='game-card';card.style.animationDelay=(i*.02)+'s';
+    card.innerHTML=`<div class="game-icon">${g.icon?`<img src="${g.icon}" alt="">`:'<i class="fa-solid fa-gamepad"></i>'}</div><div class="game-name">${esc(g.name)}</div><button class="game-delete" onclick="removeGame(event,'${g.id}')"><i class="fa-solid fa-xmark"></i></button>`;
+    card.addEventListener('click',()=>openGameModal(g));
+    grid.insertBefore(card,noRes);
+  });
+  const add=document.createElement('div');add.className='add-card';
+  add.innerHTML='<div class="add-card-icon"><i class="fa-solid fa-plus"></i></div><span>ADD GAMES</span>';
+  add.addEventListener('click', openAddGamesModal);
+  grid.insertBefore(add,noRes);
+  noRes.style.display=filtered.length===0?'block':'none';
+  document.getElementById('gameCount').textContent=games.length+' GAME'+(games.length!==1?'S':'');
+}
+function filterGames(){renderGrid();}
+function removeGame(e,id){
+  e.stopPropagation();
+  const sw=getSW();if(sw)sw.postMessage({type:'UNREGISTER_GAME',payload:{gameId:id}});
+  games=games.filter(g=>g.id!==id);renderGrid();showToast('GAME REMOVED');
+}
+
+// ── GAME MODAL ────────────────────────────────────────────────────
+async function openGameModal(g){
+  const frame=document.getElementById('gameModalFrame');
+  document.getElementById('gameModalTitle').textContent=g.name;
+  document.getElementById('gameModalIcon').innerHTML=g.icon?`<img src="${g.icon}" alt="">`:'<i class="fa-solid fa-gamepad"></i>';
+  document.getElementById('gameModalLoading').classList.remove('hidden');
+  document.getElementById('gameModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  frame.src='';
+
+  // Ping SW — if it was killed and restarted its store is empty, so re-register
+  try {
+    const sw = getSW();
+    if (sw && g.fileRecords) {
+      const probe = await new Promise((res,rej) => {
+        const ch = new MessageChannel();
+        ch.port1.onmessage = e => res(e.data);
+        setTimeout(() => rej(new Error('timeout')), 2000);
+        sw.postMessage({type:'PING_GAME', payload:{gameId:g.id}}, [ch.port2]);
+      }).catch(() => null);
+
+      if (!probe || probe.type !== 'GAME_FOUND') {
+        await registerGameWithSW(g.id, g.fileRecords);
+      }
+    }
+  } catch(e) { console.warn('SW re-register check failed:', e); }
+
+  setTimeout(()=>{frame.src=g.entryPath;}, 100);
+  frame.onload=()=>document.getElementById('gameModalLoading').classList.add('hidden');
+}
+function closeGameModal(){document.getElementById('gameModal').classList.remove('open');document.getElementById('gameModalFrame').src='';document.body.style.overflow='';}
+function toggleFullscreen(){const m=document.querySelector('.game-modal');if(!document.fullscreenElement)m.requestFullscreen?.();else document.exitFullscreen?.();}
+document.getElementById('gameModal').addEventListener('click',e=>{if(e.target===document.getElementById('gameModal'))closeGameModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeGameModal();closeAddGamesModal();}});
+
+// ── DRAG & DROP (global) ──────────────────────────────────────────
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',async e=>{
+  if(e.target.closest('input[type="file"]')||e.target.closest('.drop-slot')) return;
+  e.preventDefault();
+  const items=[...(e.dataTransfer.items||[])];
+  const byFolder={};
+  await Promise.all(items.map(item=>{
+    const en=item.webkitGetAsEntry?.();
+    if(en?.isDirectory){byFolder[en.name]=[];return readDir(en,byFolder[en.name],en.name);}
+  }).filter(Boolean));
+  const entries=Object.entries(byFolder);
+  if(!entries.length){showToast('DROP GAME FOLDERS',true);return;}
+  if(document.getElementById('emptyState').style.display!=='none'){
+    entries.slice(0,MAX_SLOTS).forEach(([,files])=>{for(let s=0;s<MAX_SLOTS;s++){if(!slotData[s]){assignSlot(s,files);break;}}});
+    if(entries.length>MAX_SLOTS)showToast(`ONLY ${MAX_SLOTS} SLOTS AVAILABLE`,true);
+  } else {
+    openAddGamesModal();
+    await sleep(50);
+    entries.slice(0,MAX_SLOTS).forEach(([,files])=>{for(let s=0;s<MAX_SLOTS;s++){if(!addSlotData[s]){addAssignSlot(s,files);break;}}});
+    if(entries.length>MAX_SLOTS)showToast(`ONLY ${MAX_SLOTS} SLOTS AVAILABLE`,true);
+  }
+});
+
+async function readDir(dirEntry,results,basePath){
+  const entries=await getAllEntries(dirEntry);
+  await Promise.all(entries.map(entry=>{
+    const path=basePath+'/'+entry.name;
+    if(entry.isFile)return new Promise(r=>entry.file(f=>{Object.defineProperty(f,'webkitRelativePath',{value:path,writable:false,configurable:true});results.push(f);r();}));
+    else if(entry.isDirectory)return readDir(entry,results,path);
+  }));
+}
+function getAllEntries(d){return new Promise(res=>{const r=d.createReader();let a=[];const read=()=>r.readEntries(b=>{if(!b.length)return res(a);a=a.concat([...b]);read();});read();});}
+
+// ── GREETING / WELCOME ────────────────────────────────────────────
+function updateGreeting(){const name=localStorage.getItem('zeno-username');const el=document.getElementById('greeting');if(!el||!name)return;const h=new Date().getHours();const sal=h<5?'UP LATE,':h<12?'GOOD MORNING,':h<18?'HELLO,':'GOOD EVENING,';el.innerHTML=sal+' <span>'+name.toUpperCase()+'</span>';}
+updateGreeting();
+function saveUsername(){localStorage.setItem('zeno-username',document.getElementById('welcomeInput').value.trim()||'Player');updateGreeting();document.getElementById('welcomeModal').classList.remove('open');}
+function skipUsername(){localStorage.setItem('zeno-username','');document.getElementById('welcomeModal').classList.remove('open');}
+document.getElementById('welcomeInput').addEventListener('keydown',e=>{if(e.key==='Enter')saveUsername();});
+if(localStorage.getItem('zeno-username')===null){document.getElementById('welcomeModal').classList.add('open');setTimeout(()=>document.getElementById('welcomeInput').focus(),100);}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' error':'');void t.offsetWidth;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
+
+// ── INIT ──────────────────────────────────────────────────────────
+const dzMain=document.getElementById('dropZoneMain');
+dzMain.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();dzMain.classList.add('dragover');});
+dzMain.addEventListener('dragleave',()=>dzMain.classList.remove('dragover'));
+dzMain.addEventListener('drop',async e=>{
+  e.preventDefault();e.stopPropagation();dzMain.classList.remove('dragover');
+  const files=[];
+  await Promise.all([...(e.dataTransfer.items||[])].map(item=>{const en=item.webkitGetAsEntry?.();if(en?.isDirectory)return readDir(en,files,en.name);}).filter(Boolean));
+  if(files.length)handleBulkInput(files);
+});
+
+
+// ── GIT IMPORT (GitHub + git.gay/Forgejo) ────────────────────────
+let ghFoundGames = [];
+
+// Detect which forge the URL points to and return config
+function parseRepoUrl(raw) {
+  raw = raw.trim().replace(/\/$/, '').replace(/\.git$/, '');
+  // Try to match https://host/owner/repo or host/owner/repo or owner/repo
+  const m = raw.match(/(?:https?:\/\/)?([^/\s]+\.(?:com|org|gay|dev|io|net|xyz))\/([^/\s]+)\/([^/\s]+)/) ||
+            raw.match(/([^/\s]+\.(?:com|org|gay|dev|io|net|xyz))\/([^/\s]+)\/([^/\s]+)/);
+  if (m) {
+    const host = m[1], owner = m[2], repo = m[3];
+    if (host === 'github.com') return { type: 'github', host, owner, repo };
+    return { type: 'forgejo', host, owner, repo };
+  }
+  // Bare owner/repo — default to git.gay
+  const m2 = raw.match(/^([^/\s]+)\/([^/\s]+)$/);
+  if (m2) return { type: 'forgejo', host: 'git.gay', owner: m2[1], repo: m2[2] };
+  return null;
+}
+
+async function ghFetch(url, isGitHub) {
+  const headers = isGitHub ? { 'Accept': 'application/vnd.github.v3+json' } : {};
+  const res = await fetch(url, { headers });
+  if (res.status === 403) throw new Error('RATE LIMITED — try again in a minute');
+  if (res.status === 404) throw new Error('REPO NOT FOUND');
+  if (!res.ok) throw new Error(`API ERROR ${res.status}`);
+  return res.json();
+}
+
+async function getTreeGitHub(owner, repo, branch) {
+  const data = await ghFetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`, true);
+  return (data.tree || []).map(f => ({ path: f.path, type: f.type === 'blob' ? 'blob' : 'tree' }));
+}
+
+async function getTreeForgejo(host, owner, repo, branch) {
+  // Forgejo API: GET /api/v1/repos/{owner}/{repo}/git/trees/{sha}?recursive=true
+  // But easier: use contents API recursively via the flat search endpoint
+  // Use /api/v1/repos/{owner}/{repo}/git/trees/{branch}?recursive=true
+  const data = await ghFetch(`https://${host}/api/v1/repos/${owner}/${repo}/git/trees/${branch}?recursive=true`, false);
+  return (data.tree || []).map(f => ({ path: f.path, type: f.type }));
+}
+
+async function getDefaultBranch(cfg) {
+  if (cfg.type === 'github') {
+    const d = await ghFetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, true);
+    return d.default_branch || 'main';
+  } else {
+    const d = await ghFetch(`https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}`, false);
+    return d.default_branch || 'main';
+  }
+}
+
+function getRawUrl(cfg, branch, filePath) {
+  if (cfg.type === 'github') {
+    // GitHub raw — note: may be blocked, but user chose GitHub knowing that
+    return `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${branch}/${filePath}`;
+  } else {
+    // Forgejo raw: https://host/owner/repo/raw/branch/branch/filepath
+    return `https://${cfg.host}/${cfg.owner}/${cfg.repo}/raw/branch/${branch}/${filePath}`;
+  }
+}
+
+function openGHModal() {
+  ghFoundGames = [];
+  document.getElementById('ghUrlInput').value = '';
+  document.getElementById('ghStatus').textContent = '';
+  document.getElementById('ghStatus').className = 'gh-status';
+  document.getElementById('ghGameList').innerHTML = '';
+  document.getElementById('ghSelectAll').style.display = 'none';
+  document.getElementById('ghLoadBtn').disabled = true;
+  document.getElementById('ghModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('ghUrlInput').focus(), 100);
+}
+
+function closeGHModal() {
+  document.getElementById('ghModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('ghModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('ghModal')) closeGHModal();
+});
+
+document.getElementById('ghUrlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') ghScan();
+});
+
+// Store current scan config so download can use it
+let ghCurrentCfg = null;
+let ghCurrentBranch = null;
+
+async function ghScan() {
+  const raw = document.getElementById('ghUrlInput').value;
+  const cfg = parseRepoUrl(raw);
+  if (!cfg) { setGHStatus('INVALID URL', 'err'); return; }
+
+  const btn = document.getElementById('ghScanBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>&nbsp; SCANNING';
+  setGHStatus(`SCANNING ${cfg.owner}/${cfg.repo} on ${cfg.host}...`);
+  document.getElementById('ghGameList').innerHTML = '';
+  document.getElementById('ghSelectAll').style.display = 'none';
+  document.getElementById('ghLoadBtn').disabled = true;
+  ghFoundGames = [];
+  ghCurrentCfg = cfg;
+
+  try {
+    setGHStatus('FETCHING REPO INFO...');
+    const branch = await getDefaultBranch(cfg);
+    ghCurrentBranch = branch;
+
+    setGHStatus('FETCHING FILE TREE...');
+    const tree = cfg.type === 'github'
+      ? await getTreeGitHub(cfg.owner, cfg.repo, branch)
+      : await getTreeForgejo(cfg.host, cfg.owner, cfg.repo, branch);
+
+    // Find top-level folders with index.html
+    const folderMap = {};
+    for (const item of tree) {
+      if (item.type !== 'blob') continue;
+      const parts = item.path.split('/');
+      if (parts.length === 2 && parts[1].toLowerCase() === 'index.html') {
+        folderMap[parts[0]] = [];
+      }
+    }
+    // Root index.html = single game repo
+    if (tree.some(f => f.path === 'index.html')) folderMap['[root]'] = [];
+
+    if (!Object.keys(folderMap).length) {
+      setGHStatus('NO GAME FOLDERS FOUND (no index.html files)', 'err');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';
+      return;
+    }
+
+    // Assign files to folders
+    for (const item of tree) {
+      if (item.type !== 'blob') continue;
+      const parts = item.path.split('/');
+      if (parts.length === 1 && '[root]' in folderMap) {
+        folderMap['[root]'].push({ path: item.path, url: getRawUrl(cfg, branch, item.path) });
+      } else if (parts.length >= 2 && parts[0] in folderMap) {
+        folderMap[parts[0]].push({ path: parts.slice(1).join('/'), url: getRawUrl(cfg, branch, item.path) });
+      }
+    }
+
+    ghFoundGames = Object.entries(folderMap).map(([name, files]) => ({ name, files, selected: false }));
+    setGHStatus(`FOUND ${ghFoundGames.length} GAME${ghFoundGames.length !== 1 ? 'S' : ''} — ${cfg.host}`, 'ok');
+    renderGHGameList();
+
+  } catch(e) {
+    setGHStatus(e.message || 'SCAN FAILED', 'err');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';
+}
+
+function setGHStatus(msg, cls = '') {
+  const el = document.getElementById('ghStatus');
+  el.textContent = msg;
+  el.className = 'gh-status' + (cls ? ' ' + cls : '');
+}
+
+function renderGHGameList() {
+  const list = document.getElementById('ghGameList');
+  list.innerHTML = '';
+  for (let i = 0; i < ghFoundGames.length; i++) {
+    const g = ghFoundGames[i];
+    const item = document.createElement('div');
+    item.className = 'gh-game-item' + (g.selected ? ' selected' : '');
+    item.innerHTML = `
+      <div class="gh-game-check">${g.selected ? '<i class="fa-solid fa-check"></i>' : ''}</div>
+      <div class="gh-game-name">${esc(g.name === '[root]' ? 'Root Game' : g.name)}</div>
+      <div class="gh-game-files">${g.files.length}F</div>
+    `;
+    item.addEventListener('click', () => ghToggleItem(i));
+    list.appendChild(item);
+  }
+  document.getElementById('ghSelectAll').style.display = ghFoundGames.length ? 'block' : 'none';
+  updateGHSelectAllLabel();
+  updateGHLoadBtn();
+}
+
+function ghToggleItem(i) {
+  ghFoundGames[i].selected = !ghFoundGames[i].selected;
+  renderGHGameList();
+}
+
+function ghToggleAll() {
+  const allSelected = ghFoundGames.every(g => g.selected);
+  ghFoundGames.forEach(g => g.selected = !allSelected);
+  renderGHGameList();
+}
+
+function updateGHSelectAllLabel() {
+  const btn = document.getElementById('ghSelectAll');
+  const allSelected = ghFoundGames.length && ghFoundGames.every(g => g.selected);
+  btn.textContent = allSelected ? 'DESELECT ALL' : 'SELECT ALL';
+}
+
+function updateGHLoadBtn() {
+  const count = ghFoundGames.filter(g => g.selected).length;
+  const btn = document.getElementById('ghLoadBtn');
+  btn.disabled = count === 0;
+  btn.innerHTML = count > 0
+    ? `<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${count} GAME${count !== 1 ? 'S' : ''}`
+    : '<i class="fa-solid fa-bolt"></i>&nbsp; LOAD SELECTED';
+}
+
+async function ghLoadSelected() {
+  const toLoad = ghFoundGames.filter(g => g.selected);
+  if (!toLoad.length) return;
+  if (!swReady) { await initSW(); if (!swReady) return; }
+  if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(() => location.reload(), 1200); return; }
+
+  closeGHModal();
+  buildPips(toLoad.length);
+  showProgress(true, `Downloading ${toLoad.length} game${toLoad.length !== 1 ? 's' : ''}...`);
+
+  let added = 0;
+  for (let i = 0; i < toLoad.length; i++) {
+    const g = toLoad[i];
+    const displayName = g.name === '[root]' ? (ghCurrentCfg?.repo || 'Game') : g.name;
+    setPip(i, 'active');
+    showProgress(true, `Downloading: ${displayName} (${i + 1}/${toLoad.length})`);
+    const ok = await ghDownloadAndLoad(displayName, g.files, i, toLoad.length);
+    setPip(i, ok ? 'done' : 'fail');
+    if (ok) added++;
+  }
+
+  showProgress(false);
+  if (added > 0) { showToast(`+${added} GAME${added > 1 ? 'S' : ''} ADDED`); renderGrid(); }
+  else showToast('NO GAMES LOADED', true);
+}
+
+async function ghFetchFile(url, cfg, branch, filePath) {
+  // Try the primary URL first
+  try {
+    const res = await fetch(url);
+    if (res.ok) return res;
+  } catch(e) {}
+
+  // Forgejo fallback: use the API contents endpoint which returns base64
+  if (cfg && cfg.type === 'forgejo') {
+    try {
+      const apiUrl = `https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}/contents/${filePath}?ref=${branch}`;
+      const res = await fetch(apiUrl);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.content) {
+          // API returns base64-encoded content
+          const binary = atob(json.content.replace(/\n/g, ''));
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          return new Response(bytes.buffer, { status: 200 });
+        }
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function ghDownloadAndLoad(name, fileList, gameIdx, total) {
+  const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const iconNames = new Set(['favicon.ico', 'favicon.png', 'icon.png', 'logo.png', 'thumbnail.png', 'cover.png', 'icon.jpg']);
+  const fileRecords = [];
+  let iconUrl = null;
+  let failedCount = 0;
+
+  for (let i = 0; i < fileList.length; i++) {
+    const f = fileList[i];
+    const pct = Math.round((i / fileList.length) * 80);
+    setProgress(pct, `${name}: ${i + 1}/${fileList.length} — ${f.path.split('/').pop()}`);
+
+    try {
+      // Build the full repo path for API fallback
+      const repoPath = name === '[root]' ? f.path : `${name}/${f.path}`;
+      const res = await ghFetchFile(f.url, ghCurrentCfg, ghCurrentBranch, repoPath);
+      if (!res) { failedCount++; console.warn('Failed to fetch:', f.url); continue; }
+
+      const buf = await res.arrayBuffer();
+      const mime = getMime(f.path.split('/').pop());
+      const fileName = f.path.split('/').pop();
+
+      const file = new File([buf], fileName, { type: mime });
+      Object.defineProperty(file, 'webkitRelativePath', { value: name + '/' + f.path, writable: false, configurable: true });
+
+      fileRecords.push({ file, path: f.path, mimeType: mime });
+
+      if (!iconUrl && iconNames.has(fileName.toLowerCase())) {
+        iconUrl = await blobToDataUrl(new Blob([buf], { type: mime }));
+      }
+    } catch(e) {
+      failedCount++;
+      console.warn('Failed to fetch:', f.url, e);
+    }
+  }
+
+  if (!fileRecords.some(r => r.path.split('/').pop().toLowerCase() === 'index.html')) {
+    setGHStatus(`FAILED: ${name} — could not download index.html (${failedCount} files failed)`, 'err');
+    showToast(`FAILED: ${name}`, true);
+    return false;
+  }
+
+  setProgress(88, `${name}: registering...`);
+  const ok = await registerGameWithSW(id, fileRecords);
+  if (!ok) return false;
+
+  setProgress(100, `${name}: ready!`);
+  await sleep(150);
+
+  const gameEntry = { id, name, icon: iconUrl, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
+  games.push(gameEntry);
+  saveGameToDB(gameEntry).catch(e => console.error('Failed to save game to DB:', e));
+  return true;
+}
+
+
+// ── R2 IMPORT ─────────────────────────────────────────────────────
+const R2_BASE_KEY = 'zeno-r2-base';
+let r2Queue = []; // { name, indexUrl, baseUrl }
+
+function openR2Modal() {
+  r2Queue = [];
+  const saved = localStorage.getItem(R2_BASE_KEY) || '';
+  document.getElementById('r2BaseInput').value = saved;
+  document.getElementById('r2LinkInput').value = '';
+  document.getElementById('r2Status').textContent = '';
+  document.getElementById('r2Status').className = 'r2-status';
+  renderR2Queue();
+  document.getElementById('r2Modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('r2LinkInput').focus(), 100);
+}
+
+function closeR2Modal() {
+  document.getElementById('r2Modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('r2Modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('r2Modal')) closeR2Modal();
+});
+
+document.getElementById('r2LinkInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') r2AddLink();
+});
+
+function r2ParseLink(raw) {
+  raw = raw.trim().replace(/\/+$/, '');
+  const baseRaw = document.getElementById('r2BaseInput').value.trim().replace(/\/+$/, '');
+
+  // Save base URL for next time
+  if (baseRaw) localStorage.setItem(R2_BASE_KEY, baseRaw);
+
+  let indexUrl = '';
+  let name = '';
+
+  if (raw.startsWith('http')) {
+    // Full URL pasted — extract name from path
+    try {
+      const u = new URL(raw);
+      const parts = u.pathname.split('/').filter(Boolean);
+      // Find the game folder — it's the segment before index.html (or last segment if no index.html)
+      const idxPos = parts.findIndex(p => p.toLowerCase() === 'index.html');
+      name = idxPos > 0 ? parts[idxPos - 1] : parts[parts.length - 1];
+      // Ensure URL points to index.html
+      indexUrl = raw.endsWith('index.html') ? raw : raw.replace(/\/?$/, '/index.html');
+    } catch(e) {
+      return null;
+    }
+  } else {
+    // Just a folder name — build URL from base
+    if (!baseRaw) return { error: 'PASTE A BASE URL FIRST' };
+    name = raw;
+    indexUrl = `${baseRaw}/${raw}/index.html`;
+  }
+
+  if (!name) return null;
+  return { name, indexUrl, baseUrl: new URL(indexUrl).origin };
+}
+
+function r2AddLink() {
+  const raw = document.getElementById('r2LinkInput').value;
+  if (!raw.trim()) return;
+
+  const parsed = r2ParseLink(raw);
+  if (!parsed) { setR2Status('INVALID LINK', 'err'); return; }
+  if (parsed.error) { setR2Status(parsed.error, 'err'); return; }
+
+  // Dedupe by name
+  if (r2Queue.some(g => g.name === parsed.name)) {
+    setR2Status(`"${parsed.name}" ALREADY IN QUEUE`, 'err');
+    return;
+  }
+
+  r2Queue.push(parsed);
+  document.getElementById('r2LinkInput').value = '';
+  setR2Status('');
+  renderR2Queue();
+}
+
+function r2RemoveItem(i) {
+  r2Queue.splice(i, 1);
+  renderR2Queue();
+}
+
+function renderR2Queue() {
+  const el = document.getElementById('r2Queue');
+  if (!r2Queue.length) {
+    el.innerHTML = '<div class="r2-queue-empty">No games queued yet</div>';
+    document.getElementById('r2Count').textContent = '';
+    document.getElementById('r2LoadBtn').disabled = true;
+    return;
+  }
+  el.innerHTML = r2Queue.map((g, i) => `
+    <div class="r2-queue-item">
+      <i class="fa-solid fa-cloud r2-queue-icon"></i>
+      <div style="flex:1;min-width:0">
+        <div class="r2-queue-name">${esc(g.name)}</div>
+        <div class="r2-queue-url">${esc(g.indexUrl)}</div>
+      </div>
+      <button class="r2-queue-remove" onclick="r2RemoveItem(${i})"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  `).join('');
+  document.getElementById('r2Count').textContent = `${r2Queue.length} GAME${r2Queue.length !== 1 ? 'S' : ''} QUEUED`;
+  document.getElementById('r2LoadBtn').disabled = false;
+  document.getElementById('r2LoadBtn').innerHTML = `<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${r2Queue.length} GAME${r2Queue.length !== 1 ? 'S' : ''}`;
+}
+
+function setR2Status(msg, cls = '') {
+  const el = document.getElementById('r2Status');
+  el.textContent = msg;
+  el.className = 'r2-status' + (cls ? ' ' + cls : '');
+}
+
+async function r2LoadAll() {
+  if (!r2Queue.length) return;
+  if (!swReady) { await initSW(); if (!swReady) return; }
+  if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(() => location.reload(), 1200); return; }
+
+  const toLoad = [...r2Queue];
+  closeR2Modal();
+  buildPips(toLoad.length);
+  showProgress(true, `Importing ${toLoad.length} game${toLoad.length !== 1 ? 's' : ''} from R2...`);
+
+  let added = 0;
+  for (let i = 0; i < toLoad.length; i++) {
+    const g = toLoad[i];
+    setPip(i, 'active');
+    showProgress(true, `Downloading: ${g.name} (${i + 1}/${toLoad.length})`);
+    const ok = await r2DownloadGame(g);
+    setPip(i, ok ? 'done' : 'fail');
+    if (ok) added++;
+  }
+
+  showProgress(false);
+  if (added > 0) { showToast(`+${added} GAME${added > 1 ? 'S' : ''} ADDED`); renderGrid(); }
+  else showToast('NO GAMES LOADED', true);
+}
+
+async function r2DownloadGame(g) {
+  const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const iconNames = new Set(['favicon.ico', 'favicon.png', 'icon.png', 'logo.png', 'thumbnail.png', 'cover.png', 'icon.jpg']);
+  const fileRecords = [];
+  let iconUrl = null;
+
+  // First fetch index.html to get the full list of referenced files
+  setProgress(10, `${g.name}: fetching index.html...`);
+  let indexHtml = '';
+  try {
+    const res = await fetch(g.indexUrl);
+    if (!res.ok) { showToast(`FAILED: ${g.name} — index.html not found`, true); return false; }
+    indexHtml = await res.text();
+  } catch(e) {
+    showToast(`FAILED: ${g.name} — ${e.message}`, true);
+    return false;
+  }
+
+  // Parse all referenced assets from the HTML
+  const baseUrl = g.indexUrl.replace(/\/[^/]+$/, '/'); // folder base
+  const assetUrls = r2ExtractAssets(indexHtml, baseUrl);
+
+  // Always include index.html itself
+  const allUrls = [{ url: g.indexUrl, path: 'index.html' }, ...assetUrls];
+
+  for (let i = 0; i < allUrls.length; i++) {
+    const { url, path } = allUrls[i];
+    setProgress(Math.round(10 + (i / allUrls.length) * 78), `${g.name}: ${i + 1}/${allUrls.length} — ${path.split('/').pop()}`);
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const buf = await res.arrayBuffer();
+      const mime = getMime(path.split('/').pop());
+      const file = new File([buf], path.split('/').pop(), { type: mime });
+      Object.defineProperty(file, 'webkitRelativePath', { value: g.name + '/' + path, writable: false, configurable: true });
+      fileRecords.push({ file, path, mimeType: mime });
+      const fname = path.split('/').pop().toLowerCase();
+      if (!iconUrl && iconNames.has(fname)) {
+        iconUrl = await blobToDataUrl(new Blob([buf], { type: mime }));
+      }
+    } catch(e) {
+      console.warn('R2 fetch failed:', url, e);
+    }
+  }
+
+  if (!fileRecords.some(r => r.path === 'index.html')) {
+    showToast(`FAILED: ${g.name}`, true);
+    return false;
+  }
+
+  setProgress(90, `${g.name}: registering...`);
+  const ok = await registerGameWithSW(id, fileRecords);
+  if (!ok) return false;
+
+  setProgress(100, `${g.name}: ready!`);
+  await sleep(150);
+
+  const gameEntry = { id, name: g.name, icon: iconUrl, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
+  games.push(gameEntry);
+  saveGameToDB(gameEntry).catch(e => console.error('R2 save to DB failed:', e));
+  return true;
+}
+
+function r2ExtractAssets(html, baseUrl) {
+  const assets = new Set();
+  const patterns = [
+    /src=["']([^"']+)["']/gi,
+    /href=["']([^"']+)["']/gi,
+    /url\(["']?([^"')]+)["']?\)/gi,
+    /import\s+.*?from\s+["']([^"']+)["']/gi,
+    /import\s*\(["']([^"']+)["']\)/gi,
+  ];
+  for (const re of patterns) {
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      const raw = m[1].trim();
+      if (!raw || raw.startsWith('data:') || raw.startsWith('http') || raw.startsWith('//') || raw.startsWith('#')) continue;
+      assets.add(raw);
+    }
+  }
+  return [...assets].map(rel => {
+    const url = new URL(rel, baseUrl).href;
+    // Only fetch assets from the same R2 bucket
+    const path = rel.replace(/^\.\//, '').replace(/^\//, '');
+    return { url, path };
+  }).filter(({ url }) => url.startsWith(baseUrl));
+}
+
+// ── INDEXEDDB PERSISTENCE ────────────────────────────────────────
+const DB_NAME = 'zeno-games-db';
+const DB_VERSION = 1;
+const STORE_META = 'game-meta';   // { id, name, icon, entryPath, fileCount, fileOrder }
+const STORE_FILES = 'game-files'; // { id (gameId+':'+path), gameId, path, mimeType, buffer }
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_META))
+        db.createObjectStore(STORE_META, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains(STORE_FILES)) {
+        const fs = db.createObjectStore(STORE_FILES, { keyPath: 'id' });
+        fs.createIndex('gameId', 'gameId', { unique: false });
+      }
+    };
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+
+function dbTx(db, stores, mode, fn) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(stores, mode);
+    tx.onerror = e => rej(e.target.error);
+    res(fn(tx));
+  });
+}
+
+function idbPut(store, value) {
+  return new Promise((res, rej) => { const r = store.put(value); r.onsuccess = () => res(); r.onerror = e => rej(e.target.error); });
+}
+function idbGet(store, key) {
+  return new Promise((res, rej) => { const r = store.get(key); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); });
+}
+function idbGetAll(store) {
+  return new Promise((res, rej) => { const r = store.getAll(); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); });
+}
+function idbGetAllByIndex(store, indexName, value) {
+  return new Promise((res, rej) => { const r = store.index(indexName).getAll(value); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); });
+}
+function idbDelete(store, key) {
+  return new Promise((res, rej) => { const r = store.delete(key); r.onsuccess = () => res(); r.onerror = e => rej(e.target.error); });
+}
+
+async function saveGameToDB(game) {
+  // Read ALL buffers before opening the transaction —
+  // IndexedDB transactions auto-close on any await, so we must do all
+  // reads outside the transaction and all writes inside it synchronously.
+  const fileData = [];
+  for (const r of game.fileRecords) {
+    const buf = await r.file.arrayBuffer();
+    fileData.push({ path: r.path, mimeType: r.mimeType, buffer: buf });
+  }
+
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction([STORE_META, STORE_FILES], 'readwrite');
+    tx.oncomplete = () => res();
+    tx.onerror = e => rej(e.target.error);
+    tx.onabort = e => rej(e.target.error);
+
+    const metaStore = tx.objectStore(STORE_META);
+    const fileStore = tx.objectStore(STORE_FILES);
+
+    // Meta write
+    metaStore.put({
+      id: game.id,
+      name: game.name,
+      icon: game.icon,
+      entryPath: game.entryPath,
+      fileCount: game.fileCount,
+    });
+
+    // File writes — all synchronous within the transaction
+    for (const f of fileData) {
+      fileStore.put({
+        id: game.id + ':' + f.path,
+        gameId: game.id,
+        path: f.path,
+        mimeType: f.mimeType,
+        buffer: f.buffer,
+      });
+    }
+  });
+}
+
+async function deleteGameFromDB(gameId) {
+  const db = await openDB();
+  const tx = db.transaction([STORE_META, STORE_FILES], 'readwrite');
+  const metaStore = tx.objectStore(STORE_META);
+  const fileStore = tx.objectStore(STORE_FILES);
+  await idbDelete(metaStore, gameId);
+  const fileEntries = await idbGetAllByIndex(fileStore, 'gameId', gameId);
+  for (const f of fileEntries) await idbDelete(fileStore, f.id);
+}
+
+async function loadGamesFromDB() {
+  try {
+    const db = await openDB();
+    const tx = db.transaction([STORE_META, STORE_FILES], 'readonly');
+    const metas = await idbGetAll(tx.objectStore(STORE_META));
+    if (!metas.length) return;
+
+    showProgress(true, 'Restoring saved games...');
+    buildPips(metas.length);
+
+    for (let i = 0; i < metas.length; i++) {
+      const meta = metas[i];
+      setPip(i, 'active');
+      showProgress(true, `Restoring: ${meta.name}`);
+
+      try {
+        // Load file records from DB
+        const tx2 = db.transaction(STORE_FILES, 'readonly');
+        const fileEntries = await idbGetAllByIndex(tx2.objectStore(STORE_FILES), 'gameId', meta.id);
+
+        // Build fileRecords with synthetic File objects from stored buffers
+        const fileRecords = fileEntries.map(fe => ({
+          path: fe.path,
+          mimeType: fe.mimeType,
+          // Wrap buffer back into a File so existing code works unchanged
+          file: new File([fe.buffer], fe.path.split('/').pop(), { type: fe.mimeType }),
+        }));
+
+        // Re-register with SW
+        const ok = await registerGameWithSW(meta.id, fileRecords);
+        if (ok) {
+          games.push({ ...meta, fileRecords });
+          setPip(i, 'done');
+        } else {
+          setPip(i, 'fail');
+        }
+      } catch(e) {
+        console.error('Failed to restore game:', meta.name, e);
+        setPip(i, 'fail');
+      }
+    }
+
+    showProgress(false);
+    renderGrid();
+    if (games.length) showToast(`${games.length} GAME${games.length > 1 ? 'S' : ''} RESTORED`);
+  } catch(e) {
+    console.error('loadGamesFromDB failed:', e);
+    showProgress(false);
+  }
+}
+
+// Patch removeGame to also delete from DB
+const _origRemoveGame = removeGame;
+removeGame = function(e, id) {
+  e.stopPropagation();
+  const sw = getSW(); if (sw) sw.postMessage({type:'UNREGISTER_GAME', payload:{gameId:id}});
+  games = games.filter(g => g.id !== id);
+  deleteGameFromDB(id).catch(console.error);
+  renderGrid();
+  showToast('GAME REMOVED');
+};
+
+buildSlots();
+initSW();
+// Load saved games from IndexedDB on startup, then render
+loadGamesFromDB().then(() => { if (!games.length) renderGrid(); });
+</script>
+</body>
+</html>

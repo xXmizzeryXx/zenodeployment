@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZENO</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #050508;
+    --bg2: #0a0a12;
+    --neon-cyan: #00f5ff;
+    --neon-pink: #ff006e;
+    --neon-purple: #bf00ff;
+    --neon-green: #00ff88;
+    --neon-yellow: #ffe600;
+    --neon-orange: #ff8c00;
+    --card-bg: rgba(255,255,255,0.03);
+    --card-border: rgba(0,245,255,0.12);
+    --text: #e0e8ff;
+    --muted: #4a5068;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bg-glow {
+    position: fixed;
+    width: 900px;
+    height: 900px;
+    background: radial-gradient(circle, rgba(0,245,255,0.04) 0%, transparent 65%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .bg-glow-pink {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(191,0,255,0.04) 0%, transparent 65%);
+    bottom: -100px; right: -100px;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .scanlines {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
+    );
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── CONTAINER ── */
+  .container {
+    width: 100%;
+    max-width: 1000px;
+    padding: 2.5rem;
+    z-index: 1;
+    position: relative;
+  }
+
+  /* ── HEADER ── */
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.8rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(0,245,255,0.1);
+  }
+
+  #greeting {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    line-height: 1.3;
+    animation: fadeSlideUp 0.6s ease both;
+  }
+  #greeting span {
+    display: block;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 20px rgba(0,245,255,0.5);
+    font-size: 2.4rem;
+    letter-spacing: 6px;
+  }
+  #greeting.empty::after {
+    content: "HELLO,";
+    display: block;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 20px rgba(0,245,255,0.5);
+    font-size: 2.4rem;
+    letter-spacing: 6px;
+  }
+
+  .time-container {
+    text-align: right;
+    animation: fadeSlideUp 0.6s 0.1s ease both;
+  }
+  #clock {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3.8rem;
+    font-weight: 900;
+    color: var(--neon-pink);
+    text-shadow: 0 0 20px rgba(255,0,110,0.5), 0 0 60px rgba(255,0,110,0.15);
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+  #date {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-top: 6px;
+  }
+
+  /* ── APP GRID ── */
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.5rem;
+    justify-items: center;
+    animation: fadeSlideUp 0.6s 0.2s ease both;
+  }
+
+  .app-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 130px;
+    height: 130px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .app-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .app-btn:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.6); }
+  .app-btn:hover::before { opacity: 1; }
+  .app-btn i { font-size: 3rem; margin-bottom: 0.9rem; transition: all 0.25s ease; }
+  .app-btn:hover i { transform: scale(1.1); }
+  .app-btn span {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .app-btn.games:hover  { border-color: var(--neon-cyan);   color: var(--neon-cyan);   box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0,245,255,0.12); }
+  .app-btn.games:hover i  { text-shadow: 0 0 18px var(--neon-cyan); }
+  .app-btn.browser:hover { border-color: var(--neon-purple); color: var(--neon-purple); box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(191,0,255,0.12); }
+  .app-btn.browser:hover i { text-shadow: 0 0 18px var(--neon-purple); }
+  .app-btn.terminal:hover { border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0,255,136,0.12); }
+  .app-btn.terminal:hover i { text-shadow: 0 0 18px var(--neon-green); }
+  .app-btn.settings:hover { border-color: var(--neon-pink);  color: var(--neon-pink);  box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,0,110,0.12); }
+  .app-btn.settings:hover i { text-shadow: 0 0 18px var(--neon-pink); }
+  .app-btn.cloak:hover { border-color: var(--neon-yellow); color: var(--neon-yellow); box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,230,0,0.12); }
+  .app-btn.cloak:hover i { text-shadow: 0 0 18px var(--neon-yellow); }
+  .app-btn.gba:hover { border-color: var(--neon-orange); color: var(--neon-orange); box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,140,0,0.12); }
+  .app-btn.gba:hover i { text-shadow: 0 0 18px var(--neon-orange); }
+
+  .app-btn.cloak .cloak-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted); transition: all 0.3s ease;
+  }
+  .app-btn.cloak.active .cloak-badge {
+    background: var(--neon-yellow);
+    box-shadow: 0 0 8px var(--neon-yellow);
+    animation: pulse-dot 1.5s infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  /* ── MODALS ── */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(5,5,8,0.92);
+    backdrop-filter: blur(16px);
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+    z-index: 1000;
+  }
+  .modal.open { opacity: 1; pointer-events: auto; }
+  .modal-box {
+    background: var(--bg2);
+    border: 1px solid rgba(0,245,255,0.25);
+    padding: 3rem 3.5rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 80px rgba(0,245,255,0.07);
+    transform: translateY(24px);
+    transition: transform 0.35s ease;
+    max-width: 420px; width: 90%;
+  }
+  .modal.open .modal-box { transform: translateY(0); }
+  .modal-box.cloak-modal-box { border-color: rgba(255,230,0,0.25); box-shadow: 0 0 80px rgba(255,230,0,0.05); }
+
+  .modal-logo {
+    font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 900;
+    letter-spacing: 10px; color: var(--neon-cyan);
+    text-shadow: 0 0 30px rgba(0,245,255,0.5); margin-bottom: 6px;
+  }
+  .modal-logo.yellow { color: var(--neon-yellow); text-shadow: 0 0 30px rgba(255,230,0,0.5); font-size: 22px; letter-spacing: 6px; }
+  .modal-sub { font-size: 10px; letter-spacing: 3px; color: var(--muted); font-family: 'Orbitron', sans-serif; margin-bottom: 28px; }
+  .modal-divider { width: 50px; height: 1px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); margin: 0 auto 28px; }
+  .modal-divider.yellow { background: linear-gradient(90deg, transparent, var(--neon-yellow), transparent); }
+  .modal-box h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text); letter-spacing: 1px; margin-bottom: 18px; }
+  .modal-box input {
+    width: 100%; background: rgba(0,245,255,0.04); border: 1px solid rgba(0,245,255,0.18);
+    padding: 0.9rem 1rem; color: var(--text); font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem; letter-spacing: 1px; text-align: center; border-radius: 8px;
+    outline: none; margin-bottom: 18px; transition: all 0.25s;
+  }
+  .modal-box input::placeholder { color: var(--muted); }
+  .modal-box input:focus { border-color: rgba(0,245,255,0.6); box-shadow: 0 0 20px rgba(0,245,255,0.08); }
+
+  .btn-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .mbtn {
+    background: linear-gradient(135deg, rgba(0,245,255,0.12), rgba(191,0,255,0.12));
+    border: 1px solid rgba(0,245,255,0.3); color: var(--neon-cyan);
+    padding: 0.75rem 2rem; font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 3px;
+    border-radius: 8px; cursor: pointer; transition: all 0.25s;
+  }
+  .mbtn:hover { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0,245,255,0.15); }
+  .mbtn-skip { background: transparent; border-color: rgba(255,255,255,0.08); color: var(--muted); font-size: 0.65rem; }
+  .mbtn-skip:hover { color: var(--text); border-color: rgba(255,255,255,0.2); box-shadow: none; }
+  .mbtn-yellow { background: linear-gradient(135deg, rgba(255,230,0,0.12), rgba(255,140,0,0.12)); border-color: rgba(255,230,0,0.35); color: var(--neon-yellow); }
+  .mbtn-yellow:hover { border-color: var(--neon-yellow); box-shadow: 0 0 20px rgba(255,230,0,0.15); }
+  .mbtn-danger { background: linear-gradient(135deg, rgba(255,0,110,0.12), rgba(255,0,0,0.08)); border-color: rgba(255,0,110,0.3); color: var(--neon-pink); }
+  .mbtn-danger:hover { border-color: var(--neon-pink); box-shadow: 0 0 20px rgba(255,0,110,0.15); }
+
+  .cloak-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .preset-btn {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 0.65rem 0.5rem; cursor: pointer; color: var(--text);
+    font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; letter-spacing: 0.5px;
+    transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+  }
+  .preset-btn:hover { border-color: rgba(255,230,0,0.4); color: var(--neon-yellow); background: rgba(255,230,0,0.04); }
+  .preset-btn.selected { border-color: var(--neon-yellow); color: var(--neon-yellow); background: rgba(255,230,0,0.07); }
+  .preset-btn .preset-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .cloak-divider-text { font-size: 0.7rem; letter-spacing: 2px; color: var(--muted); text-align: center; margin-bottom: 12px; font-family: 'Orbitron', sans-serif; }
+  .custom-row { display: flex; gap: 8px; margin-bottom: 18px; }
+  .custom-row input { flex: 1; margin-bottom: 0; font-size: 0.9rem; padding: 0.7rem 0.8rem; }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow-pink"></div>
+<div class="scanlines"></div>
+
+<div class="container">
+  <div class="header-container">
+    <div id="greeting"></div>
+    <div class="time-container">
+      <div id="clock">00:00</div>
+      <div id="date">LOADING...</div>
+    </div>
+  </div>
+
+  <div class="app-grid">
+    <a href="games.html" class="app-btn games">
+      <i class="fas fa-gamepad"></i>
+      <span>Games</span>
+    </a>
+    <a href="/Browser/Helios.html" class="app-btn browser">
+      <i class="fas fa-globe"></i>
+      <span>Browser</span>
+    </a>
+    <a href="#" class="app-btn terminal">
+      <i class="fas fa-terminal"></i>
+      <span>Terminal</span>
+    </a>
+    <a href="gba.html" class="app-btn gba">
+      <i class="fas fa-mobile-screen"></i>
+      <span>GBA</span>
+    </a>
+    <a href="#" class="app-btn settings">
+      <i class="fas fa-cog"></i>
+      <span>Settings</span>
+    </a>
+    <a href="#" class="app-btn cloak" id="cloakBtn" onclick="openCloakModal(event)">
+      <div class="cloak-badge"></div>
+      <i class="fas fa-user-secret"></i>
+      <span>Cloak</span>
+    </a>
+  </div>
+</div>
+
+<!-- WELCOME MODAL -->
+<div class="modal" id="welcomeModal">
+  <div class="modal-box">
+    <div class="modal-logo">ZENO</div>
+    <div class="modal-sub">// PART OF THE ECLIPSE FAMILY</div>
+    <div class="modal-divider"></div>
+    <h2>What would you like to be called?</h2>
+    <input type="text" id="welcomeInput" placeholder="Enter your name..." maxlength="24" autocomplete="off">
+    <div class="btn-group">
+      <button class="mbtn" onclick="saveUsername()">LET'S GO</button>
+      <button class="mbtn mbtn-skip" onclick="skipUsername()">skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLOAK MODAL -->
+<div class="modal" id="cloakModal">
+  <div class="modal-box cloak-modal-box">
+    <div class="modal-logo yellow">CLOAK</div>
+    <div class="modal-sub">// TAB DISGUISE SYSTEM</div>
+    <div class="modal-divider yellow"></div>
+    <h2>Select a disguise preset</h2>
+    <div class="cloak-presets" id="cloakPresets">
+      <button class="preset-btn" data-title="Google Classroom" data-favicon="https://ssl.gstatic.com/classroom/favicon.png" onclick="selectPreset(this)">
+        <span class="preset-icon">🎓</span> Google Classroom
+      </button>
+      <button class="preset-btn" data-title="Khan Academy" data-favicon="https://www.khanacademy.org/favicon.ico" onclick="selectPreset(this)">
+        <span class="preset-icon">📚</span> Khan Academy
+      </button>
+      <button class="preset-btn" data-title="Google Docs" data-favicon="https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x16.png" onclick="selectPreset(this)">
+        <span class="preset-icon">📄</span> Google Docs
+      </button>
+      <button class="preset-btn" data-title="Desmos Graphing" data-favicon="https://www.desmos.com/assets/img/icons/favicon.ico" onclick="selectPreset(this)">
+        <span class="preset-icon">📊</span> Desmos
+      </button>
+      <button class="preset-btn" data-title="Wikipedia" data-favicon="https://en.wikipedia.org/favicon.ico" onclick="selectPreset(this)">
+        <span class="preset-icon">🌐</span> Wikipedia
+      </button>
+      <button class="preset-btn" data-title="Quizlet" data-favicon="https://quizlet.com/favicon.ico" onclick="selectPreset(this)">
+        <span class="preset-icon">🗂️</span> Quizlet
+      </button>
+    </div>
+    <div class="cloak-divider-text">— OR CUSTOM —</div>
+    <div class="custom-row">
+      <input type="text" id="cloakTitleInput" placeholder="Custom tab title..." maxlength="60" autocomplete="off">
+    </div>
+    <div class="btn-group">
+      <button class="mbtn mbtn-yellow" onclick="applyCloak()">APPLY CLOAK</button>
+      <button class="mbtn mbtn-danger" onclick="removeCloak()">REMOVE</button>
+      <button class="mbtn mbtn-skip" onclick="closeCloakModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CLOCK & DATE ──
+  (function() {
+    const clockEl = document.getElementById('clock');
+    const dateEl  = document.getElementById('date');
+    function update() {
+      const now = new Date();
+      clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      dateEl.textContent  = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+    }
+    setInterval(update, 1000);
+    update();
+  })();
+
+  // ── GREETING ──
+  function updateGreeting() {
+    const name = localStorage.getItem('zeno-username');
+    const el   = document.getElementById('greeting');
+    if (!el) return;
+    if (!name) { el.className = 'empty'; el.innerHTML = ''; return; }
+    el.className = '';
+    el.innerHTML = 'HELLO,<span>' + name.toUpperCase() + '</span>';
+  }
+  updateGreeting();
+
+  // ── WELCOME MODAL ──
+  function saveUsername() {
+    const val  = document.getElementById('welcomeInput').value.trim();
+    const name = val || 'Player';
+    localStorage.setItem('zeno-username', name);
+    updateGreeting();
+    closeWelcome();
+  }
+  function skipUsername() {
+    localStorage.setItem('zeno-username', '');
+    updateGreeting();
+    closeWelcome();
+  }
+  function closeWelcome() {
+    document.getElementById('welcomeModal').classList.remove('open');
+  }
+  document.getElementById('welcomeInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') saveUsername();
+  });
+  (function() {
+    if (localStorage.getItem('zeno-username') === null) {
+      document.getElementById('welcomeModal').classList.add('open');
+      setTimeout(() => document.getElementById('welcomeInput').focus(), 100);
+    }
+  })();
+
+  // ── CLOAK SYSTEM ──
+  let selectedPreset = null;
+
+  function openCloakModal(e) {
+    e.preventDefault();
+    const saved = localStorage.getItem('zeno-cloak-title');
+    if (saved) document.getElementById('cloakTitleInput').value = saved;
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.title === saved);
+    });
+    selectedPreset = null;
+    document.getElementById('cloakModal').classList.add('open');
+    setTimeout(() => document.getElementById('cloakTitleInput').focus(), 100);
+  }
+  function closeCloakModal() {
+    document.getElementById('cloakModal').classList.remove('open');
+    selectedPreset = null;
+  }
+  function selectPreset(btn) {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedPreset = { title: btn.dataset.title, favicon: btn.dataset.favicon };
+    document.getElementById('cloakTitleInput').value = btn.dataset.title;
+  }
+  function applyCloak() {
+    const customTitle = document.getElementById('cloakTitleInput').value.trim();
+    const title = customTitle || (selectedPreset ? selectedPreset.title : 'Google Classroom');
+    const favicon = selectedPreset ? selectedPreset.favicon : null;
+    document.title = title;
+    localStorage.setItem('zeno-cloak-title', title);
+    localStorage.setItem('zeno-cloak-active', '1');
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+    if (favicon) { link.href = favicon; localStorage.setItem('zeno-cloak-favicon', favicon); }
+    else { link.href = 'https://ssl.gstatic.com/classroom/favicon.png'; localStorage.removeItem('zeno-cloak-favicon'); }
+    document.getElementById('cloakBtn').classList.add('active');
+    closeCloakModal();
+  }
+  function removeCloak() {
+    document.title = 'ZENO';
+    localStorage.removeItem('zeno-cloak-title');
+    localStorage.removeItem('zeno-cloak-favicon');
+    localStorage.removeItem('zeno-cloak-active');
+    const link = document.querySelector("link[rel~='icon']");
+    if (link) link.href = 'favicon.ico';
+    document.getElementById('cloakBtn').classList.remove('active');
+    closeCloakModal();
+  }
+  (function() {
+    if (localStorage.getItem('zeno-cloak-active')) {
+      const title   = localStorage.getItem('zeno-cloak-title');
+      const favicon = localStorage.getItem('zeno-cloak-favicon');
+      if (title) document.title = title;
+      if (favicon) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+        link.href = favicon;
+      }
+      document.getElementById('cloakBtn').classList.add('active');
+    }
+  })();
+
+  document.getElementById('cloakModal').addEventListener('click', function(e) { if (e.target === this) closeCloakModal(); });
+  document.getElementById('welcomeModal').addEventListener('click', function(e) { if (e.target === this) closeWelcome(); });
+</script>
+</body>
+</html>
