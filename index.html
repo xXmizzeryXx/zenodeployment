@@ -657,6 +657,14 @@
 
   // ── INTRO ──────────────────────────────────────────────────────
   (function() {
+    // Only play once per session — skip if navigating back from another page
+    if (sessionStorage.getItem('zeno-intro-played')) {
+      const intro = document.getElementById('intro');
+      intro.style.display = 'none';
+      return;
+    }
+    sessionStorage.setItem('zeno-intro-played', '1');
+
     const canvas = document.getElementById('intro-canvas');
     const ctx = canvas.getContext('2d');
     let W, H, particles, animId, done = false;

@@ -311,6 +311,7 @@ main {
       </div>
       <div class="setting-control">
         <select class="setting-select" id="settingDefaultApp">
+          <option value="index.html">Home</option>
           <option value="games.html">Games</option>
           <option value="movies.html">Movies</option>
           <option value="terminal.html">Terminal</option>
@@ -364,8 +365,8 @@ function loadSettings() {
   const fmt = localStorage.getItem(KEYS.clockFmt) || '24';
   setClockFormat(fmt, false);
 
-  // Default app
-  const app = localStorage.getItem(KEYS.defaultApp) || 'games.html';
+  // Default app — falls back to index.html (Home)
+  const app = localStorage.getItem(KEYS.defaultApp) || 'index.html';
   const sel = document.getElementById('settingDefaultApp');
   if ([...sel.options].some(o => o.value === app)) sel.value = app;
 }
