@@ -6,6 +6,7 @@
 <title>Zeno — Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
 <style>
   :root {
     --bg:#050508;--bg2:#0a0a12;--neon-cyan:#00f5ff;--neon-pink:#ff006e;
@@ -151,6 +152,36 @@
   .add-modal-close{background:none;border:1px solid rgba(0,245,255,.15);border-radius:4px;color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s}
   .add-modal-close:hover{color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:0 0 10px rgba(255,0,110,.2)}
   .add-modal .drop-zone-outer{width:100%;margin-bottom:0}
+  /* ADD MODAL TABS */
+  .add-modal-tabs{display:flex;gap:6px;margin-bottom:20px;flex-shrink:0}
+  .add-modal-tab{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:7px 16px;border-radius:5px;cursor:pointer;border:1px solid rgba(0,245,255,.15);background:transparent;color:var(--muted);transition:all .2s}
+  .add-modal-tab.active{color:var(--neon-cyan);border-color:rgba(0,245,255,.45);background:rgba(0,245,255,.08)}
+  .add-modal-tab:hover:not(.active){color:var(--text);border-color:rgba(0,245,255,.25)}
+  .add-modal-pane{display:none}
+  .add-modal-pane.active{display:block}
+  /* PASTE HTML PANE */
+  .paste-name-row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+  .paste-name-label{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);white-space:nowrap}
+  .paste-name-input{flex:1;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.18);border-radius:7px;padding:8px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+  .paste-name-input:focus{border-color:rgba(0,245,255,.5)}
+  .paste-name-input::placeholder{color:var(--muted)}
+  .paste-textarea{width:100%;height:220px;background:rgba(0,0,0,.3);border:1px solid rgba(0,245,255,.15);border-radius:8px;padding:12px;color:#a0c8a0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;outline:none;resize:none;transition:border-color .2s;margin-bottom:12px}
+  .paste-textarea:focus{border-color:rgba(0,245,255,.4)}
+  .paste-textarea::placeholder{color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:13px}
+  .paste-actions{display:flex;gap:10px}
+  .paste-load-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 20px;border-radius:6px;cursor:pointer;border:1px solid rgba(0,245,255,.3);background:linear-gradient(135deg,rgba(0,245,255,.12),rgba(191,0,255,.1));color:var(--neon-cyan);transition:all .2s}
+  .paste-load-btn:hover{border-color:var(--neon-cyan);box-shadow:0 0 16px rgba(0,245,255,.15)}
+  .paste-clear-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 16px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:transparent;color:var(--muted);transition:all .2s}
+  .paste-clear-btn:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+  /* ZENOPACK PANE */
+  .share-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;text-align:center;min-height:16px;transition:color .3s;margin-top:10px}
+  .share-status.ok{color:var(--neon-green)}.share-status.err{color:var(--neon-pink)}.share-status.info{color:var(--neon-cyan)}
+  .zenopack-drop{border:2px dashed rgba(0,245,255,.2);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(0,245,255,.02)}
+  .zenopack-drop:hover,.zenopack-drop.dragover{border-color:rgba(0,245,255,.5);background:rgba(0,245,255,.05);box-shadow:0 0 24px rgba(0,245,255,.06)}
+  .zenopack-drop-icon{font-size:2.4rem;color:rgba(0,245,255,.3);margin-bottom:12px;transition:color .2s}
+  .zenopack-drop:hover .zenopack-drop-icon{color:rgba(0,245,255,.6)}
+  .zenopack-drop-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--text);margin-bottom:6px}
+  .zenopack-drop-sub{font-size:12px;color:var(--muted);letter-spacing:1px}
 
   /* GITHUB MODAL */
   .gh-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);z-index:460;align-items:center;justify-content:center}
@@ -228,6 +259,50 @@
   .r2-load-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
   .r2-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;min-height:14px;flex-shrink:0}
   .r2-status.err{color:var(--neon-pink)}
+
+  /* SHARE BUTTON ON CARD */
+  .game-share{position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;background:rgba(0,245,255,.1);border:1px solid rgba(0,245,255,.2);color:rgba(0,245,255,.5);font-size:9px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;cursor:pointer;z-index:2}
+  .game-card:hover .game-share{opacity:1}
+  .game-share:hover{background:rgba(0,245,255,.2);border-color:var(--neon-cyan);color:var(--neon-cyan);box-shadow:0 0 8px rgba(0,245,255,.2)}
+  /* SHARE MODAL */
+  .share-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);z-index:500;align-items:center;justify-content:center}
+  .share-modal-overlay.open{display:flex}
+  .share-modal{background:var(--bg2);border:1px solid rgba(0,245,255,.2);border-radius:16px;padding:32px 36px 28px;width:420px;max-width:95vw;box-shadow:0 0 80px rgba(0,245,255,.07);animation:slideIn .25s ease;text-align:center}
+  .share-modal-title{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:4px;color:var(--neon-cyan);margin-bottom:6px}
+  .share-modal-sub{font-size:12px;color:var(--muted);letter-spacing:1px;margin-bottom:24px}
+  .share-code-display{font-family:'Orbitron',monospace;font-size:3rem;font-weight:900;letter-spacing:12px;color:var(--neon-cyan);text-shadow:0 0 30px rgba(0,245,255,.4);margin-bottom:8px;cursor:pointer;transition:all .2s}
+  .share-code-display:hover{text-shadow:0 0 40px rgba(0,245,255,.7)}
+  .share-code-hint{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:20px}
+  .share-qr{margin:0 auto 20px;width:160px;height:160px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:8px}
+  .share-qr canvas{width:100%!important;height:100%!important}
+  .share-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;margin-bottom:20px;min-height:16px}
+  .share-status.waiting{color:var(--muted)}
+  .share-status.connected{color:var(--neon-green)}
+  .share-status.sending{color:var(--neon-cyan)}
+  .share-status.done{color:var(--neon-green)}
+  .share-status.err{color:var(--neon-pink)}
+  .share-progress-wrap{width:100%;height:4px;background:rgba(0,245,255,.08);border-radius:4px;overflow:hidden;margin-bottom:20px;display:none}
+  .share-progress-wrap.visible{display:block}
+  .share-progress-bar{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));border-radius:4px;transition:width .1s;width:0%}
+  .share-close-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 24px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);transition:all .2s}
+  .share-close-btn:hover{color:var(--text);border-color:rgba(255,255,255,.25)}
+  /* RECEIVE PANE */
+  .receive-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+  .receive-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:20px}
+  .receive-code-row{display:flex;gap:10px;margin-bottom:16px;width:100%}
+  .receive-code-input{flex:1;background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.18);border-radius:7px;padding:10px 14px;color:var(--neon-cyan);font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;letter-spacing:8px;text-align:center;outline:none;transition:border-color .2s;text-transform:uppercase}
+  .receive-code-input:focus{border-color:rgba(0,245,255,.5);box-shadow:0 0 16px rgba(0,245,255,.07)}
+  .receive-code-input::placeholder{color:var(--muted);font-size:.8rem;letter-spacing:2px}
+  .receive-connect-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 20px;border-radius:7px;cursor:pointer;border:1px solid rgba(0,245,255,.3);background:linear-gradient(135deg,rgba(0,245,255,.12),rgba(191,0,255,.1));color:var(--neon-cyan);transition:all .2s;white-space:nowrap}
+  .receive-connect-btn:hover{border-color:var(--neon-cyan);box-shadow:0 0 16px rgba(0,245,255,.15)}
+  .receive-connect-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+  .receive-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;min-height:14px;text-align:center}
+  .receive-status.ok{color:var(--neon-green)}
+  .receive-status.err{color:var(--neon-pink)}
+  .receive-progress-wrap{width:100%;height:4px;background:rgba(0,245,255,.08);border-radius:4px;overflow:hidden;margin-bottom:8px;display:none}
+  .receive-progress-wrap.on{display:block}
+  .receive-progress-bar{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));border-radius:4px;transition:width .15s;width:0%}
+  .receive-hint{font-size:11px;color:rgba(85,85,102,.6);letter-spacing:.5px;text-align:center;margin-top:8px}
 </style>
 </head>
 <body>
@@ -271,27 +346,59 @@
   </div>
 </div>
 
-<!-- ADD GAMES MODAL (5-slot, shown when grid already has games) -->
+<!-- ADD GAMES MODAL (5-slot + paste HTML) -->
 <div class="add-modal-overlay" id="addGamesModal">
   <div class="add-modal">
     <div class="add-modal-header">
       <div class="add-modal-title">ADD GAMES</div>
       <button class="add-modal-close" onclick="closeAddGamesModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="drop-zone-outer">
-      <div class="drop-slots" id="addDropSlots"></div>
-      <div class="drop-zone-main" id="addDropZoneMain">
-        <input type="file" id="addBulkFileInput" webkitdirectory multiple onchange="addHandleBulkInput(this.files)">
-        <div class="drop-zone-main-text"><em>Drop multiple folders here</em> to auto-fill slots</div>
+    <!-- TABS -->
+    <div class="add-modal-tabs">
+      <button class="add-modal-tab active" id="tabSlots" onclick="switchAddTab('slots')"><i class="fa-solid fa-folder-plus"></i>&nbsp; FOLDERS</button>
+      <button class="add-modal-tab" id="tabPaste" onclick="switchAddTab('paste')"><i class="fa-solid fa-code"></i>&nbsp; PASTE HTML</button>
+      <button class="add-modal-tab" id="tabShare" onclick="switchAddTab('share')"><i class="fa-solid fa-box-archive"></i>&nbsp; ZENOPACK</button>
+    </div>
+    <!-- PANE: SLOTS -->
+    <div class="add-modal-pane active" id="paneSlots">
+      <div class="drop-zone-outer">
+        <div class="drop-slots" id="addDropSlots"></div>
+        <div class="drop-zone-main" id="addDropZoneMain">
+          <input type="file" id="addBulkFileInput" webkitdirectory multiple onchange="addHandleBulkInput(this.files)">
+          <div class="drop-zone-main-text"><em>Drop multiple folders here</em> to auto-fill slots</div>
+        </div>
+        <div class="upload-actions">
+          <button class="upload-btn upload-btn-go" id="addUploadGoBtn" disabled onclick="addCommitUpload()">
+            <i class="fa-solid fa-bolt"></i>&nbsp; LOAD GAMES
+          </button>
+          <button class="upload-btn upload-btn-clear" onclick="addClearAllSlots()">CLEAR ALL</button>
+        </div>
       </div>
-      <div class="upload-actions">
-        <button class="upload-btn upload-btn-go" id="addUploadGoBtn" disabled onclick="addCommitUpload()">
-          <i class="fa-solid fa-bolt"></i>&nbsp; LOAD GAMES
-        </button>
-        <button class="upload-btn upload-btn-clear" onclick="addClearAllSlots()">CLEAR ALL</button>
+      <div class="upload-hint" style="text-align:center;margin-top:14px">All assets served via Service Worker</div>
+    </div>
+    <!-- PANE: PASTE HTML -->
+    <div class="add-modal-pane" id="panePaste">
+      <div class="paste-name-row">
+        <span class="paste-name-label">GAME NAME</span>
+        <input class="paste-name-input" type="text" id="pasteGameName" placeholder="e.g. Snake, Tetris..." maxlength="48" autocomplete="off"/>
+      </div>
+      <textarea class="paste-textarea" id="pasteHtmlInput" placeholder="Paste your game's HTML here...&#10;&#10;Works with single-file games that have everything inline (CSS, JS, assets as base64)."></textarea>
+      <div class="paste-actions">
+        <button class="paste-load-btn" onclick="loadPastedGame()"><i class="fa-solid fa-bolt"></i>&nbsp; LOAD GAME</button>
+        <button class="paste-clear-btn" onclick="clearPaste()">CLEAR</button>
       </div>
     </div>
-    <div class="upload-hint" style="text-align:center;margin-top:14px">All assets (JS, CSS, audio, images) served via Service Worker</div>
+    <!-- PANE: ZENOPACK IMPORT -->
+    <div class="add-modal-pane" id="paneShare">
+      <div class="zenopack-drop" id="zenopackDrop" onclick="document.getElementById('zenopackFileInput').click()">
+        <input type="file" id="zenopackFileInput" accept=".zenopack" style="display:none" onchange="importZenopack(this.files[0])">
+        <div class="zenopack-drop-icon"><i class="fa-solid fa-box-archive"></i></div>
+        <div class="zenopack-drop-title">DROP A .ZENOPACK FILE</div>
+        <div class="zenopack-drop-sub">or click to browse</div>
+      </div>
+      <div class="share-status" id="zenopackStatus"></div>
+      <div class="upload-hint" style="text-align:center;margin-top:8px">Export games using the <i class="fa-solid fa-box-archive"></i> button on any game card</div>
+    </div>
   </div>
 </div>
 
@@ -304,7 +411,7 @@
       <button class="gh-modal-close" onclick="closeGHModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="gh-url-row">
-      <input class="gh-url-input" id="ghUrlInput" type="text" placeholder="https://git.gay/user/repo  or  github.com/user/repo" spellcheck="false"/>
+      <input class="gh-url-input" id="ghUrlInput" type="text" placeholder="github.com/user/repo  •  gitlab.com/user/repo  •  git.gay/user/repo" spellcheck="false"/>
       <button class="gh-scan-btn" id="ghScanBtn" onclick="ghScan()"><i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN</button>
     </div>
     <div class="gh-status" id="ghStatus"></div>
@@ -592,9 +699,82 @@ function addRefreshSlots() {
   document.getElementById('addUploadGoBtn').disabled=!addSlotData.some(Boolean);
 }
 
+// ── ADD MODAL TAB SWITCHING ──────────────────────────────────────
+function switchAddTab(tab) {
+  document.getElementById('tabSlots').classList.toggle('active', tab === 'slots');
+  document.getElementById('tabPaste').classList.toggle('active', tab === 'paste');
+  document.getElementById('tabShare').classList.toggle('active', tab === 'share');
+  document.getElementById('paneSlots').classList.toggle('active', tab === 'slots');
+  document.getElementById('panePaste').classList.toggle('active', tab === 'paste');
+  document.getElementById('paneShare').classList.toggle('active', tab === 'share');
+}
+
+// ── PASTE HTML ────────────────────────────────────────────────────
+async function loadPastedGame() {
+  const html = document.getElementById('pasteHtmlInput').value.trim();
+  const name = document.getElementById('pasteGameName').value.trim() || 'Pasted Game';
+
+  if (!html) { showToast('PASTE SOME HTML FIRST', true); return; }
+  if (!html.toLowerCase().includes('<html') && !html.toLowerCase().includes('<!doctype')) {
+    showToast('DOES NOT LOOK LIKE A FULL HTML PAGE', true); return;
+  }
+  if (!swReady) { await initSW(); if (!swReady) return; }
+  if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(() => location.reload(), 1200); return; }
+
+  closeAddGamesModal();
+  buildPips(1); showProgress(true, `Loading: ${name}`); setPip(0, 'active');
+
+  const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const encoder = new TextEncoder();
+  const buf = encoder.encode(html).buffer;
+  const cloned = buf.slice(0);
+
+  try {
+    const res = await postSW({
+      type: 'REGISTER_GAME',
+      payload: {
+        gameId: id,
+        filesMeta: [{ path: 'index.html', mimeType: 'text/html' }],
+        buffers: [cloned]
+      }
+    }, [cloned]);
+
+    if (res?.type !== 'GAME_REGISTERED') throw new Error('no confirm');
+  } catch(e) {
+    setPip(0, 'fail'); showProgress(false);
+    showToast('FAILED TO REGISTER GAME', true); return;
+  }
+
+  setProgress(100, `${name}: ready!`); await sleep(180);
+
+  // Build a synthetic File so saveGameToDB works
+  const file = new File([html], 'index.html', { type: 'text/html' });
+  Object.defineProperty(file, 'webkitRelativePath', { value: name + '/index.html', writable: false, configurable: true });
+  const fileRecords = [{ file, path: 'index.html', mimeType: 'text/html' }];
+
+  const gameEntry = { id, name, icon: null, entryPath: `./zeno-games/${id}/index.html`, fileCount: 1, fileRecords };
+  games.push(gameEntry);
+  saveGameToDB(gameEntry).catch(e => console.error('Paste save failed:', e));
+
+  setPip(0, 'done'); showProgress(false);
+  showToast(`+1 GAME ADDED`); renderGrid();
+}
+
+function clearPaste() {
+  document.getElementById('pasteHtmlInput').value = '';
+  document.getElementById('pasteGameName').value = '';
+}
+
 function openAddGamesModal() {
   addSlotData.fill(null);
   buildAddSlots();
+  switchAddTab('slots');
+  document.getElementById('pasteHtmlInput').value = '';
+  document.getElementById('pasteGameName').value = '';
+
+  // Reset zenopack pane
+  const zStatus = document.getElementById('zenopackStatus');
+  if (zStatus) { zStatus.textContent = ''; zStatus.className = 'share-status'; }
   document.getElementById('addGamesModal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -703,7 +883,7 @@ function renderGrid(){
   const filtered=q?games.filter(g=>g.name.toLowerCase().includes(q)):games;
   filtered.forEach((g,i)=>{
     const card=document.createElement('div');card.className='game-card';card.style.animationDelay=(i*.02)+'s';
-    card.innerHTML=`<div class="game-icon">${g.icon?`<img src="${g.icon}" alt="">`:'<i class="fa-solid fa-gamepad"></i>'}</div><div class="game-name">${esc(g.name)}</div><button class="game-delete" onclick="removeGame(event,'${g.id}')"><i class="fa-solid fa-xmark"></i></button>`;
+    card.innerHTML=`<div class="game-icon">${g.icon?`<img src="${g.icon}" alt="">`:'<i class="fa-solid fa-gamepad"></i>'}</div><div class="game-name">${esc(g.name)}</div><button class="game-delete" onclick="removeGame(event,'${g.id}')"><i class="fa-solid fa-xmark"></i></button><button class="game-share" title="Export .zenopack" onclick="exportZenopack(event,'${g.id}')"><i class="fa-solid fa-box-archive"></i></button>`;
     card.addEventListener('click',()=>openGameModal(g));
     grid.insertBefore(card,noRes);
   });
@@ -732,9 +912,10 @@ async function openGameModal(g){
   frame.src='';
 
   // Ping SW — if it was killed and restarted its store is empty, so re-register
+  // R2 games are iframed directly, skip SW entirely
   try {
     const sw = getSW();
-    if (sw && g.fileRecords) {
+    if (!g.r2 && sw && g.fileRecords) {
       const probe = await new Promise((res,rej) => {
         const ch = new MessageChannel();
         ch.port1.onmessage = e => res(e.data);
@@ -818,15 +999,25 @@ dzMain.addEventListener('drop',async e=>{
 let ghFoundGames = [];
 
 // Detect which forge the URL points to and return config
+// Known Git forge types — detected by host
+const GITHUB_HOSTS   = new Set(['github.com']);
+const GITLAB_HOSTS   = new Set(['gitlab.com']);
+// Everything else with a Gitea/Forgejo-compatible API
+// (git.gay, codeberg.org, gitea.com, etc.)
+
+function detectForgeType(host) {
+  if (GITHUB_HOSTS.has(host)) return 'github';
+  if (GITLAB_HOSTS.has(host) || host.startsWith('gitlab.')) return 'gitlab';
+  return 'forgejo'; // Gitea/Forgejo — works for git.gay, codeberg, gitea.com, etc.
+}
+
 function parseRepoUrl(raw) {
-  raw = raw.trim().replace(/\/$/, '').replace(/\.git$/, '');
-  // Try to match https://host/owner/repo or host/owner/repo or owner/repo
-  const m = raw.match(/(?:https?:\/\/)?([^/\s]+\.(?:com|org|gay|dev|io|net|xyz))\/([^/\s]+)\/([^/\s]+)/) ||
-            raw.match(/([^/\s]+\.(?:com|org|gay|dev|io|net|xyz))\/([^/\s]+)\/([^/\s]+)/);
+  raw = raw.trim().replace(/\/+$/, '').replace(/\.git$/, '');
+  // Match https://host/owner/repo or host/owner/repo
+  const m = raw.match(/(?:https?:\/\/)?([^/\s]+\.[^/\s]+)\/([^/\s]+)\/([^/\s]+)/);
   if (m) {
     const host = m[1], owner = m[2], repo = m[3];
-    if (host === 'github.com') return { type: 'github', host, owner, repo };
-    return { type: 'forgejo', host, owner, repo };
+    return { type: detectForgeType(host), host, owner, repo };
   }
   // Bare owner/repo — default to git.gay
   const m2 = raw.match(/^([^/\s]+)\/([^/\s]+)$/);
@@ -834,8 +1025,8 @@ function parseRepoUrl(raw) {
   return null;
 }
 
-async function ghFetch(url, isGitHub) {
-  const headers = isGitHub ? { 'Accept': 'application/vnd.github.v3+json' } : {};
+async function gitApiFetch(url, type) {
+  const headers = type === 'github' ? { 'Accept': 'application/vnd.github.v3+json' } : {};
   const res = await fetch(url, { headers });
   if (res.status === 403) throw new Error('RATE LIMITED — try again in a minute');
   if (res.status === 404) throw new Error('REPO NOT FOUND');
@@ -843,37 +1034,90 @@ async function ghFetch(url, isGitHub) {
   return res.json();
 }
 
-async function getTreeGitHub(owner, repo, branch) {
-  const data = await ghFetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`, true);
-  return (data.tree || []).map(f => ({ path: f.path, type: f.type === 'blob' ? 'blob' : 'tree' }));
-}
-
-async function getTreeForgejo(host, owner, repo, branch) {
-  // Forgejo API: GET /api/v1/repos/{owner}/{repo}/git/trees/{sha}?recursive=true
-  // But easier: use contents API recursively via the flat search endpoint
-  // Use /api/v1/repos/{owner}/{repo}/git/trees/{branch}?recursive=true
-  const data = await ghFetch(`https://${host}/api/v1/repos/${owner}/${repo}/git/trees/${branch}?recursive=true`, false);
-  return (data.tree || []).map(f => ({ path: f.path, type: f.type }));
-}
+// Keep old name as alias so existing call sites still work
+const ghFetch = (url, isGitHub) => gitApiFetch(url, isGitHub ? 'github' : 'forgejo');
 
 async function getDefaultBranch(cfg) {
   if (cfg.type === 'github') {
-    const d = await ghFetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, true);
+    const d = await gitApiFetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, 'github');
+    return d.default_branch || 'main';
+  } else if (cfg.type === 'gitlab') {
+    const d = await gitApiFetch(`https://${cfg.host}/api/v4/projects/${encodeURIComponent(cfg.owner + '/' + cfg.repo)}`, 'gitlab');
     return d.default_branch || 'main';
   } else {
-    const d = await ghFetch(`https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}`, false);
+    const d = await gitApiFetch(`https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}`, 'forgejo');
     return d.default_branch || 'main';
+  }
+}
+
+async function getRepoTree(cfg, branch) {
+  if (cfg.type === 'github') {
+    const data = await gitApiFetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/git/trees/${branch}?recursive=1`, 'github');
+    return (data.tree || []).map(f => ({ path: f.path, type: f.type === 'blob' ? 'blob' : 'tree' }));
+  } else if (cfg.type === 'gitlab') {
+    // GitLab: paginate the tree API (max 100 per page)
+    const projectId = encodeURIComponent(cfg.owner + '/' + cfg.repo);
+    let page = 1, items = [];
+    while (true) {
+      const data = await gitApiFetch(
+        `https://${cfg.host}/api/v4/projects/${projectId}/repository/tree?recursive=true&per_page=100&page=${page}`,
+        'gitlab'
+      );
+      if (!Array.isArray(data) || !data.length) break;
+      items = items.concat(data);
+      if (data.length < 100) break;
+      page++;
+    }
+    return items.map(f => ({ path: f.path, type: f.type === 'blob' ? 'blob' : 'tree' }));
+  } else {
+    // Forgejo / Gitea
+    const data = await gitApiFetch(`https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}/git/trees/${branch}?recursive=true`, 'forgejo');
+    return (data.tree || []).map(f => ({ path: f.path, type: f.type }));
   }
 }
 
 function getRawUrl(cfg, branch, filePath) {
   if (cfg.type === 'github') {
-    // GitHub raw — note: may be blocked, but user chose GitHub knowing that
     return `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${branch}/${filePath}`;
+  } else if (cfg.type === 'gitlab') {
+    const projectId = encodeURIComponent(cfg.owner + '/' + cfg.repo);
+    return `https://${cfg.host}/api/v4/projects/${projectId}/repository/files/${encodeURIComponent(filePath)}/raw?ref=${branch}`;
   } else {
-    // Forgejo raw: https://host/owner/repo/raw/branch/branch/filepath
+    // Forgejo / Gitea raw
     return `https://${cfg.host}/${cfg.owner}/${cfg.repo}/raw/branch/${branch}/${filePath}`;
   }
+}
+
+// Also update the API fallback in ghFetchFile to handle GitLab
+async function gitFetchFile(url, cfg, branch, filePath) {
+  try {
+    const res = await fetch(url);
+    if (res.ok) return res;
+  } catch(e) {}
+
+  if (cfg && cfg.type === 'gitlab') {
+    try {
+      // GitLab API returns raw content directly at the raw URL — nothing extra needed
+      // Try with private-token header as fallback (no-op for public repos)
+      const res = await fetch(url, { headers: { 'PRIVATE-TOKEN': '' } });
+      if (res.ok) return res;
+    } catch(e) {}
+  } else if (cfg && cfg.type === 'forgejo') {
+    try {
+      const apiUrl = `https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}/contents/${filePath}?ref=${branch}`;
+      const res = await fetch(apiUrl);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.content) {
+          const binary = atob(json.content.replace(/\n/g, ''));
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          return new Response(bytes.buffer, { status: 200 });
+        }
+      }
+    } catch(e) {}
+  }
+  return null;
 }
 
 function openGHModal() {
@@ -927,9 +1171,7 @@ async function ghScan() {
     ghCurrentBranch = branch;
 
     setGHStatus('FETCHING FILE TREE...');
-    const tree = cfg.type === 'github'
-      ? await getTreeGitHub(cfg.owner, cfg.repo, branch)
-      : await getTreeForgejo(cfg.host, cfg.owner, cfg.repo, branch);
+    const tree = await getRepoTree(cfg, branch);
 
     // Find top-level folders with index.html
     const folderMap = {};
@@ -1093,7 +1335,7 @@ async function ghDownloadAndLoad(name, fileList, gameIdx, total) {
     try {
       // Build the full repo path for API fallback
       const repoPath = name === '[root]' ? f.path : `${name}/${f.path}`;
-      const res = await ghFetchFile(f.url, ghCurrentCfg, ghCurrentBranch, repoPath);
+      const res = await gitFetchFile(f.url, ghCurrentCfg, ghCurrentBranch, repoPath);
       if (!res) { failedCount++; console.warn('Failed to fetch:', f.url); continue; }
 
       const buf = await res.arrayBuffer();
@@ -1252,118 +1494,149 @@ function setR2Status(msg, cls = '') {
   el.className = 'r2-status' + (cls ? ' ' + cls : '');
 }
 
-async function r2LoadAll() {
+function r2LoadAll() {
   if (!r2Queue.length) return;
-  if (!swReady) { await initSW(); if (!swReady) return; }
-  if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(() => location.reload(), 1200); return; }
-
   const toLoad = [...r2Queue];
   closeR2Modal();
-  buildPips(toLoad.length);
-  showProgress(true, `Importing ${toLoad.length} game${toLoad.length !== 1 ? 's' : ''} from R2...`);
 
   let added = 0;
-  for (let i = 0; i < toLoad.length; i++) {
-    const g = toLoad[i];
-    setPip(i, 'active');
-    showProgress(true, `Downloading: ${g.name} (${i + 1}/${toLoad.length})`);
-    const ok = await r2DownloadGame(g);
-    setPip(i, ok ? 'done' : 'fail');
-    if (ok) added++;
+  for (const g of toLoad) {
+    const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    // R2 games are just iframed directly — no SW needed
+    const gameEntry = { id, name: g.name, icon: null, entryPath: g.indexUrl, fileCount: 0, fileRecords: [], r2: true };
+    games.push(gameEntry);
+    // Persist to DB (no files, just the meta + URL stored as entryPath)
+    saveR2GameToDB(gameEntry).catch(e => console.error('R2 save failed:', e));
+    added++;
   }
 
-  showProgress(false);
   if (added > 0) { showToast(`+${added} GAME${added > 1 ? 'S' : ''} ADDED`); renderGrid(); }
-  else showToast('NO GAMES LOADED', true);
 }
 
-async function r2DownloadGame(g) {
-  const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const iconNames = new Set(['favicon.ico', 'favicon.png', 'icon.png', 'logo.png', 'thumbnail.png', 'cover.png', 'icon.jpg']);
-  const fileRecords = [];
-  let iconUrl = null;
+async function saveR2GameToDB(game) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE_META, 'readwrite');
+    tx.oncomplete = () => res();
+    tx.onerror = e => rej(e.target.error);
+    tx.objectStore(STORE_META).put({
+      id: game.id,
+      name: game.name,
+      icon: game.icon,
+      entryPath: game.entryPath,
+      fileCount: 0,
+      r2: true,
+    });
+  });
+}
 
-  // First fetch index.html to get the full list of referenced files
-  setProgress(10, `${g.name}: fetching index.html...`);
-  let indexHtml = '';
+// ── ZENOPACK EXPORT / IMPORT ─────────────────────────────────────
+
+async function exportZenopack(e, gameId) {
+  e.stopPropagation();
+  const game = games.find(g => g.id === gameId);
+  if (!game) { showToast('GAME NOT FOUND', true); return; }
+  if (!game.fileRecords?.length) { showToast('R2 GAMES CANNOT BE EXPORTED', true); return; }
+
+  showToast('PACKAGING...');
+
+  // Read all file buffers
+  const files = [];
+  for (const r of game.fileRecords) {
+    const buf = await r.file.arrayBuffer();
+    files.push({ path: r.path, mimeType: r.mimeType, data: Array.from(new Uint8Array(buf)) });
+  }
+
+  // Build the zenopack — a JSON blob with metadata + base64 file contents
+  const pack = {
+    zenopack: '1.0',
+    name: game.name,
+    icon: game.icon || null,
+    fileCount: files.length,
+    files,
+  };
+
+  const json = JSON.stringify(pack);
+  const blob = new Blob([json], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = game.name.replace(/[^a-z0-9_\-]/gi, '_') + '.zenopack';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`EXPORTED: ${game.name}`);
+}
+
+async function importZenopack(file) {
+  if (!file) return;
+  const statusEl = document.getElementById('zenopackStatus');
+  statusEl.textContent = 'READING FILE...';
+  statusEl.className = 'share-status info';
+
   try {
-    const res = await fetch(g.indexUrl);
-    if (!res.ok) { showToast(`FAILED: ${g.name} — index.html not found`, true); return false; }
-    indexHtml = await res.text();
+    const text = await file.text();
+    const pack = JSON.parse(text);
+
+    if (!pack.zenopack || !pack.files?.length) {
+      statusEl.textContent = 'INVALID .ZENOPACK FILE';
+      statusEl.className = 'share-status err';
+      return;
+    }
+
+    if (!swReady) { await initSW(); if (!swReady) return; }
+    if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(()=>location.reload(),1200); return; }
+
+    statusEl.textContent = `LOADING: ${pack.name}`;
+
+    const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+    // Rebuild File objects from the stored byte arrays
+    const fileRecords = pack.files.map(f => {
+      const buf = new Uint8Array(f.data).buffer;
+      const fileObj = new File([buf], f.path.split('/').pop(), { type: f.mimeType });
+      Object.defineProperty(fileObj, 'webkitRelativePath', { value: pack.name + '/' + f.path, writable: false, configurable: true });
+      return { file: fileObj, path: f.path, mimeType: f.mimeType };
+    });
+
+    const ok = await registerGameWithSW(id, fileRecords);
+    if (!ok) {
+      statusEl.textContent = 'FAILED TO REGISTER GAME';
+      statusEl.className = 'share-status err';
+      return;
+    }
+
+    const gameEntry = { id, name: pack.name, icon: pack.icon, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
+    games.push(gameEntry);
+    saveGameToDB(gameEntry).catch(console.error);
+
+    statusEl.textContent = 'GAME IMPORTED!';
+    statusEl.className = 'share-status ok';
+    closeAddGamesModal();
+    showToast(`+1 GAME IMPORTED: ${pack.name}`);
+    renderGrid();
+
   } catch(e) {
-    showToast(`FAILED: ${g.name} — ${e.message}`, true);
-    return false;
+    console.error(e);
+    statusEl.textContent = 'FAILED — CORRUPT OR INVALID FILE';
+    statusEl.className = 'share-status err';
   }
 
-  // Parse all referenced assets from the HTML
-  const baseUrl = g.indexUrl.replace(/\/[^/]+$/, '/'); // folder base
-  const assetUrls = r2ExtractAssets(indexHtml, baseUrl);
-
-  // Always include index.html itself
-  const allUrls = [{ url: g.indexUrl, path: 'index.html' }, ...assetUrls];
-
-  for (let i = 0; i < allUrls.length; i++) {
-    const { url, path } = allUrls[i];
-    setProgress(Math.round(10 + (i / allUrls.length) * 78), `${g.name}: ${i + 1}/${allUrls.length} — ${path.split('/').pop()}`);
-    try {
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const buf = await res.arrayBuffer();
-      const mime = getMime(path.split('/').pop());
-      const file = new File([buf], path.split('/').pop(), { type: mime });
-      Object.defineProperty(file, 'webkitRelativePath', { value: g.name + '/' + path, writable: false, configurable: true });
-      fileRecords.push({ file, path, mimeType: mime });
-      const fname = path.split('/').pop().toLowerCase();
-      if (!iconUrl && iconNames.has(fname)) {
-        iconUrl = await blobToDataUrl(new Blob([buf], { type: mime }));
-      }
-    } catch(e) {
-      console.warn('R2 fetch failed:', url, e);
-    }
-  }
-
-  if (!fileRecords.some(r => r.path === 'index.html')) {
-    showToast(`FAILED: ${g.name}`, true);
-    return false;
-  }
-
-  setProgress(90, `${g.name}: registering...`);
-  const ok = await registerGameWithSW(id, fileRecords);
-  if (!ok) return false;
-
-  setProgress(100, `${g.name}: ready!`);
-  await sleep(150);
-
-  const gameEntry = { id, name: g.name, icon: iconUrl, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
-  games.push(gameEntry);
-  saveGameToDB(gameEntry).catch(e => console.error('R2 save to DB failed:', e));
-  return true;
+  document.getElementById('zenopackFileInput').value = '';
 }
 
-function r2ExtractAssets(html, baseUrl) {
-  const assets = new Set();
-  const patterns = [
-    /src=["']([^"']+)["']/gi,
-    /href=["']([^"']+)["']/gi,
-    /url\(["']?([^"')]+)["']?\)/gi,
-    /import\s+.*?from\s+["']([^"']+)["']/gi,
-    /import\s*\(["']([^"']+)["']\)/gi,
-  ];
-  for (const re of patterns) {
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const raw = m[1].trim();
-      if (!raw || raw.startsWith('data:') || raw.startsWith('http') || raw.startsWith('//') || raw.startsWith('#')) continue;
-      assets.add(raw);
-    }
-  }
-  return [...assets].map(rel => {
-    const url = new URL(rel, baseUrl).href;
-    // Only fetch assets from the same R2 bucket
-    const path = rel.replace(/^\.\//, '').replace(/^\//, '');
-    return { url, path };
-  }).filter(({ url }) => url.startsWith(baseUrl));
-}
+// Drag and drop for zenopack drop zone
+(function() {
+  const dz = document.getElementById('zenopackDrop');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file?.name.endsWith('.zenopack')) importZenopack(file);
+    else { document.getElementById('zenopackStatus').textContent = 'DROP A .ZENOPACK FILE'; document.getElementById('zenopackStatus').className = 'share-status err'; }
+  });
+})();
 
 // ── INDEXEDDB PERSISTENCE ────────────────────────────────────────
 const DB_NAME = 'zeno-games-db';
@@ -1485,10 +1758,16 @@ async function loadGamesFromDB() {
         const fileEntries = await idbGetAllByIndex(tx2.objectStore(STORE_FILES), 'gameId', meta.id);
 
         // Build fileRecords with synthetic File objects from stored buffers
+        // R2 games are iframed directly — no SW registration needed
+        if (meta.r2) {
+          games.push({ ...meta, fileRecords: [] });
+          setPip(i, 'done');
+          continue;
+        }
+
         const fileRecords = fileEntries.map(fe => ({
           path: fe.path,
           mimeType: fe.mimeType,
-          // Wrap buffer back into a File so existing code works unchanged
           file: new File([fe.buffer], fe.path.split('/').pop(), { type: fe.mimeType }),
         }));
 
