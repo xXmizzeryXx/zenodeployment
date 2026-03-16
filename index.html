@@ -37,158 +37,95 @@
     position: relative;
   }
 
-  /* ── BACKGROUND ── */
   .bg-grid {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background-image:
       linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
     background-size: 60px 60px;
-    z-index: 0;
-    pointer-events: none;
+    z-index: 0; pointer-events: none;
   }
   .bg-glow {
-    position: fixed;
-    width: 900px;
-    height: 900px;
+    position: fixed; width: 900px; height: 900px;
     background: radial-gradient(circle, rgba(0,245,255,0.04) 0%, transparent 65%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 0;
-    pointer-events: none;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 0; pointer-events: none;
   }
   .bg-glow-pink {
-    position: fixed;
-    width: 500px;
-    height: 500px;
+    position: fixed; width: 500px; height: 500px;
     background: radial-gradient(circle, rgba(191,0,255,0.04) 0%, transparent 65%);
-    bottom: -100px; right: -100px;
-    z-index: 0;
-    pointer-events: none;
+    bottom: -100px; right: -100px; z-index: 0; pointer-events: none;
   }
   .scanlines {
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 2px,
-      rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
-    );
-    z-index: 0;
-    pointer-events: none;
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
+    z-index: 0; pointer-events: none;
   }
 
-  /* ── CONTAINER ── */
   .container {
-    width: 100%;
-    max-width: 1000px;
-    padding: 2.5rem;
-    z-index: 1;
-    position: relative;
+    width: 100%; max-width: 1000px;
+    padding: 2.5rem; z-index: 1; position: relative;
   }
 
-  /* ── HEADER ── */
   .header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 2.8rem;
-    padding-bottom: 1.2rem;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 2.8rem; padding-bottom: 1.2rem;
     border-bottom: 1px solid rgba(0,245,255,0.1);
   }
 
   #greeting {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    line-height: 1.3;
-    animation: fadeSlideUp 0.6s ease both;
+    font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 700;
+    color: var(--text); text-transform: uppercase; letter-spacing: 3px;
+    line-height: 1.3; animation: fadeSlideUp 0.6s ease both;
   }
   #greeting span {
-    display: block;
-    color: var(--neon-cyan);
+    display: block; color: var(--neon-cyan);
     text-shadow: 0 0 20px rgba(0,245,255,0.5);
-    font-size: 2.4rem;
-    letter-spacing: 6px;
+    font-size: 2.4rem; letter-spacing: 6px;
   }
   #greeting.empty::after {
-    content: "HELLO,";
-    display: block;
-    color: var(--neon-cyan);
+    content: "HELLO,"; display: block; color: var(--neon-cyan);
     text-shadow: 0 0 20px rgba(0,245,255,0.5);
-    font-size: 2.4rem;
-    letter-spacing: 6px;
+    font-size: 2.4rem; letter-spacing: 6px;
   }
 
-  .time-container {
-    text-align: right;
-    animation: fadeSlideUp 0.6s 0.1s ease both;
-  }
+  .time-container { text-align: right; animation: fadeSlideUp 0.6s 0.1s ease both; }
   #clock {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 3.8rem;
-    font-weight: 900;
+    font-family: 'Orbitron', sans-serif; font-size: 3.8rem; font-weight: 900;
     color: var(--neon-pink);
     text-shadow: 0 0 20px rgba(255,0,110,0.5), 0 0 60px rgba(255,0,110,0.15);
-    line-height: 1;
-    letter-spacing: 2px;
+    line-height: 1; letter-spacing: 2px;
   }
   #date {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-top: 6px;
+    font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 3px; margin-top: 6px;
   }
 
-  /* ── APP GRID ── */
   .app-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1.5rem;
-    justify-items: center;
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 1.5rem; justify-items: center;
     animation: fadeSlideUp 0.6s 0.2s ease both;
   }
 
   .app-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 130px;
-    height: 130px;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    text-decoration: none;
-    color: var(--text);
-    transition: all 0.25s ease;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 130px; height: 130px;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 20px; text-decoration: none; color: var(--text);
+    transition: all 0.25s ease; position: relative; overflow: hidden; cursor: pointer;
   }
   .app-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
+    content: ''; position: absolute; inset: 0;
     background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent);
-    opacity: 0;
-    transition: opacity 0.25s;
+    opacity: 0; transition: opacity 0.25s;
   }
   .app-btn:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.6); }
   .app-btn:hover::before { opacity: 1; }
   .app-btn i { font-size: 3rem; margin-bottom: 0.9rem; transition: all 0.25s ease; }
   .app-btn:hover i { transform: scale(1.1); }
   .app-btn span {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif; font-size: 0.7rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
   }
 
   .app-btn.games:hover  { border-color: var(--neon-cyan);   color: var(--neon-cyan);   box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0,245,255,0.12); }
@@ -201,8 +138,8 @@
   .app-btn.settings:hover i { text-shadow: 0 0 18px var(--neon-pink); }
   .app-btn.cloak:hover { border-color: var(--neon-yellow); color: var(--neon-yellow); box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,230,0,0.12); }
   .app-btn.cloak:hover i { text-shadow: 0 0 18px var(--neon-yellow); }
-  .app-btn.gba:hover { border-color: var(--neon-orange); color: var(--neon-orange); box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,140,0,0.12); }
-  .app-btn.gba:hover i { text-shadow: 0 0 18px var(--neon-orange); }
+  .app-btn.movies:hover { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,0,110,0.12); }
+  .app-btn.movies:hover i { text-shadow: 0 0 18px var(--neon-pink); }
 
   .app-btn.cloak .cloak-badge {
     position: absolute; top: 10px; right: 10px;
@@ -219,26 +156,18 @@
     50% { opacity: 0.5; transform: scale(0.7); }
   }
 
-  /* ── MODALS ── */
   .modal {
-    position: fixed; inset: 0;
-    background: rgba(5,5,8,0.92);
-    backdrop-filter: blur(16px);
-    display: flex; justify-content: center; align-items: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.35s ease;
-    z-index: 1000;
+    position: fixed; inset: 0; background: rgba(5,5,8,0.92);
+    backdrop-filter: blur(16px); display: flex;
+    justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.35s ease; z-index: 1000;
   }
   .modal.open { opacity: 1; pointer-events: auto; }
   .modal-box {
-    background: var(--bg2);
-    border: 1px solid rgba(0,245,255,0.25);
-    padding: 3rem 3.5rem;
-    border-radius: 16px;
-    text-align: center;
+    background: var(--bg2); border: 1px solid rgba(0,245,255,0.25);
+    padding: 3rem 3.5rem; border-radius: 16px; text-align: center;
     box-shadow: 0 0 80px rgba(0,245,255,0.07);
-    transform: translateY(24px);
-    transition: transform 0.35s ease;
+    transform: translateY(24px); transition: transform 0.35s ease;
     max-width: 420px; width: 90%;
   }
   .modal.open .modal-box { transform: translateY(0); }
@@ -328,9 +257,9 @@
       <i class="fas fa-terminal"></i>
       <span>Terminal</span>
     </a>
-    <a href="gba.html" class="app-btn gba">
-      <i class="fas fa-mobile-screen"></i>
-      <span>GBA</span>
+    <a href="movies.html" class="app-btn movies">
+      <i class="fas fa-film"></i>
+      <span>Movies</span>
     </a>
     <a href="#" class="app-btn settings">
       <i class="fas fa-cog"></i>
@@ -399,7 +328,6 @@
 </div>
 
 <script>
-  // ── CLOCK & DATE ──
   (function() {
     const clockEl = document.getElementById('clock');
     const dateEl  = document.getElementById('date');
@@ -412,7 +340,6 @@
     update();
   })();
 
-  // ── GREETING ──
   function updateGreeting() {
     const name = localStorage.getItem('zeno-username');
     const el   = document.getElementById('greeting');
@@ -423,25 +350,17 @@
   }
   updateGreeting();
 
-  // ── WELCOME MODAL ──
   function saveUsername() {
     const val  = document.getElementById('welcomeInput').value.trim();
-    const name = val || 'Player';
-    localStorage.setItem('zeno-username', name);
-    updateGreeting();
-    closeWelcome();
+    localStorage.setItem('zeno-username', val || 'Player');
+    updateGreeting(); closeWelcome();
   }
   function skipUsername() {
     localStorage.setItem('zeno-username', '');
-    updateGreeting();
-    closeWelcome();
+    updateGreeting(); closeWelcome();
   }
-  function closeWelcome() {
-    document.getElementById('welcomeModal').classList.remove('open');
-  }
-  document.getElementById('welcomeInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') saveUsername();
-  });
+  function closeWelcome() { document.getElementById('welcomeModal').classList.remove('open'); }
+  document.getElementById('welcomeInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') saveUsername(); });
   (function() {
     if (localStorage.getItem('zeno-username') === null) {
       document.getElementById('welcomeModal').classList.add('open');
@@ -449,24 +368,17 @@
     }
   })();
 
-  // ── CLOAK SYSTEM ──
   let selectedPreset = null;
-
   function openCloakModal(e) {
     e.preventDefault();
     const saved = localStorage.getItem('zeno-cloak-title');
     if (saved) document.getElementById('cloakTitleInput').value = saved;
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-      btn.classList.toggle('selected', btn.dataset.title === saved);
-    });
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.title === saved));
     selectedPreset = null;
     document.getElementById('cloakModal').classList.add('open');
     setTimeout(() => document.getElementById('cloakTitleInput').focus(), 100);
   }
-  function closeCloakModal() {
-    document.getElementById('cloakModal').classList.remove('open');
-    selectedPreset = null;
-  }
+  function closeCloakModal() { document.getElementById('cloakModal').classList.remove('open'); selectedPreset = null; }
   function selectPreset(btn) {
     document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
