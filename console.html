@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeno — Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg: #02030a;
+  --bg2: #060810;
+  --green: #00ff88;
+  --cyan: #00f5ff;
+  --pink: #ff006e;
+  --purple: #bf00ff;
+  --yellow: #ffe600;
+  --orange: #ff8c00;
+  --dim: #1a2a1a;
+  --muted: #3a4a3a;
+  --text: #c8ffc8;
+  --prompt-color: #00ff88;
+  --error-color: #ff006e;
+  --info-color: #00f5ff;
+  --warn-color: #ffe600;
+  --output-color: #a0c8a0;
+  --system-color: #5a7a5a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Scanlines */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.015) 2px, rgba(0,255,136,0.015) 4px);
+  pointer-events: none; z-index: 10;
+}
+
+/* CRT vignette */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none; z-index: 10;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+  display: flex; align-items: center;
+  padding: 0 20px; height: 42px;
+  background: rgba(0,255,136,0.04);
+  border-bottom: 1px solid rgba(0,255,136,0.1);
+  flex-shrink: 0; z-index: 20; position: relative;
+  gap: 16px;
+}
+
+.tb-dots { display: flex; gap: 7px; align-items: center; }
+.dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  cursor: pointer; transition: filter .2s;
+}
+.dot.red { background: #ff5f57; }
+.dot.yellow { background: #febc2e; }
+.dot.green { background: #28c840; }
+.dot:hover { filter: brightness(1.3); }
+.dot.red:hover { box-shadow: 0 0 8px #ff5f57; }
+
+.tb-title {
+  flex: 1; text-align: center;
+  font-size: 11px; letter-spacing: 3px;
+  color: var(--muted); font-weight: 400;
+}
+
+.tb-right { display: flex; align-items: center; gap: 10px; }
+.btn-back {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 9px; letter-spacing: 2px;
+  font-family: 'Orbitron', monospace;
+  color: var(--muted); border: 1px solid rgba(0,255,136,0.12);
+  border-radius: 4px; padding: 5px 10px;
+  text-decoration: none; transition: all .2s;
+}
+.btn-back:hover { color: var(--green); border-color: rgba(0,255,136,0.4); }
+
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Orbitron', monospace;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--green); padding: 4px 10px;
+  border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 3px; background: rgba(0,255,136,0.04);
+}
+.status-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── OUTPUT AREA ── */
+.output-area {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px 8px;
+  position: relative; z-index: 1;
+  scroll-behavior: smooth;
+}
+.output-area::-webkit-scrollbar { width: 4px; }
+.output-area::-webkit-scrollbar-track { background: transparent; }
+.output-area::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.15); border-radius: 4px; }
+
+/* ── BOOT SEQUENCE ── */
+.boot-line {
+  font-size: 12px; letter-spacing: 1px;
+  color: var(--system-color);
+  line-height: 1.8;
+  animation: typeIn .05s ease both;
+}
+@keyframes typeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── OUTPUT LINES ── */
+.line {
+  font-size: 13px; line-height: 1.7;
+  margin-bottom: 1px; white-space: pre-wrap;
+  word-break: break-all;
+}
+.line-input { color: var(--green); }
+.line-input .prompt { color: var(--cyan); }
+.line-input .prompt-arrow { color: var(--green); }
+.line-output { color: var(--output-color); }
+.line-error { color: var(--error-color); }
+.line-info { color: var(--info-color); }
+.line-warn { color: var(--warn-color); }
+.line-system { color: var(--system-color); font-size: 11px; }
+.line-success { color: var(--green); }
+.line-blank { height: 6px; }
+.line-divider {
+  color: var(--muted); font-size: 11px;
+  border-top: 1px solid rgba(0,255,136,0.08);
+  padding-top: 6px; margin: 4px 0;
+}
+
+/* Special styled outputs */
+.ascii-art {
+  color: var(--cyan); font-size: 11px; line-height: 1.3;
+  white-space: pre; margin: 4px 0;
+}
+.table-output {
+  border-collapse: collapse; font-size: 12px;
+  margin: 4px 0; color: var(--output-color);
+}
+.table-output th {
+  color: var(--cyan); padding: 2px 16px 2px 0;
+  text-align: left; font-weight: 500;
+  border-bottom: 1px solid rgba(0,245,255,0.2);
+}
+.table-output td { padding: 2px 16px 2px 0; }
+.highlight { color: var(--yellow); }
+.dim-text { color: var(--system-color); }
+
+/* ── INPUT ROW ── */
+.input-row {
+  display: flex; align-items: center;
+  padding: 10px 24px 16px;
+  gap: 0; position: relative; z-index: 1; flex-shrink: 0;
+  border-top: 1px solid rgba(0,255,136,0.06);
+}
+.input-prompt {
+  font-size: 13px; white-space: nowrap;
+  color: var(--cyan); user-select: none; flex-shrink: 0;
+}
+.input-prompt .arrow { color: var(--green); margin: 0 4px; }
+#termInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--green); caret-color: var(--green);
+  letter-spacing: .3px;
+}
+#termInput::selection { background: rgba(0,255,136,0.25); }
+
+/* Cursor blink on input */
+.cursor-block {
+  display: inline-block; width: 8px; height: 14px;
+  background: var(--green); vertical-align: middle;
+  animation: cursorBlink .9s step-end infinite;
+  margin-left: 1px; flex-shrink: 0;
+}
+@keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── MATRIX EASTER EGG ── */
+#matrixCanvas {
+  position: fixed; inset: 0;
+  z-index: 500; display: none;
+  cursor: pointer;
+}
+.matrix-exit {
+  position: fixed; top: 20px; right: 20px;
+  z-index: 501; font-family: 'Orbitron', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  color: #0f0; border: 1px solid #0f0;
+  background: rgba(0,0,0,0.7); padding: 8px 14px;
+  cursor: pointer; display: none;
+  border-radius: 3px;
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+<div class="matrix-exit" id="matrixExit" onclick="stopMatrix()">ESC — EXIT</div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="tb-dots">
+    <div class="dot red" title="Close" onclick="window.location.href='index.html'"></div>
+    <div class="dot yellow" title="Minimize"></div>
+    <div class="dot green" title="Maximize" onclick="toggleFullscreen()"></div>
+  </div>
+  <div class="tb-title">zeno@eclipse: ~</div>
+  <div class="tb-right">
+    <div class="status-pill"><div class="status-dot"></div>ONLINE</div>
+    <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> HOME</a>
+  </div>
+</div>
+
+<!-- OUTPUT -->
+<div class="output-area" id="output"></div>
+
+<!-- INPUT -->
+<div class="input-row">
+  <span class="input-prompt"><span id="promptUser" style="color:var(--green)">guest</span><span style="color:var(--muted)">@</span><span style="color:var(--cyan)">zeno</span><span style="color:var(--muted)">:</span><span style="color:var(--purple)">~</span><span class="arrow">❯</span></span>
+  <input type="text" id="termInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus/>
+  <div class="cursor-block"></div>
+</div>
+
+<script>
+// ── CONFIG ──
+let USERNAME = localStorage.getItem('zeno-username') || 'guest';
+document.getElementById('promptUser').textContent = USERNAME.toLowerCase();
+
+function setUsername(name) {
+  USERNAME = name;
+  localStorage.setItem('zeno-username', name);
+  document.getElementById('promptUser').textContent = name.toLowerCase();
+}
+
+const BOOT_START = Date.now();
+let history = [];
+let histIdx = -1;
+let jsContext = {}; // persistent variables across JS evaluations
+
+// ── BOOT SEQUENCE ──
+const bootLines = [
+  { text: '╔══════════════════════════════════════════════════════╗', delay: 0 },
+  { text: '║         ZENO TERMINAL  //  ECLIPSE SYSTEMS v2.4     ║', delay: 60 },
+  { text: '╚══════════════════════════════════════════════════════╝', delay: 120 },
+  { text: '', delay: 160 },
+  { text: '[  OK  ] Initializing kernel modules...', delay: 220 },
+  { text: '[  OK  ] Mounting virtual filesystem...', delay: 340 },
+  { text: '[  OK  ] Loading JS sandbox environment...', delay: 460 },
+  { text: '[  OK  ] Applying neon theme...', delay: 560 },
+  { text: '[  OK  ] All systems nominal.', delay: 660 },
+  { text: '', delay: 720 },
+  { text: `Welcome back, ${USERNAME.toUpperCase()}. Type "help" to get started.`, delay: 780, cls: 'line-info' },
+  { text: '', delay: 820 },
+];
+
+function boot() {
+  const out = document.getElementById('output');
+  bootLines.forEach(({ text, delay, cls }) => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = `line boot-line ${cls || 'line-system'}`;
+      div.textContent = text;
+      out.appendChild(div);
+      out.scrollTop = out.scrollHeight;
+    }, delay);
+  });
+}
+boot();
+
+// ── OUTPUT HELPERS ──
+function print(text, cls = 'line-output', html = false) {
+  const out = document.getElementById('output');
+  const div = document.createElement('div');
+  div.className = `line ${cls}`;
+  if (html) div.innerHTML = text;
+  else div.textContent = text;
+  out.appendChild(div);
+  out.scrollTop = out.scrollHeight;
+}
+
+function printHTML(html, cls = 'line-output') { print(html, cls, true); }
+function printBlank() { print('', 'line-blank'); }
+function printDivider() { print('', 'line-divider'); }
+
+function printTable(rows, headers) {
+  const out = document.getElementById('output');
+  const table = document.createElement('table');
+  table.className = 'table-output';
+  if (headers) {
+    const thead = document.createElement('tr');
+    headers.forEach(h => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      thead.appendChild(th);
+    });
+    table.appendChild(thead);
+  }
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach(cell => {
+      const td = document.createElement('td');
+      td.innerHTML = cell;
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+  out.appendChild(table);
+  out.scrollTop = out.scrollHeight;
+}
+
+function echoInput(cmd) {
+  print(`${USERNAME.toLowerCase()}@zeno:~❯ ${cmd}`, 'line-input');
+}
+
+// ── UPTIME ──
+function getUptime() {
+  const ms = Date.now() - BOOT_START;
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}h ${m % 60}m ${s % 60}s`;
+  if (m > 0) return `${m}m ${s % 60}s`;
+  return `${s}s`;
+}
+
+// ── BUILT-IN COMMANDS ──
+const COMMANDS = {
+
+  help: () => {
+    printBlank();
+    print('AVAILABLE COMMANDS', 'line-info');
+    printDivider();
+    printTable([
+      ['<span class="highlight">help</span>', 'Show this message'],
+      ['<span class="highlight">clear</span>', 'Clear the terminal'],
+      ['<span class="highlight">echo [text]</span>', 'Print text to output'],
+      ['<span class="highlight">sysinfo</span>', 'Display system information'],
+      ['<span class="highlight">uptime</span>', 'Show session uptime'],
+      ['<span class="highlight">whoami</span>', 'Display current user'],
+      ['<span class="highlight">date</span>', 'Show current date/time'],
+      ['<span class="highlight">ls</span>', 'List directory contents'],
+      ['<span class="highlight">cat [file]</span>', 'Read a file'],
+      ['<span class="highlight">ping [host]</span>', 'Ping a host'],
+      ['<span class="highlight">calc [expr]</span>', 'Quick calculator'],
+      ['<span class="highlight">theme [name]</span>', 'Change color theme'],
+      ['<span class="highlight">chname [name]</span>', 'Change your username across Zeno'],
+      ['<span class="highlight">history</span>', 'Show command history'],
+      ['<span class="highlight">banner</span>', 'Display Zeno ASCII banner'],
+      ['<span class="highlight">js [code]</span>', 'Evaluate JavaScript'],
+      ['<span class="highlight">let x = 5</span>', 'JS vars persist between commands'],
+    ], ['Command', 'Description']);
+    printBlank();
+    print('// Hint: there may be secret commands...', 'line-system');
+    printBlank();
+  },
+
+  clear: () => {
+    document.getElementById('output').innerHTML = '';
+  },
+
+  echo: (args) => {
+    print(args.join(' ') || '', 'line-output');
+  },
+
+  sysinfo: () => {
+    printBlank();
+    print('SYSTEM INFORMATION', 'line-info');
+    printDivider();
+    printTable([
+      ['<span class="dim-text">OS</span>', 'Eclipse OS 3.7.1 (Neon Edition)'],
+      ['<span class="dim-text">Kernel</span>', 'zeno-kernel 6.6.6-eclipse'],
+      ['<span class="dim-text">Shell</span>', 'zsh 2.4.0 (Zeno Terminal)'],
+      ['<span class="dim-text">User</span>', `<span class="highlight">${USERNAME}</span>`],
+      ['<span class="dim-text">Browser</span>', navigator.userAgent.split(') ').pop().split(' ')[0] || 'Unknown'],
+      ['<span class="dim-text">Resolution</span>', `${window.screen.width}x${window.screen.height}`],
+      ['<span class="dim-text">CPU</span>', `${navigator.hardwareConcurrency || '?'}-core @ ∞ GHz (virtual)`],
+      ['<span class="dim-text">Memory</span>', `${Math.round((navigator.deviceMemory || 8))} GB (est.)`],
+      ['<span class="dim-text">Platform</span>', navigator.platform || 'Unknown'],
+      ['<span class="dim-text">Language</span>', navigator.language],
+      ['<span class="dim-text">Online</span>', `<span class="${navigator.onLine ? 'line-success' : 'line-error'}" style="display:inline">${navigator.onLine ? '✓ Connected' : '✗ Offline'}</span>`],
+      ['<span class="dim-text">Uptime</span>', `<span class="highlight">${getUptime()}</span>`],
+    ]);
+    printBlank();
+  },
+
+  uptime: () => {
+    print(`Session uptime: ${getUptime()}`, 'line-success');
+  },
+
+  whoami: () => {
+    print(USERNAME.toLowerCase(), 'line-success');
+    print('Groups: eclipse, sudo, neon-ops', 'line-system');
+  },
+
+  date: () => {
+    const now = new Date();
+    print(now.toUTCString(), 'line-output');
+    print(`Local: ${now.toLocaleString()}`, 'line-system');
+    print(`Unix timestamp: ${Math.floor(now.getTime() / 1000)}`, 'line-system');
+  },
+
+  ls: (args) => {
+    const dir = args[0] || '~';
+    printBlank();
+    const entries = {
+      '~': [
+        { name: 'games/', color: 'var(--cyan)', type: 'd' },
+        { name: 'movies/', color: 'var(--cyan)', type: 'd' },
+        { name: 'browser/', color: 'var(--cyan)', type: 'd' },
+        { name: 'secrets/', color: 'var(--purple)', type: 'd' },
+        { name: 'README.md', color: 'var(--output-color)', type: 'f' },
+        { name: '.zeno_config', color: 'var(--system-color)', type: 'f' },
+        { name: '.history', color: 'var(--system-color)', type: 'f' },
+      ],
+      'secrets': [
+        { name: '???', color: 'var(--pink)', type: 'f' },
+      ]
+    };
+    const key = dir.replace('~/', '').replace('~', '~');
+    const items = entries[dir === '~' ? '~' : dir] || entries['~'];
+    const out = document.getElementById('output');
+    const row = document.createElement('div');
+    row.className = 'line';
+    row.style.display = 'flex'; row.style.flexWrap = 'wrap'; row.style.gap = '20px';
+    items.forEach(item => {
+      const span = document.createElement('span');
+      span.style.color = item.color;
+      span.style.minWidth = '120px';
+      span.textContent = (item.type === 'd' ? '📁 ' : '📄 ') + item.name;
+      row.appendChild(span);
+    });
+    out.appendChild(row);
+    out.scrollTop = out.scrollHeight;
+    printBlank();
+  },
+
+  cat: (args) => {
+    const file = args[0];
+    const files = {
+      'README.md': [
+        '# ZENO TERMINAL',
+        '',
+        'Part of the Eclipse Family.',
+        'A browser-based JS sandbox with built-in commands.',
+        '',
+        '## Usage',
+        '  Type any JavaScript and it will be evaluated.',
+        '  Built-in commands take priority over JS.',
+        '',
+        '## Secret Commands',
+        '  You\'ll have to find those yourself.',
+      ],
+      '.zeno_config': [
+        '# Zeno Terminal Config',
+        `user=${USERNAME.toLowerCase()}`,
+        'theme=neon-green',
+        'font=JetBrains Mono',
+        'crt_effect=true',
+        'matrix_screensaver=false',
+        'easter_eggs=true',
+      ],
+    };
+    if (!file) { print('cat: missing operand', 'line-error'); return; }
+    const content = files[file];
+    if (!content) { print(`cat: ${file}: No such file or directory`, 'line-error'); return; }
+    content.forEach(l => print(l, 'line-output'));
+  },
+
+  ping: (args) => {
+    const host = args[0] || 'localhost';
+    print(`PING ${host} (127.0.0.1): 56 bytes of data`, 'line-output');
+    let count = 0;
+    const interval = setInterval(() => {
+      const ms = (Math.random() * 8 + 1).toFixed(3);
+      print(`64 bytes from ${host}: icmp_seq=${count} ttl=64 time=${ms} ms`, 'line-success');
+      count++;
+      if (count >= 4) {
+        clearInterval(interval);
+        printBlank();
+        print(`--- ${host} ping statistics ---`, 'line-output');
+        print(`4 packets transmitted, 4 received, 0% packet loss`, 'line-success');
+        printBlank();
+      }
+    }, 400);
+  },
+
+  calc: (args) => {
+    const expr = args.join(' ');
+    if (!expr) { print('calc: usage: calc [expression]', 'line-warn'); return; }
+    try {
+      const result = Function('"use strict"; return (' + expr + ')')();
+      print(`${expr} = ${result}`, 'line-success');
+    } catch(e) {
+      print(`calc: ${e.message}`, 'line-error');
+    }
+  },
+
+  history: () => {
+    if (!history.length) { print('No commands in history.', 'line-system'); return; }
+    history.forEach((cmd, i) => {
+      print(`  ${String(i + 1).padStart(3, ' ')}  ${cmd}`, 'line-output');
+    });
+  },
+
+  theme: (args) => {
+    const themes = {
+      green: { '--green': '#00ff88', '--text': '#c8ffc8', '--prompt-color': '#00ff88', '--output-color': '#a0c8a0' },
+      cyan: { '--green': '#00f5ff', '--text': '#c8f8ff', '--prompt-color': '#00f5ff', '--output-color': '#90c8d0' },
+      pink: { '--green': '#ff006e', '--text': '#ffc8d8', '--prompt-color': '#ff006e', '--output-color': '#c89098' },
+      purple: { '--green': '#bf00ff', '--text': '#e8c8ff', '--prompt-color': '#bf00ff', '--output-color': '#a880c0' },
+      amber: { '--green': '#ffa500', '--text': '#fff0c0', '--prompt-color': '#ffa500', '--output-color': '#c0a060' },
+    };
+    const name = args[0]?.toLowerCase();
+    if (!name || !themes[name]) {
+      print(`Available themes: ${Object.keys(themes).join(', ')}`, 'line-info');
+      return;
+    }
+    const root = document.documentElement;
+    Object.entries(themes[name]).forEach(([k, v]) => root.style.setProperty(k, v));
+    print(`Theme set to "${name}"`, 'line-success');
+  },
+
+  banner: () => {
+    printBlank();
+    const art = [
+      '  ███████╗███████╗███╗   ██╗ ██████╗',
+      '     ███╔╝██╔════╝████╗  ██║██╔═══██╗',
+      '    ███╔╝ █████╗  ██╔██╗ ██║██║   ██║',
+      '   ███╔╝  ██╔══╝  ██║╚██╗██║██║   ██║',
+      '  ███████╗███████╗██║ ╚████║╚██████╔╝',
+      '  ╚══════╝╚══════╝╚═╝  ╚═══╝ ╚═════╝',
+      '',
+      '  // ECLIPSE TERMINAL  v2.4  //  NEON EDITION',
+    ];
+    const out = document.getElementById('output');
+    art.forEach(line => {
+      const div = document.createElement('div');
+      div.className = 'ascii-art';
+      div.textContent = line;
+      out.appendChild(div);
+    });
+    out.scrollTop = out.scrollHeight;
+    printBlank();
+  },
+
+  js: (args) => {
+    const code = args.join(' ');
+    if (!code) { print('js: usage: js [code]', 'line-warn'); return; }
+    evalJS(code);
+  },
+
+  // ── SECRET COMMANDS ──
+
+  matrix: () => {
+    startMatrix();
+  },
+
+  hack: () => {
+    print('Initiating hack sequence...', 'line-warn');
+    const lines = [
+      'Bypassing firewall...',
+      'Injecting payload...',
+      'Accessing mainframe...',
+      'Decrypting databases...',
+      'Downloading schematics...',
+      'Covering tracks...',
+      'Done. You are now elite.',
+    ];
+    lines.forEach((l, i) => {
+      setTimeout(() => {
+        const pct = Math.floor((i / (lines.length - 1)) * 100);
+        print(`[${('█'.repeat(Math.floor(pct/5)) + '░'.repeat(20 - Math.floor(pct/5))).substring(0,20)}] ${pct}%  ${l}`, i < lines.length - 1 ? 'line-warn' : 'line-success');
+      }, i * 600);
+    });
+  },
+
+  sudo: (args) => {
+    if (args[0] === 'rm' && args[1] === '-rf' && args[2] === '/') {
+      print('nice try.', 'line-error');
+      return;
+    }
+    print(`[sudo] password for ${USERNAME.toLowerCase()}: `, 'line-warn');
+    setTimeout(() => {
+      print('sudo: incorrect password (nice try)', 'line-error');
+    }, 800);
+  },
+
+  zeno: () => {
+    COMMANDS.banner();
+    print('Zeno — Part of the Eclipse Family', 'line-info');
+    print('Built with ❤ and neon lights.', 'line-system');
+  },
+
+  exit: () => {
+    print('Goodbye, ' + USERNAME + '.', 'line-info');
+    setTimeout(() => { window.location.href = 'index.html'; }, 800);
+  },
+
+  reboot: () => {
+    print('Rebooting...', 'line-warn');
+    setTimeout(() => {
+      document.getElementById('output').innerHTML = '';
+      boot();
+    }, 1000);
+  },
+
+  neofetch: () => {
+    printBlank();
+    const out = document.getElementById('output');
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex'; wrapper.style.gap = '28px';
+    wrapper.style.alignItems = 'flex-start';
+
+    const logoLines = [
+      '   ████████╗',
+      '  ███╔═════╝',
+      ' ███╔╝',
+      '███████╗',
+      '╚═════███╗',
+      '      ███╔╝',
+      ' ████████╔╝',
+      ' ╚═══════╝',
+    ];
+
+    const logoEl = document.createElement('div');
+    logoEl.className = 'ascii-art';
+    logoEl.style.color = 'var(--cyan)';
+    logoEl.style.fontSize = '12px';
+    logoEl.textContent = logoLines.join('\n');
+
+    const infoEl = document.createElement('div');
+    infoEl.style.fontFamily = 'JetBrains Mono, monospace';
+    infoEl.style.fontSize = '12px';
+    infoEl.style.lineHeight = '1.8';
+
+    const info = [
+      [`<span style="color:var(--green)">${USERNAME.toLowerCase()}</span><span style="color:var(--muted)">@</span><span style="color:var(--cyan)">zeno</span>`, ''],
+      ['─────────────────', ''],
+      ['OS', 'Eclipse OS 3.7.1'],
+      ['Host', 'Eclipse Systems'],
+      ['Kernel', 'zeno-kernel 6.6.6'],
+      ['Uptime', getUptime()],
+      ['Shell', 'zsh 2.4.0'],
+      ['Resolution', `${window.screen.width}x${window.screen.height}`],
+      ['CPU', `${navigator.hardwareConcurrency || '?'}-core (virtual)`],
+      ['Memory', `${Math.round(navigator.deviceMemory || 8)}GB`],
+      ['Theme', 'Neon Green'],
+      ['Font', 'JetBrains Mono'],
+    ];
+
+    info.forEach(([key, val]) => {
+      const div = document.createElement('div');
+      if (!val) { div.innerHTML = key; }
+      else { div.innerHTML = `<span style="color:var(--cyan)">${key}</span><span style="color:var(--muted)">: </span><span style="color:var(--output-color)">${val}</span>`; }
+      infoEl.appendChild(div);
+    });
+
+    // Color swatches
+    const swatchDiv = document.createElement('div');
+    swatchDiv.style.marginTop = '8px';
+    const colors = ['#ff006e','#ff8c00','#ffe600','#00ff88','#00f5ff','#bf00ff','#ffffff','#1a1a2a'];
+    colors.forEach(c => {
+      const s = document.createElement('span');
+      s.style.cssText = `display:inline-block;width:16px;height:16px;background:${c};border-radius:2px;margin-right:4px;`;
+      swatchDiv.appendChild(s);
+    });
+    infoEl.appendChild(swatchDiv);
+
+    wrapper.appendChild(logoEl);
+    wrapper.appendChild(infoEl);
+    out.appendChild(wrapper);
+    out.scrollTop = out.scrollHeight;
+    printBlank();
+  },
+
+  weather: () => {
+    print('Fetching weather data...', 'line-system');
+    setTimeout(() => {
+      print('Eclipse City, Neon District', 'line-info');
+      print('🌆 21°C  Partly Cloudy with Neon Haze', 'line-success');
+      print('Humidity: 72%  Wind: 12 km/h NW  Visibility: ∞', 'line-output');
+      print('Forecast: Glowing all week.', 'line-system');
+    }, 600);
+  },
+
+  fortune: () => {
+    const fortunes = [
+      '"The best code is no code at all." — Jeff Atwood',
+      '"Programs must be written for people to read, and only incidentally for machines to execute." — SICP',
+      '"Any fool can write code that a computer can understand. Good programmers write code that humans can understand." — Martin Fowler',
+      '"Talk is cheap. Show me the code." — Linus Torvalds',
+      '"First, solve the problem. Then, write the code." — John Johnson',
+      '"The neon glows brightest in the dark." — Eclipse Systems',
+      '"You are 1% inspiration and 99% trying to figure out why it doesn\'t work." — Unknown',
+      '"It\'s not a bug, it\'s an undocumented feature." — Unknown',
+    ];
+    print(fortunes[Math.floor(Math.random() * fortunes.length)], 'line-info');
+  },
+
+  coinflip: () => {
+    print(Math.random() > 0.5 ? '🪙 Heads' : '🪙 Tails', 'line-success');
+  },
+
+  roll: (args) => {
+    const sides = parseInt(args[0]) || 6;
+    const result = Math.floor(Math.random() * sides) + 1;
+    print(`🎲 Rolling d${sides}... ${result}`, 'line-success');
+  },
+
+  '': () => {}, // ignore empty
+
+  chname: (args) => {
+    const name = args[0]?.trim();
+    if (!name) {
+      print('Usage: chname [name]', 'line-warn');
+      print(`Current name: ${USERNAME}`, 'line-system');
+      return;
+    }
+    if (name.length > 24) { print('Name too long (max 24 chars)', 'line-error'); return; }
+    if (!/^[a-zA-Z0-9_\-]+$/.test(name)) { print('Name can only contain letters, numbers, _ and -', 'line-error'); return; }
+    const old = USERNAME;
+    setUsername(name);
+    print(`Username changed: ${old} → ${name}`, 'line-success');
+    print('Change saved — will persist across all Zeno pages.', 'line-system');
+  },
+
+};
+
+COMMANDS['cls'] = COMMANDS.clear;
+COMMANDS['info'] = COMMANDS.sysinfo;
+COMMANDS['pwd'] = () => print('/home/' + USERNAME.toLowerCase(), 'line-output');
+COMMANDS['uname'] = () => print('Eclipse 6.6.6-zeno-neon #1 SMP PREEMPT', 'line-output');
+COMMANDS['man'] = () => print('No manual entry. Try "help".', 'line-warn');
+
+// ── JS EVALUATION ──
+function evalJS(code) {
+  try {
+    // Inject persistent context variables
+    const contextSetup = Object.entries(jsContext)
+      .map(([k, v]) => `var ${k} = ${JSON.stringify(v)};`)
+      .join('\n');
+
+    // Capture console.log
+    const logs = [];
+    const fakeConsole = {
+      log: (...a) => logs.push(a.map(stringify).join(' ')),
+      warn: (...a) => logs.push('⚠ ' + a.map(stringify).join(' ')),
+      error: (...a) => logs.push('✗ ' + a.map(stringify).join(' ')),
+      info: (...a) => logs.push('ℹ ' + a.map(stringify).join(' ')),
+    };
+
+    const result = Function(
+      '"use strict";' +
+      'var console = arguments[0];' +
+      contextSetup +
+      'var __result = (function(){\n' + code + '\n})();' +
+      'return __result;'
+    )(fakeConsole);
+
+    logs.forEach(l => print(l, 'line-output'));
+
+    if (result !== undefined) {
+      print('← ' + stringify(result), 'line-success');
+    } else if (!logs.length) {
+      print('← undefined', 'line-system');
+    }
+
+    // Try to extract variable assignments for persistence
+    const varMatch = code.match(/^(?:var|let|const)\s+(\w+)\s*=/);
+    if (varMatch) {
+      try {
+        const varName = varMatch[1];
+        const val = Function('"use strict"; ' + code + '; return ' + varName + ';')();
+        jsContext[varName] = val;
+      } catch(e) {}
+    }
+
+  } catch(e) {
+    print('SyntaxError: ' + e.message, 'line-error');
+  }
+}
+
+function stringify(val) {
+  if (val === null) return 'null';
+  if (val === undefined) return 'undefined';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'function') return val.toString().split('\n')[0] + ' ... }';
+  try { return JSON.stringify(val, null, 2); } catch(e) { return String(val); }
+}
+
+// ── INPUT HANDLING ──
+const input = document.getElementById('termInput');
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const raw = input.value;
+    input.value = '';
+
+    if (raw.trim()) {
+      history.unshift(raw);
+      if (history.length > 100) history.pop();
+    }
+    histIdx = -1;
+
+    echoInput(raw);
+    processInput(raw.trim());
+
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (histIdx < history.length - 1) { histIdx++; input.value = history[histIdx]; }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (histIdx > 0) { histIdx--; input.value = history[histIdx]; }
+    else { histIdx = -1; input.value = ''; }
+  } else if (e.key === 'Tab') {
+    e.preventDefault();
+    const partial = input.value.toLowerCase();
+    const match = Object.keys(COMMANDS).find(k => k.startsWith(partial) && k !== '');
+    if (match) input.value = match;
+  } else if (e.key === 'c' && e.ctrlKey) {
+    print('^C', 'line-error');
+    input.value = '';
+  } else if (e.key === 'l' && e.ctrlKey) {
+    e.preventDefault();
+    COMMANDS.clear();
+  }
+});
+
+// Always keep focus on input
+document.addEventListener('click', e => {
+  if (e.target !== input && !e.target.closest('button') && !e.target.closest('a')) {
+    input.focus();
+  }
+});
+window.addEventListener('focus', () => input.focus());
+
+function processInput(raw) {
+  if (!raw) { printBlank(); return; }
+
+  const parts = raw.trim().split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const args = parts.slice(1);
+
+  // Built-in command?
+  if (COMMANDS[cmd]) {
+    COMMANDS[cmd](args);
+    return;
+  }
+
+  // Looks like JS assignment or expression?
+  if (
+    /^(var|let|const)\s/.test(raw) ||
+    /^[a-zA-Z_$][\w$]*\s*[+\-*/%]?=/.test(raw) ||
+    /^(if|for|while|function|class|return|throw|try)\b/.test(raw) ||
+    /[+\-*\/%(){}[\];,.<>!&|^~?:]/.test(raw) ||
+    /^\d/.test(raw) ||
+    /^"/.test(raw) ||
+    /^'/.test(raw) ||
+    /^`/.test(raw) ||
+    /^\[/.test(raw) ||
+    /^\{/.test(raw)
+  ) {
+    evalJS(raw);
+    return;
+  }
+
+  // Check if it looks like a known command with wrong case
+  const fuzzy = Object.keys(COMMANDS).find(k => k && k.toLowerCase() === cmd);
+  if (fuzzy) { COMMANDS[fuzzy](args); return; }
+
+  // Unknown — try as JS anyway
+  evalJS(raw);
+}
+
+// ── MATRIX EASTER EGG ──
+let matrixAnim = null;
+
+function startMatrix() {
+  const canvas = document.getElementById('matrixCanvas');
+  const exit = document.getElementById('matrixExit');
+  canvas.style.display = 'block';
+  exit.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const cols = Math.floor(canvas.width / 16);
+  const drops = Array(cols).fill(1);
+  const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0f0';
+    ctx.font = '14px JetBrains Mono, monospace';
+    drops.forEach((y, i) => {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillStyle = Math.random() > 0.95 ? '#fff' : '#0f0';
+      ctx.fillText(char, i * 16, y * 16);
+      if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+  matrixAnim = setInterval(draw, 33);
+  print('// Press ESC or click EXIT to stop the matrix', 'line-system');
+}
+
+function stopMatrix() {
+  clearInterval(matrixAnim);
+  document.getElementById('matrixCanvas').style.display = 'none';
+  document.getElementById('matrixExit').style.display = 'none';
+  input.focus();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && matrixAnim) stopMatrix();
+});
+
+// ── FULLSCREEN ──
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+// Focus input on load
+setTimeout(() => input.focus(), 900);
+</script>
+</body>
+</html>
