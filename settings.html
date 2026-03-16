@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeno — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg: #050508;
+  --bg2: #0a0a12;
+  --bg3: #0d0d18;
+  --neon-cyan: #00f5ff;
+  --neon-pink: #ff006e;
+  --neon-purple: #bf00ff;
+  --neon-green: #00ff88;
+  --card-bg: rgba(255,255,255,0.03);
+  --card-border: rgba(0,245,255,0.1);
+  --text: #e0e8ff;
+  --muted: #4a5068;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none; z-index: 0;
+}
+
+.scanlines {
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+  pointer-events: none; z-index: 999;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; padding: 0 32px; height: 60px;
+  background: rgba(5,5,8,0.92); backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,245,255,0.07); gap: 16px;
+}
+.btn-back {
+  display: flex; align-items: center; gap: 7px;
+  text-decoration: none; font-family: 'Orbitron', monospace;
+  font-size: 9px; letter-spacing: 2px; color: var(--muted);
+  border: 1px solid rgba(0,245,255,0.12); border-radius: 4px;
+  padding: 7px 13px; transition: all .2s;
+}
+.btn-back:hover { color: var(--neon-cyan); border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.05); }
+.top-bar-title {
+  font-family: 'Orbitron', monospace; font-size: 13px;
+  letter-spacing: 5px; color: var(--text); flex: 1; text-align: center;
+}
+.top-bar-save {
+  font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+  padding: 8px 20px; border-radius: 5px; cursor: pointer;
+  border: 1px solid rgba(0,255,136,0.3);
+  background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,245,255,0.08));
+  color: var(--neon-green); transition: all .2s;
+}
+.top-bar-save:hover { border-color: var(--neon-green); box-shadow: 0 0 20px rgba(0,255,136,0.15); }
+
+/* ── LAYOUT ── */
+main {
+  position: relative; z-index: 1;
+  max-width: 720px; margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.page-header { margin-bottom: 48px; animation: fadeUp .5s ease both; }
+.page-eyebrow {
+  font-family: 'Orbitron', monospace; font-size: 9px;
+  letter-spacing: 4px; color: var(--neon-cyan);
+  text-shadow: 0 0 12px rgba(0,245,255,0.4);
+  margin-bottom: 10px;
+}
+.page-title {
+  font-family: 'Orbitron', monospace; font-size: 2rem;
+  font-weight: 900; letter-spacing: 4px; color: var(--text);
+  line-height: 1.1;
+}
+.page-title span { color: var(--neon-cyan); text-shadow: 0 0 30px rgba(0,245,255,0.3); }
+.page-sub { font-size: 14px; color: var(--muted); letter-spacing: 1px; margin-top: 10px; }
+
+/* ── SECTION ── */
+.settings-section {
+  margin-bottom: 40px;
+  animation: fadeUp .5s ease both;
+}
+.settings-section:nth-child(2) { animation-delay: .05s; }
+.settings-section:nth-child(3) { animation-delay: .1s; }
+.settings-section:nth-child(4) { animation-delay: .15s; }
+
+.section-label {
+  font-family: 'Orbitron', monospace; font-size: 9px;
+  letter-spacing: 4px; color: var(--muted);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(0,245,255,0.12), transparent);
+}
+
+/* ── SETTING ROW ── */
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: border-color .2s;
+  gap: 20px;
+}
+.setting-row:hover { border-color: rgba(0,245,255,0.2); }
+
+.setting-info { flex: 1; min-width: 0; }
+.setting-name {
+  font-size: 15px; font-weight: 600; letter-spacing: .5px;
+  color: var(--text); margin-bottom: 3px;
+}
+.setting-desc { font-size: 12px; color: var(--muted); letter-spacing: .5px; }
+
+.setting-control { flex-shrink: 0; }
+
+/* Text input */
+.setting-input {
+  background: rgba(0,245,255,0.04);
+  border: 1px solid rgba(0,245,255,0.18);
+  border-radius: 7px; padding: 9px 14px;
+  color: var(--text); font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; letter-spacing: .5px;
+  outline: none; width: 220px; transition: all .2s;
+}
+.setting-input:focus { border-color: rgba(0,245,255,0.5); box-shadow: 0 0 16px rgba(0,245,255,0.07); }
+.setting-input::placeholder { color: var(--muted); }
+
+/* Select */
+.setting-select {
+  background: rgba(0,245,255,0.04);
+  border: 1px solid rgba(0,245,255,0.18);
+  border-radius: 7px; padding: 9px 14px;
+  color: var(--text); font-family: 'Orbitron', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  outline: none; cursor: pointer; transition: all .2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a5068'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  min-width: 180px;
+}
+.setting-select:focus { border-color: rgba(0,245,255,0.5); box-shadow: 0 0 16px rgba(0,245,255,0.07); }
+.setting-select option { background: #0a0a12; color: var(--text); }
+
+/* Toggle */
+.toggle-wrap { display: flex; align-items: center; gap: 10px; }
+.toggle {
+  position: relative; width: 48px; height: 26px;
+  cursor: pointer;
+}
+.toggle input { display: none; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(0,245,255,0.15);
+  border-radius: 13px; transition: all .25s;
+}
+.toggle input:checked ~ .toggle-track {
+  background: rgba(0,245,255,0.15);
+  border-color: rgba(0,245,255,0.5);
+  box-shadow: 0 0 12px rgba(0,245,255,0.2);
+}
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--muted); transition: all .25s;
+}
+.toggle input:checked ~ .toggle-thumb {
+  left: 25px; background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+.toggle-label { font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px; color: var(--muted); }
+.toggle input:checked ~ .toggle-label { color: var(--neon-cyan); }
+
+/* Segment control (for clock format) */
+.segment-ctrl { display: flex; gap: 4px; }
+.seg-btn {
+  font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+  padding: 8px 16px; border-radius: 6px; cursor: pointer; border: 1px solid rgba(0,245,255,0.15);
+  background: transparent; color: var(--muted); transition: all .2s;
+}
+.seg-btn.active {
+  background: rgba(0,245,255,0.1); border-color: rgba(0,245,255,0.45);
+  color: var(--neon-cyan); box-shadow: 0 0 12px rgba(0,245,255,0.1);
+}
+.seg-btn:hover:not(.active) { color: var(--text); border-color: rgba(0,245,255,0.25); }
+
+/* ── DANGER ZONE ── */
+.danger-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px;
+  background: rgba(255,0,110,0.03);
+  border: 1px solid rgba(255,0,110,0.12);
+  border-radius: 10px; margin-bottom: 8px;
+  gap: 20px; transition: border-color .2s;
+}
+.danger-row:hover { border-color: rgba(255,0,110,0.25); }
+.danger-row .setting-desc { color: rgba(255,0,110,0.5); }
+.btn-danger {
+  font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px;
+  padding: 9px 18px; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255,0,110,0.3);
+  background: rgba(255,0,110,0.08); color: var(--neon-pink);
+  transition: all .2s; flex-shrink: 0;
+}
+.btn-danger:hover { border-color: var(--neon-pink); box-shadow: 0 0 16px rgba(255,0,110,0.15); background: rgba(255,0,110,0.14); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: rgba(10,10,18,0.97); border: 1px solid rgba(0,245,255,0.2);
+  border-radius: 8px; padding: 12px 24px;
+  font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
+  color: var(--neon-cyan); box-shadow: 0 0 30px rgba(0,245,255,0.1);
+  z-index: 9999; transition: transform .3s cubic-bezier(.34,1.56,.64,1); white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.err { border-color: rgba(255,0,110,0.3); color: var(--neon-pink); }
+.toast.ok { border-color: rgba(0,255,136,0.3); color: var(--neon-green); }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="toast" id="toast"></div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> HOME</a>
+  <div class="top-bar-title">SETTINGS</div>
+  <button class="top-bar-save" onclick="saveAll()"><i class="fa-solid fa-floppy-disk"></i>&nbsp; SAVE</button>
+</div>
+
+<main>
+  <div class="page-header">
+    <div class="page-eyebrow">// ECLIPSE SYSTEMS</div>
+    <div class="page-title">ZENO <span>SETTINGS</span></div>
+    <div class="page-sub">Changes are applied instantly and persist across all pages.</div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="settings-section">
+    <div class="section-label">PROFILE</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-name">Display Name</div>
+        <div class="setting-desc">Your name shown in greetings across all Zeno pages</div>
+      </div>
+      <div class="setting-control">
+        <input class="setting-input" type="text" id="settingUsername" placeholder="Enter your name..." maxlength="24" autocomplete="off"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOCK -->
+  <div class="settings-section">
+    <div class="section-label">CLOCK</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-name">Time Format</div>
+        <div class="setting-desc">How the clock displays on the home screen</div>
+      </div>
+      <div class="setting-control">
+        <div class="segment-ctrl">
+          <button class="seg-btn" id="seg12" onclick="setClockFormat('12')">12HR</button>
+          <button class="seg-btn" id="seg24" onclick="setClockFormat('24')">24HR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <div class="settings-section">
+    <div class="section-label">NAVIGATION</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-name">Default App</div>
+        <div class="setting-desc">The app that opens when you click its icon on the home screen — also used as the primary shortcut</div>
+      </div>
+      <div class="setting-control">
+        <select class="setting-select" id="settingDefaultApp">
+          <option value="games.html">Games</option>
+          <option value="movies.html">Movies</option>
+          <option value="terminal.html">Terminal</option>
+          <option value="/Browser/Helios.html">Browser</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="settings-section">
+    <div class="section-label">DANGER ZONE</div>
+
+    <div class="danger-row">
+      <div class="setting-info">
+        <div class="setting-name">Reset Username</div>
+        <div class="setting-desc">Clears your display name and shows the welcome prompt again</div>
+      </div>
+      <button class="btn-danger" onclick="resetUsername()"><i class="fa-solid fa-user-xmark"></i>&nbsp; RESET</button>
+    </div>
+
+    <div class="danger-row">
+      <div class="setting-info">
+        <div class="setting-name">Clear All Settings</div>
+        <div class="setting-desc">Wipes all Zeno preferences from localStorage — cannot be undone</div>
+      </div>
+      <button class="btn-danger" onclick="clearAllSettings()"><i class="fa-solid fa-trash"></i>&nbsp; CLEAR ALL</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── STORAGE KEYS ──
+const KEYS = {
+  username:   'zeno-username',
+  clockFmt:   'zeno-clock-format',   // '12' or '24'
+  defaultApp: 'zeno-default-app',
+  cloakTitle: 'zeno-cloak-title',
+  cloakFav:   'zeno-cloak-favicon',
+  cloakActive:'zeno-cloak-active',
+};
+
+// ── LOAD SAVED SETTINGS ──
+function loadSettings() {
+  // Username
+  const name = localStorage.getItem(KEYS.username) || '';
+  document.getElementById('settingUsername').value = name;
+
+  // Clock format
+  const fmt = localStorage.getItem(KEYS.clockFmt) || '24';
+  setClockFormat(fmt, false);
+
+  // Default app
+  const app = localStorage.getItem(KEYS.defaultApp) || 'games.html';
+  const sel = document.getElementById('settingDefaultApp');
+  if ([...sel.options].some(o => o.value === app)) sel.value = app;
+}
+
+// ── CLOCK FORMAT ──
+let clockFormat = '24';
+function setClockFormat(fmt, persist = true) {
+  clockFormat = fmt;
+  document.getElementById('seg12').classList.toggle('active', fmt === '12');
+  document.getElementById('seg24').classList.toggle('active', fmt === '24');
+  if (persist) localStorage.setItem(KEYS.clockFmt, fmt);
+}
+
+// ── SAVE ALL ──
+function saveAll() {
+  const name = document.getElementById('settingUsername').value.trim();
+  const app  = document.getElementById('settingDefaultApp').value;
+
+  // Username
+  if (name) {
+    localStorage.setItem(KEYS.username, name);
+  } else {
+    localStorage.removeItem(KEYS.username);
+  }
+
+  // Clock format (already saved on click, but save again to be safe)
+  localStorage.setItem(KEYS.clockFmt, clockFormat);
+
+  // Default app
+  localStorage.setItem(KEYS.defaultApp, app);
+
+  showToast('SETTINGS SAVED', 'ok');
+}
+
+// ── DANGER ──
+function resetUsername() {
+  if (!confirm('Reset your display name? You\'ll see the welcome prompt next time you visit the home screen.')) return;
+  localStorage.removeItem(KEYS.username);
+  document.getElementById('settingUsername').value = '';
+  showToast('USERNAME RESET', 'ok');
+}
+
+function clearAllSettings() {
+  if (!confirm('This will wipe ALL Zeno settings including your name and cloak. Are you sure?')) return;
+  Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+  loadSettings();
+  showToast('ALL SETTINGS CLEARED', 'ok');
+}
+
+// ── LIVE PREVIEW — apply username change immediately on typing ──
+document.getElementById('settingUsername').addEventListener('input', e => {
+  const val = e.target.value.trim();
+  if (val) localStorage.setItem(KEYS.username, val);
+});
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type ? ' ' + type : '');
+  void t.offsetWidth;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── INIT ──
+loadSettings();
+</script>
+</body>
+</html>
