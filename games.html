@@ -391,10 +391,10 @@
     <!-- PANE: ZENOPACK IMPORT -->
     <div class="add-modal-pane" id="paneShare">
       <div class="zenopack-drop" id="zenopackDrop" onclick="document.getElementById('zenopackFileInput').click()">
-        <input type="file" id="zenopackFileInput" accept=".zenopack" style="display:none" onchange="importZenopack(this.files[0])">
+        <input type="file" id="zenopackFileInput" accept=".zenopack" multiple style="display:none" onchange="importZenopackFiles(this.files)">
         <div class="zenopack-drop-icon"><i class="fa-solid fa-box-archive"></i></div>
-        <div class="zenopack-drop-title">DROP A .ZENOPACK FILE</div>
-        <div class="zenopack-drop-sub">or click to browse</div>
+        <div class="zenopack-drop-title">DROP UP TO 5 .ZENOPACK FILES</div>
+        <div class="zenopack-drop-sub">or click to browse &nbsp;•&nbsp; up to 5 at once</div>
       </div>
       <div class="share-status" id="zenopackStatus"></div>
       <div class="upload-hint" style="text-align:center;margin-top:8px">Export games using the <i class="fa-solid fa-box-archive"></i> button on any game card</div>
@@ -1567,61 +1567,61 @@ async function exportZenopack(e, gameId) {
   showToast(`EXPORTED: ${game.name}`);
 }
 
-async function importZenopack(file) {
-  if (!file) return;
-  const statusEl = document.getElementById('zenopackStatus');
-  statusEl.textContent = 'READING FILE...';
-  statusEl.className = 'share-status info';
-
-  try {
-    const text = await file.text();
-    const pack = JSON.parse(text);
-
-    if (!pack.zenopack || !pack.files?.length) {
-      statusEl.textContent = 'INVALID .ZENOPACK FILE';
-      statusEl.className = 'share-status err';
-      return;
-    }
-
-    if (!swReady) { await initSW(); if (!swReady) return; }
-    if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(()=>location.reload(),1200); return; }
-
-    statusEl.textContent = `LOADING: ${pack.name}`;
-
-    const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-
-    // Rebuild File objects from the stored byte arrays
-    const fileRecords = pack.files.map(f => {
-      const buf = new Uint8Array(f.data).buffer;
-      const fileObj = new File([buf], f.path.split('/').pop(), { type: f.mimeType });
-      Object.defineProperty(fileObj, 'webkitRelativePath', { value: pack.name + '/' + f.path, writable: false, configurable: true });
-      return { file: fileObj, path: f.path, mimeType: f.mimeType };
-    });
-
-    const ok = await registerGameWithSW(id, fileRecords);
-    if (!ok) {
-      statusEl.textContent = 'FAILED TO REGISTER GAME';
-      statusEl.className = 'share-status err';
-      return;
-    }
-
-    const gameEntry = { id, name: pack.name, icon: pack.icon, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
-    games.push(gameEntry);
-    saveGameToDB(gameEntry).catch(console.error);
-
-    statusEl.textContent = 'GAME IMPORTED!';
-    statusEl.className = 'share-status ok';
-    closeAddGamesModal();
-    showToast(`+1 GAME IMPORTED: ${pack.name}`);
-    renderGrid();
-
-  } catch(e) {
-    console.error(e);
-    statusEl.textContent = 'FAILED — CORRUPT OR INVALID FILE';
-    statusEl.className = 'share-status err';
+async function importZenopackFiles(fileList) {
+  if (!fileList?.length) return;
+  const files = [...fileList].filter(f => f.name.endsWith('.zenopack')).slice(0, 5);
+  if (!files.length) {
+    const s = document.getElementById('zenopackStatus');
+    s.textContent = 'NO .ZENOPACK FILES FOUND'; s.className = 'share-status err'; return;
   }
 
+  const statusEl = document.getElementById('zenopackStatus');
+  if (!swReady) { await initSW(); if (!swReady) return; }
+  if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(()=>location.reload(),1200); return; }
+
+  let added = 0;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    statusEl.textContent = `LOADING ${i+1}/${files.length}: ${file.name.replace('.zenopack','')}`;
+    statusEl.className = 'share-status info';
+    try {
+      const text = await file.text();
+      const pack = JSON.parse(text);
+      if (!pack.zenopack || !pack.files?.length) { showToast(`SKIPPED: ${file.name} — invalid`, true); continue; }
+
+      const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+      const fileRecords = pack.files.map(f => {
+        const buf = new Uint8Array(f.data).buffer;
+        const fileObj = new File([buf], f.path.split('/').pop(), { type: f.mimeType });
+        Object.defineProperty(fileObj, 'webkitRelativePath', { value: pack.name + '/' + f.path, writable: false, configurable: true });
+        return { file: fileObj, path: f.path, mimeType: f.mimeType };
+      });
+
+      const ok = await registerGameWithSW(id, fileRecords);
+      if (!ok) { showToast(`FAILED: ${pack.name}`, true); continue; }
+
+      const gameEntry = { id, name: pack.name, icon: pack.icon, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
+      games.push(gameEntry);
+      saveGameToDB(gameEntry).catch(console.error);
+      added++;
+    } catch(e) {
+      showToast(`ERROR: ${file.name}`, true);
+      console.error(e);
+    }
+  }
+
+  statusEl.textContent = `${added} GAME${added!==1?'S':''} IMPORTED!`;
+  statusEl.className = 'share-status ok';
   document.getElementById('zenopackFileInput').value = '';
+  if (added > 0) {
+    renderGrid();
+    setTimeout(() => closeAddGamesModal(), 800);
+    showToast(`+${added} GAME${added!==1?'S':''} ADDED`);
+  }
+}
+
+async function importZenopack(file) {
+  return importZenopackFiles(file ? [file] : []);
 }
 
 // Drag and drop for zenopack drop zone
@@ -1632,9 +1632,9 @@ async function importZenopack(file) {
   dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
   dz.addEventListener('drop', e => {
     e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file?.name.endsWith('.zenopack')) importZenopack(file);
-    else { document.getElementById('zenopackStatus').textContent = 'DROP A .ZENOPACK FILE'; document.getElementById('zenopackStatus').className = 'share-status err'; }
+    const files = [...e.dataTransfer.files].filter(f => f.name.endsWith('.zenopack'));
+    if (files.length) importZenopackFiles(files);
+    else { document.getElementById('zenopackStatus').textContent = 'DROP .ZENOPACK FILES'; document.getElementById('zenopackStatus').className = 'share-status err'; }
   });
 })();
 
