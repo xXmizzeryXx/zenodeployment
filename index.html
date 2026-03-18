@@ -72,6 +72,9 @@
     margin-bottom: 2.8rem; padding-bottom: 1.2rem;
     border-bottom: 1px solid rgba(0,245,255,0.1);
   }
+  .header-right {
+    display: flex; align-items: flex-end; gap: 1.8rem;
+  }
 
   #greeting {
     font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 700;
@@ -99,6 +102,44 @@
   #date {
     font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; color: var(--muted);
     text-transform: uppercase; letter-spacing: 3px; margin-top: 6px;
+  }
+
+  .weather-widget {
+    display: flex; align-items: center; gap: 10px;
+    animation: fadeSlideUp 0.6s 0.1s ease both;
+  }
+  .weather-widget .weather-inner {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(0,245,255,0.12);
+    border-radius: 16px; padding: 10px 18px;
+  }
+  .weather-widget .weather-icon { font-size: 1.6rem; line-height: 1; }
+  .weather-widget .weather-temp {
+    font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 14px rgba(0,245,255,0.4);
+    line-height: 1;
+  }
+  .weather-widget .weather-desc {
+    font-family: 'Rajdhani', sans-serif; font-size: 0.8rem;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 2px;
+  }
+  .weather-widget .weather-wind {
+    font-family: 'Rajdhani', sans-serif; font-size: 0.78rem;
+    color: var(--muted); letter-spacing: 1px; display: flex; align-items: center; gap: 4px;
+  }
+  .weather-widget .weather-wind i { color: #96f5bf; font-size: 0.75rem; }
+  .weather-widget .weather-enable-btn {
+    background: none; border: 1px solid rgba(0,245,255,0.25);
+    color: var(--muted); font-family: 'Rajdhani', sans-serif;
+    font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase;
+    padding: 6px 14px; border-radius: 20px; cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .weather-widget .weather-enable-btn:hover {
+    border-color: var(--neon-cyan); color: var(--neon-cyan);
+    box-shadow: 0 0 12px rgba(0,245,255,0.1);
   }
 
   .app-grid {
@@ -446,9 +487,16 @@
 <div class="container">
   <div class="header-container">
     <div id="greeting"></div>
-    <div class="time-container">
-      <div id="clock">00:00</div>
-      <div id="date">LOADING...</div>
+    <div class="header-right">
+      <div class="weather-widget" id="weatherWidget">
+        <div class="weather-inner" id="weatherInner">
+          <button class="weather-enable-btn" id="weather-enable-btn">Enable Weather</button>
+        </div>
+      </div>
+      <div class="time-container">
+        <div id="clock">00:00</div>
+        <div id="date">LOADING...</div>
+      </div>
     </div>
   </div>
 
@@ -852,6 +900,93 @@
     document.getElementById('creditsModal').addEventListener('click', function(e) { if (e.target === this) closeCredits(); });
   });
 
+  // ── WEATHER ──────────────────────────────────────────────────────────────
+  (function() {
+    const weatherCodeMap = {
+      0:  { icon: 'fa-sun',                 color: '#f6d365', desc: 'Clear' },
+      1:  { icon: 'fa-cloud-sun',           color: '#f6d365', desc: 'Mainly Clear' },
+      2:  { icon: 'fa-cloud-sun',           color: '#d4d4d8', desc: 'Partly Cloudy' },
+      3:  { icon: 'fa-cloud',              color: '#9ca3af', desc: 'Overcast' },
+      45: { icon: 'fa-smog',               color: '#9ca3af', desc: 'Fog' },
+      48: { icon: 'fa-smog',               color: '#9ca3af', desc: 'Fog' },
+      51: { icon: 'fa-cloud-rain',         color: '#3b82f6', desc: 'Light Drizzle' },
+      53: { icon: 'fa-cloud-rain',         color: '#2563eb', desc: 'Moderate Drizzle' },
+      55: { icon: 'fa-cloud-showers-heavy',color: '#1e40af', desc: 'Dense Drizzle' },
+      61: { icon: 'fa-cloud-showers-heavy',color: '#2563eb', desc: 'Slight Rain' },
+      63: { icon: 'fa-cloud-showers-heavy',color: '#1d4ed8', desc: 'Moderate Rain' },
+      65: { icon: 'fa-cloud-showers-heavy',color: '#1e3a8a', desc: 'Heavy Rain' },
+      71: { icon: 'fa-snowflake',          color: '#e0f2fe', desc: 'Slight Snow' },
+      73: { icon: 'fa-snowflake',          color: '#bae6fd', desc: 'Moderate Snow' },
+      75: { icon: 'fa-snowflake',          color: '#7dd3fc', desc: 'Heavy Snow' },
+      77: { icon: 'fa-snowflake',          color: '#38bdf8', desc: 'Snow Grains' },
+      80: { icon: 'fa-cloud-showers-heavy',color: '#3b82f6', desc: 'Rain Showers' },
+      81: { icon: 'fa-cloud-showers-heavy',color: '#2563eb', desc: 'Rain Showers' },
+      82: { icon: 'fa-cloud-showers-heavy',color: '#1e40af', desc: 'Heavy Showers' },
+      85: { icon: 'fa-snowflake',          color: '#3b82f6', desc: 'Snow Showers' },
+      86: { icon: 'fa-snowflake',          color: '#2563eb', desc: 'Heavy Snow Showers' },
+      95: { icon: 'fa-cloud-bolt',         color: '#facc15', desc: 'Thunderstorm' },
+      96: { icon: 'fa-cloud-bolt',         color: '#eab308', desc: 'Thunderstorm' },
+      99: { icon: 'fa-cloud-bolt',         color: '#ca8a04', desc: 'Thunderstorm' },
+    };
+
+    function degToCompass(num) {
+      const arr = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+      return arr[Math.floor((num / 22.5) + 0.5) % 16];
+    }
+
+    async function fetchAndRenderWeather() {
+      const lat = localStorage.getItem('lat');
+      const lon = localStorage.getItem('lon');
+      if (!lat || !lon) return;
+      const inner = document.getElementById('weatherInner');
+      if (!inner) return;
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph`);
+        const data = await res.json();
+        const w = data.current_weather;
+        if (!w) { inner.textContent = 'No data'; return; }
+        const map = weatherCodeMap[w.weathercode] || { icon: 'fa-question', color: '#fff', desc: 'Unknown' };
+        const temp = Math.round(w.temperature);
+        const wind = Math.round(w.windspeed);
+        const dir  = degToCompass(w.winddirection);
+        inner.innerHTML = `
+          <span class="weather-icon"><i class="fas ${map.icon}" style="color:${map.color}"></i></span>
+          <span class="weather-temp">${temp}&deg;F</span>
+          <span class="weather-desc">${map.desc}</span>
+          <span class="weather-wind"><i class="fas fa-wind"></i>${wind} mph ${dir}</span>
+        `;
+      } catch(e) {
+        inner.textContent = 'Weather unavailable';
+      }
+    }
+
+    function initWeather() {
+      const enableBtn = document.getElementById('weather-enable-btn');
+      if (localStorage.getItem('weatherEnabled')) {
+        fetchAndRenderWeather();
+        setInterval(fetchAndRenderWeather, 600000);
+      } else if (enableBtn) {
+        enableBtn.onclick = () => {
+          if (!navigator.geolocation) { enableBtn.textContent = 'Not supported'; return; }
+          navigator.geolocation.getCurrentPosition(pos => {
+            localStorage.setItem('weatherEnabled', 'true');
+            localStorage.setItem('lat', pos.coords.latitude);
+            localStorage.setItem('lon', pos.coords.longitude);
+            fetchAndRenderWeather();
+            setInterval(fetchAndRenderWeather, 600000);
+          }, () => { enableBtn.textContent = 'Location denied'; });
+        };
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initWeather);
+    } else {
+      initWeather();
+    }
+  })();
+  // ─────────────────────────────────────────────────────────────────────────
+
 </script>
 
 <!-- BROWSER OVERLAY -->
@@ -877,6 +1012,10 @@
     <div class="credits-row">
       <span class="credits-name">Mizzery</span>
       <span class="credits-role">MAIN DEVELOPER</span>
+    </div>
+  <div class="credits-row">
+      <span class="credits-name">Crafted</span>
+      <span class="credits-role">WEATHER FORECASTER</span>
     </div>
     <div class="credits-row">
       <span class="credits-name">GuyThatDidNothing</span>
