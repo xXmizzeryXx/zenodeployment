@@ -303,6 +303,38 @@
   .receive-progress-wrap.on{display:block}
   .receive-progress-bar{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));border-radius:4px;transition:width .15s;width:0%}
   .receive-hint{font-size:11px;color:rgba(85,85,102,.6);letter-spacing:.5px;text-align:center;margin-top:8px}
+
+  .auth-btn{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--neon-cyan);border:1px solid rgba(0,245,255,0.2);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
+  .auth-btn:hover{background:rgba(0,245,255,0.06);border-color:rgba(0,245,255,.45);box-shadow:0 0 14px rgba(0,245,255,0.1)}
+  .auth-btn.signed-in{color:var(--neon-green);border-color:rgba(0,255,136,0.2)}
+  .auth-btn.signed-in:hover{background:rgba(0,255,136,0.06);border-color:var(--neon-green)}
+  .auth-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);z-index:500;align-items:center;justify-content:center}
+  .auth-modal-overlay.open{display:flex}
+  .auth-modal{background:var(--bg2);border:1px solid rgba(0,245,255,.2);border-radius:16px;padding:36px;width:420px;max-width:95vw;box-shadow:0 0 80px rgba(0,245,255,.06);animation:slideIn .25s ease}
+  .auth-modal-title{font-family:'Orbitron',monospace;font-size:14px;letter-spacing:4px;color:var(--neon-cyan);text-shadow:0 0 12px rgba(0,245,255,.3);margin-bottom:6px}
+  .auth-modal-sub{font-size:13px;color:var(--muted);letter-spacing:.5px;margin-bottom:28px}
+  .auth-tabs{display:flex;gap:4px;margin-bottom:24px;background:rgba(255,255,255,.03);border-radius:8px;padding:4px}
+  .auth-tab{flex:1;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:6px;transition:all .2s}
+  .auth-tab.active{background:rgba(0,245,255,.1);color:var(--neon-cyan);border:1px solid rgba(0,245,255,.25)}
+  .auth-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+  .auth-field label{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted)}
+  .auth-field input{background:rgba(0,245,255,.03);border:1px solid rgba(0,245,255,.18);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+  .auth-field input:focus{border-color:rgba(0,245,255,.5)}
+  .auth-field input::placeholder{color:var(--muted)}
+  .auth-submit{width:100%;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;padding:13px;border-radius:8px;cursor:pointer;border:1px solid rgba(0,245,255,.35);background:linear-gradient(135deg,rgba(0,245,255,.14),rgba(191,0,255,.1));color:var(--neon-cyan);transition:all .2s;font-weight:700;margin-top:4px}
+  .auth-submit:hover{border-color:var(--neon-cyan);box-shadow:0 0 24px rgba(0,245,255,.18)}
+  .auth-submit:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+  .auth-error{font-size:12px;color:var(--neon-pink);margin-top:10px;text-align:center;min-height:16px}
+  .auth-close{background:none;border:1px solid rgba(0,245,255,.15);border-radius:4px;color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s;float:right;margin-top:-4px}
+  .auth-close:hover{color:var(--neon-pink);border-color:var(--neon-pink)}
+  .auth-user-info{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);justify-content:center}
+  .auth-user-info span{color:var(--neon-cyan)}
+  .sync-badge{display:flex;align-items:center;gap:5px;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;color:var(--neon-green);border:1px solid rgba(0,255,136,.2);border-radius:3px;padding:3px 8px;animation:fadeUp .3s ease}
+  .auth-google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:12px;border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);transition:all .2s;margin-bottom:14px}
+  .auth-google-btn:hover{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08)}
+  .auth-divider{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted)}
+  .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
+
 </style>
 </head>
 <body>
@@ -475,6 +507,9 @@
     </button>
     <button class="r2-btn" onclick="openR2Modal()">
       <i class="fa-solid fa-cloud"></i> R2 IMPORT
+    </button>
+    <button class="auth-btn" id="authBtn">
+      <i class="fa-solid fa-user"></i> <span id="authBtnLabel">SIGN IN</span>
     </button>
   </div>
 </div>
@@ -898,7 +933,7 @@ function filterGames(){renderGrid();}
 function removeGame(e,id){
   e.stopPropagation();
   const sw=getSW();if(sw)sw.postMessage({type:'UNREGISTER_GAME',payload:{gameId:id}});
-  games=games.filter(g=>g.id!==id);renderGrid();showToast('GAME REMOVED');
+  games=games.filter(g=>g.id!==id);renderGrid();showToast('GAME REMOVED');window._fbDeleteGame?.(id);
 }
 
 // ── GAME MODAL ────────────────────────────────────────────────────
@@ -1810,5 +1845,267 @@ initSW();
 // Load saved games from IndexedDB on startup, then render
 loadGamesFromDB().then(() => { if (!games.length) renderGrid(); });
 </script>
+
+<!-- AUTH MODAL -->
+<div class="auth-modal-overlay" id="authModal">
+  <div class="auth-modal">
+    <button class="auth-close" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="auth-modal-title" id="authModalTitle">SIGN IN</div>
+    <div class="auth-modal-sub" id="authModalSub">Sync your game library across devices</div>
+    <button class="auth-google-btn" id="authGoogleBtn" onclick="handleGoogleSignIn()">
+      <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+      CONTINUE WITH GOOGLE
+    </button>
+    <div class="auth-divider">OR</div>
+    <div class="auth-tabs" id="authTabs">
+      <button class="auth-tab active" id="tabSignIn" onclick="switchAuthTab('signin')">SIGN IN</button>
+      <button class="auth-tab" id="tabSignUp" onclick="switchAuthTab('signup')">CREATE ACCOUNT</button>
+    </div>
+    <div id="authFormWrap">
+      <div class="auth-field">
+        <label>EMAIL</label>
+        <input type="email" id="authEmail" placeholder="your@email.com" autocomplete="email"/>
+      </div>
+      <div class="auth-field">
+        <label>PASSWORD</label>
+        <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password"/>
+      </div>
+      <div class="auth-field" id="authDisplayNameField" style="display:none">
+        <label>DISPLAY NAME</label>
+        <input type="text" id="authDisplayName" placeholder="Your name..." maxlength="24"/>
+      </div>
+      <button class="auth-submit" id="authSubmitBtn" onclick="handleAuthSubmit()">
+        <i class="fa-solid fa-bolt"></i> SIGN IN
+      </button>
+      <div class="auth-error" id="authError"></div>
+    </div>
+    <!-- Signed in state -->
+    <div id="authSignedInWrap" style="display:none">
+      <div class="auth-user-info">Signed in as <span id="authUserEmail"></span></div>
+      <button class="auth-submit" style="margin-top:16px;border-color:rgba(255,0,110,.3);color:var(--neon-pink);background:rgba(255,0,110,.08)" onclick="handleSignOut()">
+        <i class="fa-solid fa-right-from-bracket"></i> SIGN OUT
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+function openAuthModal() { window.openAuthModal?.() || setTimeout(() => window.openAuthModal?.(), 500); }
+function closeAuthModal() { window.closeAuthModal?.(); }
+function switchAuthTab(m) { window.switchAuthTab?.(m); }
+function handleAuthSubmit() { window.handleAuthSubmit?.(); }
+function handleSignOut() { window.handleSignOut?.(); }
+function handleGoogleSignIn() { window.handleGoogleSignIn?.(); }
+</script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMeftyyacYoo-EvEg_L_Oq9R3Ge8iVzCE",
+  authDomain: "zenodeployment-99112371-4e3f3.firebaseapp.com",
+  projectId: "zenodeployment-99112371-4e3f3",
+  storageBucket: "zenodeployment-99112371-4e3f3.firebasestorage.app",
+  messagingSenderId: "124413653258",
+  appId: "1:124413653258:web:079e0d95d00fb8c7468af3"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let authMode = 'signin';
+
+window.openAuthModal = function() {
+  if (currentUser) {
+    document.getElementById('authTabs').style.display = 'none';
+    document.getElementById('authFormWrap').style.display = 'none';
+    document.getElementById('authSignedInWrap').style.display = 'block';
+    document.getElementById('authGoogleBtn').style.display = 'none';
+    document.querySelector('.auth-divider').style.display = 'none';
+    document.getElementById('authUserEmail').textContent = currentUser.email;
+    document.getElementById('authModalTitle').textContent = 'ACCOUNT';
+    document.getElementById('authModalSub').textContent = 'Your game library is syncing';
+  } else {
+    switchAuthTab('signin');
+    document.getElementById('authTabs').style.display = 'flex';
+    document.getElementById('authFormWrap').style.display = 'block';
+    document.getElementById('authSignedInWrap').style.display = 'none';
+    document.getElementById('authGoogleBtn').style.display = 'flex';
+    document.querySelector('.auth-divider').style.display = 'flex';
+  }
+  document.getElementById('authModal').classList.add('open');
+  setTimeout(() => document.getElementById('authEmail')?.focus(), 100);
+};
+
+window.closeAuthModal = function() {
+  document.getElementById('authModal').classList.remove('open');
+  document.getElementById('authError').textContent = '';
+};
+
+window.switchAuthTab = function(mode) {
+  authMode = mode;
+  document.getElementById('tabSignIn').classList.toggle('active', mode === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('active', mode === 'signup');
+  document.getElementById('authSubmitBtn').innerHTML = mode === 'signin'
+    ? '<i class="fa-solid fa-bolt"></i> SIGN IN'
+    : '<i class="fa-solid fa-user-plus"></i> CREATE ACCOUNT';
+  document.getElementById('authDisplayNameField').style.display = mode === 'signup' ? 'flex' : 'none';
+  document.getElementById('authError').textContent = '';
+};
+
+window.handleAuthSubmit = async function() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  const errEl = document.getElementById('authError');
+
+  if (!email || !password) { errEl.textContent = 'Please fill in all fields'; return; }
+  btn.disabled = true;
+  errEl.textContent = '';
+
+  try {
+    if (authMode === 'signup') {
+      const displayName = document.getElementById('authDisplayName').value.trim() || email.split('@')[0];
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName });
+      if (displayName) { localStorage.setItem('zeno-username', displayName); window.updateGreeting?.(); }
+      showToast('ACCOUNT CREATED', 'ok');
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+      showToast('SIGNED IN', 'ok');
+    }
+    closeAuthModal();
+  } catch(e) {
+    const msgs = {
+      'auth/email-already-in-use': 'Email already in use',
+      'auth/invalid-email': 'Invalid email address',
+      'auth/weak-password': 'Password must be at least 6 characters',
+      'auth/user-not-found': 'No account found with that email',
+      'auth/wrong-password': 'Incorrect password',
+      'auth/invalid-credential': 'Incorrect email or password',
+    };
+    errEl.textContent = msgs[e.code] || e.message;
+  }
+  btn.disabled = false;
+};
+
+window.handleSignOut = async function() {
+  await signOut(auth);
+  closeAuthModal();
+  showToast('SIGNED OUT');
+};
+
+window.handleGoogleSignIn = async function() {
+  const btn = document.getElementById('authGoogleBtn');
+  btn.disabled = true;
+  try {
+    const provider = new GoogleAuthProvider();
+    const cred = await signInWithPopup(auth, provider);
+    const name = cred.user.displayName;
+    if (name) { localStorage.setItem('zeno-username', name); window.updateGreeting?.(); }
+    showToast('SIGNED IN WITH GOOGLE', 'ok');
+    closeAuthModal();
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') {
+      document.getElementById('authError').textContent = e.message;
+    }
+  }
+  btn.disabled = false;
+};
+
+async function syncGamesToCloud(user) {
+  if (!user) return;
+  const gamesRef = collection(db, 'users', user.uid, 'games');
+  const batch = window.games || [];
+
+  for (const g of batch) {
+    const meta = {
+      id: g.id,
+      name: g.name,
+      icon: g.icon || null,
+      fileCount: g.fileCount || 0,
+      r2: g.r2 || false,
+      entryPath: g.entryPath || null,
+      sourceUrl: g.sourceUrl || null,
+      updatedAt: Date.now(),
+    };
+    await setDoc(doc(db, 'users', user.uid, 'games', g.id), meta);
+  }
+}
+
+async function loadGamesFromCloud(user) {
+  if (!user) return;
+  try {
+    const snap = await getDocs(collection(db, 'users', user.uid, 'games'));
+    const cloudGames = snap.docs.map(d => d.data());
+    if (!cloudGames.length) return;
+
+    const localIds = new Set((window.games || []).map(g => g.id));
+    let added = 0;
+
+    for (const cg of cloudGames) {
+      if (localIds.has(cg.id)) continue;
+      if (cg.r2 && cg.entryPath) {
+        const entry = { id: cg.id, name: cg.name, icon: cg.icon, r2: true, entryPath: cg.entryPath, fileCount: cg.fileCount };
+        window.games.push(entry);
+        window.saveGameToDB?.(entry);
+        added++;
+      }
+    }
+
+    if (added > 0) {
+      window.renderGrid?.();
+      showToast(`${added} GAME${added>1?'S':''} RESTORED FROM CLOUD`);
+    }
+  } catch(e) {
+    console.error('Cloud sync failed:', e);
+  }
+}
+
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  const btn = document.getElementById('authBtn');
+  const label = document.getElementById('authBtnLabel');
+
+  if (user) {
+    btn.classList.add('signed-in');
+    label.textContent = (user.displayName || user.email.split('@')[0]).toUpperCase();
+    if (user.displayName) { localStorage.setItem('zeno-username', user.displayName); window.updateGreeting?.(); }
+    await loadGamesFromCloud(user);
+    setTimeout(() => syncGamesToCloud(user), 2000);
+  } else {
+    btn.classList.remove('signed-in');
+    label.textContent = 'SIGN IN';
+  }
+});
+
+window._fbSyncGame = async function(gameEntry) {
+  if (!currentUser) return;
+  const meta = {
+    id: gameEntry.id, name: gameEntry.name, icon: gameEntry.icon || null,
+    fileCount: gameEntry.fileCount || 0, r2: gameEntry.r2 || false,
+    entryPath: gameEntry.entryPath || null, updatedAt: Date.now(),
+  };
+  await setDoc(doc(db, 'users', currentUser.uid, 'games', gameEntry.id), meta).catch(console.error);
+};
+
+window._fbDeleteGame = async function(gameId) {
+  if (!currentUser) return;
+  await deleteDoc(doc(db, 'users', currentUser.uid, 'games', gameId)).catch(console.error);
+};
+
+document.getElementById('authBtn').addEventListener('click', () => openAuthModal());
+document.getElementById('authModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('authModal').classList.contains('open')) handleAuthSubmit(); });
+</script>
+
 </body>
 </html>
