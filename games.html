@@ -106,6 +106,42 @@
   .progress-pip.done{background:var(--neon-green);border-color:var(--neon-green);box-shadow:0 0 6px var(--neon-green)}
   .progress-pip.active{background:var(--neon-cyan);border-color:var(--neon-cyan);box-shadow:0 0 8px var(--neon-cyan);animation:pulse .8s infinite}
   .progress-pip.fail{background:var(--neon-pink);border-color:var(--neon-pink)}
+  /* CONSOLE OVERLAY */
+  .console-overlay{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding-bottom:40px}
+  .console-overlay.open{display:flex}
+  .console-window{width:min(860px,96vw);max-height:50vh;background:rgba(5,5,8,.97);border:1px solid rgba(255,0,110,.25);border-radius:10px;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(255,0,110,.08),0 0 120px rgba(0,0,0,.8);animation:slideIn .18s ease}
+  .console-header{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,0,110,.12);gap:10px;flex-shrink:0}
+  .console-title{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--neon-pink);flex:1}
+  .console-count{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;color:rgba(255,0,110,.6);background:rgba(255,0,110,.1);border:1px solid rgba(255,0,110,.25);border-radius:3px;padding:2px 7px}
+  .console-hint{font-size:10px;color:rgba(255,255,255,.15);letter-spacing:1px}
+  .console-clear{background:none;border:1px solid rgba(255,0,110,.15);border-radius:3px;color:rgba(255,0,110,.45);font-size:9px;padding:3px 10px;cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px;transition:all .15s}
+  .console-clear:hover{color:var(--neon-pink);border-color:rgba(255,0,110,.5)}
+  .console-body{flex:1;overflow-y:auto;padding:6px 0;scrollbar-width:thin;scrollbar-color:rgba(255,0,110,.2) transparent;min-height:60px}
+  .console-body::-webkit-scrollbar{width:4px}
+  .console-body::-webkit-scrollbar-thumb{background:rgba(255,0,110,.2);border-radius:2px}
+  .console-empty{display:flex;align-items:center;justify-content:center;padding:28px;gap:10px;color:rgba(255,0,110,.2);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px}
+  .console-empty i{font-size:16px}
+  .console-entry{padding:7px 14px;border-bottom:1px solid rgba(255,255,255,.03);animation:fadeUp .12s ease both;display:flex;align-items:flex-start;gap:8px}
+  .console-entry:last-child{border-bottom:none}
+  .console-entry-icon{font-size:10px;flex-shrink:0;margin-top:2px}
+  .console-entry-body{flex:1;min-width:0}
+  .console-entry-msg{font-size:11px;line-height:1.5;word-break:break-all;font-family:'JetBrains Mono',monospace}
+  .console-entry-src{font-size:9px;margin-top:2px;word-break:break-all;font-family:'JetBrains Mono',monospace;opacity:.5}
+  .console-entry-time{font-size:8px;color:rgba(255,255,255,.12);flex-shrink:0;margin-top:2px;white-space:nowrap;font-family:'Orbitron',monospace}
+  .console-entry.type-error .console-entry-icon{color:var(--neon-pink)}
+  .console-entry.type-error .console-entry-msg{color:rgba(255,180,180,.9)}
+  .console-entry.type-error .console-entry-src{color:rgba(255,0,110,.5)}
+  .console-entry.type-error{border-left:2px solid rgba(255,0,110,.3)}
+  .console-entry.type-warn .console-entry-icon{color:#ffaa00}
+  .console-entry.type-warn .console-entry-msg{color:rgba(255,200,100,.9)}
+  .console-entry.type-warn .console-entry-src{color:rgba(255,170,0,.5)}
+  .console-entry.type-warn{border-left:2px solid rgba(255,170,0,.3)}
+  .console-entry.type-log .console-entry-icon{color:var(--neon-cyan)}
+  .console-entry.type-log .console-entry-msg{color:rgba(160,230,255,.85)}
+  .console-entry.type-log .console-entry-src{color:rgba(0,245,255,.4)}
+  .console-entry.type-log{border-left:2px solid rgba(0,245,255,.2)}
+  .console-tag{font-size:7px;font-family:'Orbitron',monospace;letter-spacing:1px;padding:1px 5px;border-radius:3px;margin-right:4px;opacity:.7}
+  .console-tag-game{background:rgba(191,0,255,.15);color:#bf00ff;border:1px solid rgba(191,0,255,.3)}
   /* GAME MODAL */
   .game-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:400;align-items:center;justify-content:center}
   .game-modal-overlay.open{display:flex}
@@ -182,7 +218,6 @@
   .zenopack-drop:hover .zenopack-drop-icon{color:rgba(0,245,255,.6)}
   .zenopack-drop-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--text);margin-bottom:6px}
   .zenopack-drop-sub{font-size:12px;color:var(--muted);letter-spacing:1px}
-
   /* GITHUB MODAL */
   .gh-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);z-index:460;align-items:center;justify-content:center}
   .gh-modal-overlay.open{display:flex}
@@ -220,7 +255,6 @@
   .gh-load-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
   .gh-btn-github{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;border:1px solid rgba(167,139,250,.25);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
   .gh-btn-github:hover{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.5);box-shadow:0 0 14px rgba(167,139,250,.12)}
-
   /* R2 IMPORT MODAL */
   .r2-btn{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:#f6821f;border:1px solid rgba(246,130,31,.25);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
   .r2-btn:hover{background:rgba(246,130,31,.06);border-color:rgba(246,130,31,.6);box-shadow:0 0 14px rgba(246,130,31,.12)}
@@ -259,7 +293,6 @@
   .r2-load-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
   .r2-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;min-height:14px;flex-shrink:0}
   .r2-status.err{color:var(--neon-pink)}
-
   /* SHARE BUTTON ON CARD */
   .game-share{position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;background:rgba(0,245,255,.1);border:1px solid rgba(0,245,255,.2);color:rgba(0,245,255,.5);font-size:9px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;cursor:pointer;z-index:2}
   .game-card:hover .game-share{opacity:1}
@@ -275,12 +308,6 @@
   .share-code-hint{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:20px}
   .share-qr{margin:0 auto 20px;width:160px;height:160px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:8px}
   .share-qr canvas{width:100%!important;height:100%!important}
-  .share-status{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;margin-bottom:20px;min-height:16px}
-  .share-status.waiting{color:var(--muted)}
-  .share-status.connected{color:var(--neon-green)}
-  .share-status.sending{color:var(--neon-cyan)}
-  .share-status.done{color:var(--neon-green)}
-  .share-status.err{color:var(--neon-pink)}
   .share-progress-wrap{width:100%;height:4px;background:rgba(0,245,255,.08);border-radius:4px;overflow:hidden;margin-bottom:20px;display:none}
   .share-progress-wrap.visible{display:block}
   .share-progress-bar{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));border-radius:4px;transition:width .1s;width:0%}
@@ -303,7 +330,6 @@
   .receive-progress-wrap.on{display:block}
   .receive-progress-bar{height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));border-radius:4px;transition:width .15s;width:0%}
   .receive-hint{font-size:11px;color:rgba(85,85,102,.6);letter-spacing:.5px;text-align:center;margin-top:8px}
-
   .auth-btn{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--neon-cyan);border:1px solid rgba(0,245,255,0.2);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
   .auth-btn:hover{background:rgba(0,245,255,0.06);border-color:rgba(0,245,255,.45);box-shadow:0 0 14px rgba(0,245,255,0.1)}
   .auth-btn.signed-in{color:var(--neon-green);border-color:rgba(0,255,136,0.2)}
@@ -334,7 +360,63 @@
   .auth-google-btn:hover{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08)}
   .auth-divider{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted)}
   .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
-
+  /* ── ZENOAPPS STORE ─────────────────────────────────────────────── */
+  .zas-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(16px);z-index:450;align-items:flex-start;justify-content:center;overflow-y:auto}
+  .zas-modal-overlay.open{display:flex}
+  .zas-modal{background:var(--bg2);border:1px solid rgba(0,245,255,.15);border-radius:16px;width:min(1100px,96vw);margin:24px auto 40px;display:flex;flex-direction:column;overflow:hidden;animation:slideIn .25s ease}
+  .zas-topbar{display:flex;align-items:center;gap:0;padding:0 20px;height:52px;background:rgba(5,5,8,.95);border-bottom:1px solid rgba(255,255,255,.06)}
+  .zas-topbar-title{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:3px;color:#fff;margin-right:20px}
+  .zas-tab{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;color:rgba(255,255,255,.35);padding:6px 14px;border-radius:8px;cursor:pointer;border:none;background:none;transition:all .15s}
+  .zas-tab.active{background:rgba(255,255,255,.1);color:#fff}
+  .zas-tab:hover:not(.active){color:rgba(255,255,255,.65)}
+  .zas-topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .zas-topbar-search{position:relative;display:flex;align-items:center}
+  .zas-topbar-search i{position:absolute;left:10px;color:rgba(255,255,255,.3);font-size:11px;pointer-events:none}
+  #zasSearch{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 12px 6px 28px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;width:180px;outline:none;transition:all .2s}
+  #zasSearch:focus{border-color:rgba(0,245,255,.4)}
+  #zasSearch::placeholder{color:rgba(255,255,255,.25)}
+  .zas-close-btn{background:none;border:1px solid rgba(0,245,255,.15);border-radius:4px;color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s}
+  .zas-close-btn:hover{color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:0 0 10px rgba(255,0,110,.2)}
+  .zas-body{padding:28px 28px 32px;overflow-y:auto}
+  .zas-hero{margin-bottom:28px}
+  .zas-hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.2);border-radius:20px;padding:5px 14px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--neon-cyan);margin-bottom:14px}
+  .zas-hero-title{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;letter-spacing:2px;color:#fff;margin-bottom:8px}
+  .zas-hero-sub{font-size:14px;color:rgba(255,255,255,.4);letter-spacing:.5px;margin-bottom:20px}
+  .zas-hero-searchbar{position:relative;display:flex;align-items:center;max-width:460px}
+  .zas-hero-searchbar i{position:absolute;left:14px;color:rgba(255,255,255,.3);font-size:13px;pointer-events:none}
+  #zasHeroSearch{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px 12px 38px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+  #zasHeroSearch:focus{border-color:rgba(0,245,255,.4)}
+  #zasHeroSearch::placeholder{color:rgba(255,255,255,.25)}
+  .zas-section-label{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:12px}
+  .zas-scroll-track{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;-ms-overflow-style:none;scrollbar-width:none;margin-bottom:28px}
+  .zas-scroll-track::-webkit-scrollbar{display:none}
+  .zas-feat-card{flex-shrink:0;width:76px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;text-decoration:none}
+  .zas-feat-icon{width:68px;height:68px;border-radius:15px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:28px;transition:transform .15s,box-shadow .15s}
+  .zas-feat-card:hover .zas-feat-icon{transform:scale(1.06);box-shadow:0 6px 20px rgba(0,0,0,.5)}
+  .zas-feat-name{font-size:10px;color:rgba(255,255,255,.5);text-align:center;line-height:1.2;width:76px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .zas-cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .zas-cat-btn{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;padding:7px 16px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);transition:all .15s}
+  .zas-cat-btn.active{background:rgba(0,245,255,.12);border-color:rgba(0,245,255,.35);color:var(--neon-cyan)}
+  .zas-cat-btn:hover:not(.active){color:#fff;border-color:rgba(255,255,255,.25)}
+  .zas-all-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+  .zas-all-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:1px;color:#fff}
+  .zas-all-sub{font-size:12px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-top:4px}
+  .zas-all-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+  .zas-app-row{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:all .18s;text-decoration:none;animation:fadeUp .3s ease both}
+  .zas-app-row:hover{background:rgba(255,255,255,.07);border-color:rgba(0,245,255,.2);transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,0,0,.3)}
+  .zas-app-row-top{display:flex;align-items:center;gap:12px}
+  .zas-app-row-icon{width:48px;height:48px;border-radius:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .zas-app-row-info{flex:1;min-width:0}
+  .zas-app-row-cat{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;color:var(--neon-cyan);margin-bottom:3px}
+  .zas-app-row-name{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .zas-app-row-desc{font-size:11px;color:rgba(255,255,255,.35);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .zas-app-row-footer{display:flex;align-items:center;gap:6px}
+  .zas-tag{font-size:10px;letter-spacing:.3px;color:rgba(255,255,255,.35);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:3px 8px}
+  .zas-get-btn{margin-left:auto;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;padding:6px 14px;border-radius:20px;background:rgba(0,245,255,.1);border:1px solid rgba(0,245,255,.25);color:var(--neon-cyan);cursor:pointer;transition:all .15s;text-decoration:none;white-space:nowrap}
+  .zas-get-btn:hover{background:rgba(0,245,255,.18);border-color:var(--neon-cyan);box-shadow:0 0 12px rgba(0,245,255,.15)}
+  .zas-no-results{display:none;text-align:center;padding:60px;color:rgba(255,255,255,.2);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;grid-column:1/-1}
+  .zas-open-btn{display:flex;align-items:center;gap:7px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--neon-cyan);border:1px solid rgba(0,245,255,.25);border-radius:4px;padding:7px 13px;cursor:pointer;transition:all .2s;background:transparent;white-space:nowrap}
+  .zas-open-btn:hover{background:rgba(0,245,255,.06);border-color:var(--neon-cyan);box-shadow:0 0 14px rgba(0,245,255,.12)}
 </style>
 </head>
 <body>
@@ -378,6 +460,21 @@
   </div>
 </div>
 
+<!-- ERROR CONSOLE OVERLAY -->
+<div class="console-overlay" id="consoleOverlay" onclick="if(event.target===this)toggleConsole()">
+  <div class="console-window">
+    <div class="console-header">
+      <div class="console-title"><i class="fa-solid fa-circle-exclamation" style="margin-right:7px"></i>ERROR CONSOLE</div>
+      <div class="console-count" id="consoleCount">0 ERRORS</div>
+      <div class="console-hint">PRESS | TO CLOSE</div>
+      <button class="console-clear" onclick="clearConsole()">CLEAR</button>
+    </div>
+    <div class="console-body" id="consoleBody">
+      <div class="console-empty" id="consoleEmpty"><i class="fa-solid fa-circle-check"></i>&nbsp;NO ERRORS YET</div>
+    </div>
+  </div>
+</div>
+
 <!-- ADD GAMES MODAL (5-slot + paste HTML) -->
 <div class="add-modal-overlay" id="addGamesModal">
   <div class="add-modal">
@@ -385,13 +482,11 @@
       <div class="add-modal-title">ADD GAMES</div>
       <button class="add-modal-close" onclick="closeAddGamesModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <!-- TABS -->
     <div class="add-modal-tabs">
       <button class="add-modal-tab active" id="tabSlots" onclick="switchAddTab('slots')"><i class="fa-solid fa-folder-plus"></i>&nbsp; FOLDERS</button>
       <button class="add-modal-tab" id="tabPaste" onclick="switchAddTab('paste')"><i class="fa-solid fa-code"></i>&nbsp; PASTE HTML</button>
       <button class="add-modal-tab" id="tabShare" onclick="switchAddTab('share')"><i class="fa-solid fa-box-archive"></i>&nbsp; ZENOPACK</button>
     </div>
-    <!-- PANE: SLOTS -->
     <div class="add-modal-pane active" id="paneSlots">
       <div class="drop-zone-outer">
         <div class="drop-slots" id="addDropSlots"></div>
@@ -408,7 +503,6 @@
       </div>
       <div class="upload-hint" style="text-align:center;margin-top:14px">All assets served via Service Worker</div>
     </div>
-    <!-- PANE: PASTE HTML -->
     <div class="add-modal-pane" id="panePaste">
       <div class="paste-name-row">
         <span class="paste-name-label">GAME NAME</span>
@@ -420,7 +514,6 @@
         <button class="paste-clear-btn" onclick="clearPaste()">CLEAR</button>
       </div>
     </div>
-    <!-- PANE: ZENOPACK IMPORT -->
     <div class="add-modal-pane" id="paneShare">
       <div class="zenopack-drop" id="zenopackDrop" onclick="document.getElementById('zenopackFileInput').click()">
         <input type="file" id="zenopackFileInput" accept=".zenopack" multiple style="display:none" onchange="importZenopackFiles(this.files)">
@@ -433,7 +526,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- GITHUB IMPORT MODAL -->
 <div class="gh-modal-overlay" id="ghModal">
@@ -454,7 +546,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- R2 IMPORT MODAL -->
 <div class="r2-modal-overlay" id="r2Modal">
@@ -507,6 +598,9 @@
     </button>
     <button class="r2-btn" onclick="openR2Modal()">
       <i class="fa-solid fa-cloud"></i> R2 IMPORT
+    </button>
+    <button class="zas-open-btn" onclick="openZasModal()">
+      ZENOAPPS
     </button>
     <button class="auth-btn" id="authBtn">
       <i class="fa-solid fa-user"></i> <span id="authBtnLabel">SIGN IN</span>
@@ -575,7 +669,9 @@ function postSW(msg, xfer=[]) {
 
 // ── SLOT STATE (empty-state) ─────────────────────────────────────
 const slotData = new Array(MAX_SLOTS).fill(null);
-let games = [];
+// Expose on window so the Firebase module and ZenoApps IIFE share the same reference
+window.games = window.games || [];
+let games = window.games;
 
 function buildSlots() {
   const c = document.getElementById('dropSlots'); c.innerHTML='';
@@ -748,49 +844,35 @@ function switchAddTab(tab) {
 async function loadPastedGame() {
   const html = document.getElementById('pasteHtmlInput').value.trim();
   const name = document.getElementById('pasteGameName').value.trim() || 'Pasted Game';
-
   if (!html) { showToast('PASTE SOME HTML FIRST', true); return; }
   if (!html.toLowerCase().includes('<html') && !html.toLowerCase().includes('<!doctype')) {
     showToast('DOES NOT LOOK LIKE A FULL HTML PAGE', true); return;
   }
   if (!swReady) { await initSW(); if (!swReady) return; }
   if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(() => location.reload(), 1200); return; }
-
   closeAddGamesModal();
   buildPips(1); showProgress(true, `Loading: ${name}`); setPip(0, 'active');
-
   const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const encoder = new TextEncoder();
   const buf = encoder.encode(html).buffer;
   const cloned = buf.slice(0);
-
   try {
     const res = await postSW({
       type: 'REGISTER_GAME',
-      payload: {
-        gameId: id,
-        filesMeta: [{ path: 'index.html', mimeType: 'text/html' }],
-        buffers: [cloned]
-      }
+      payload: { gameId: id, filesMeta: [{ path: 'index.html', mimeType: 'text/html' }], buffers: [cloned] }
     }, [cloned]);
-
     if (res?.type !== 'GAME_REGISTERED') throw new Error('no confirm');
   } catch(e) {
     setPip(0, 'fail'); showProgress(false);
     showToast('FAILED TO REGISTER GAME', true); return;
   }
-
   setProgress(100, `${name}: ready!`); await sleep(180);
-
-  // Build a synthetic File so saveGameToDB works
   const file = new File([html], 'index.html', { type: 'text/html' });
   Object.defineProperty(file, 'webkitRelativePath', { value: name + '/index.html', writable: false, configurable: true });
   const fileRecords = [{ file, path: 'index.html', mimeType: 'text/html' }];
-
   const gameEntry = { id, name, icon: null, entryPath: `./zeno-games/${id}/index.html`, fileCount: 1, fileRecords };
   games.push(gameEntry);
   saveGameToDB(gameEntry).catch(e => console.error('Paste save failed:', e));
-
   setPip(0, 'done'); showProgress(false);
   showToast(`+1 GAME ADDED`); renderGrid();
 }
@@ -806,8 +888,6 @@ function openAddGamesModal() {
   switchAddTab('slots');
   document.getElementById('pasteHtmlInput').value = '';
   document.getElementById('pasteGameName').value = '';
-
-  // Reset zenopack pane
   const zStatus = document.getElementById('zenopackStatus');
   if (zStatus) { zStatus.textContent = ''; zStatus.className = 'share-status'; }
   document.getElementById('addGamesModal').classList.add('open');
@@ -842,7 +922,6 @@ document.getElementById('addGamesModal').addEventListener('click', e=>{
   if(e.target===document.getElementById('addGamesModal')) closeAddGamesModal();
 });
 
-// Drop zone for add modal
 const addDzMain = document.getElementById('addDropZoneMain');
 addDzMain.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();addDzMain.classList.add('dragover');});
 addDzMain.addEventListener('dragleave',()=>addDzMain.classList.remove('dragover'));
@@ -857,7 +936,6 @@ addDzMain.addEventListener('drop',async e=>{
 async function processFolder(folderName, files) {
   const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   const iconNames=new Set(['favicon.ico','favicon.png','icon.png','logo.png','thumbnail.png','cover.png','icon.jpg']);
-  // Store original File objects — browser keeps them readable as long as the page is open
   const fileRecords=[]; let iconUrl=null;
   for(let i=0;i<files.length;i++){
     const f=files[i];
@@ -874,23 +952,20 @@ async function processFolder(folderName, files) {
   const ok = await registerGameWithSW(id, fileRecords);
   if(!ok){ showToast(`FAILED: ${folderName}`,true); return false; }
   setProgress(100,`${folderName}: ready!`); await sleep(180);
-  // Keep fileRecords (original File objects) so we can re-feed SW after it restarts
   const gameEntry = {id, name:folderName, icon:iconUrl, entryPath:`./zeno-games/${id}/index.html`, fileCount:files.length, fileRecords};
   games.push(gameEntry);
   saveGameToDB(gameEntry).catch(e => console.error('Failed to save game to DB:', e));
   return true;
 }
 
-// Re-read files fresh from disk and send to SW — safe to call any number of times
 async function registerGameWithSW(gameId, fileRecords) {
   try {
     const meta=[], bufs=[];
     for(const r of fileRecords){
-      const buf = await r.file.arrayBuffer(); // always re-reads from the original File
+      const buf = await r.file.arrayBuffer();
       meta.push({path:r.path, mimeType:r.mimeType});
       bufs.push(buf);
     }
-    // Slice to clone before transfer — originals in fileRecords stay intact
     const clones = bufs.map(b => b.slice(0));
     const res = await postSW({type:'REGISTER_GAME', payload:{gameId, filesMeta:meta, buffers:clones}}, clones);
     return res?.type === 'GAME_REGISTERED';
@@ -933,7 +1008,7 @@ function filterGames(){renderGrid();}
 function removeGame(e,id){
   e.stopPropagation();
   const sw=getSW();if(sw)sw.postMessage({type:'UNREGISTER_GAME',payload:{gameId:id}});
-  games=games.filter(g=>g.id!==id);renderGrid();showToast('GAME REMOVED');window._fbDeleteGame?.(id);
+  games.splice(0, games.length, ...games.filter(g=>g.id!==id));renderGrid();showToast('GAME REMOVED');window._fbDeleteGame?.(id);
 }
 
 // ── GAME MODAL ────────────────────────────────────────────────────
@@ -945,9 +1020,6 @@ async function openGameModal(g){
   document.getElementById('gameModal').classList.add('open');
   document.body.style.overflow='hidden';
   frame.src='';
-
-  // Ping SW — if it was killed and restarted its store is empty, so re-register
-  // R2 games are iframed directly, skip SW entirely
   try {
     const sw = getSW();
     if (!g.r2 && sw && g.fileRecords) {
@@ -957,20 +1029,141 @@ async function openGameModal(g){
         setTimeout(() => rej(new Error('timeout')), 2000);
         sw.postMessage({type:'PING_GAME', payload:{gameId:g.id}}, [ch.port2]);
       }).catch(() => null);
-
       if (!probe || probe.type !== 'GAME_FOUND') {
         await registerGameWithSW(g.id, g.fileRecords);
       }
     }
   } catch(e) { console.warn('SW re-register check failed:', e); }
-
   setTimeout(()=>{frame.src=g.entryPath;}, 100);
   frame.onload=()=>document.getElementById('gameModalLoading').classList.add('hidden');
 }
-function closeGameModal(){document.getElementById('gameModal').classList.remove('open');document.getElementById('gameModalFrame').src='';document.body.style.overflow='';}
+function closeGameModal(){
+  document.getElementById('gameModal').classList.remove('open');
+  document.getElementById('gameModalFrame').src='';
+  document.body.style.overflow='';
+  if(consoleOpen){toggleConsole();}
+}
+
+// ── ERROR CONSOLE ─────────────────────────────────────────────────
+var consoleErrors=[];
+var consoleOpen=false;
+
+function toggleConsole(){
+  consoleOpen=!consoleOpen;
+  document.getElementById('consoleOverlay').classList.toggle('open',consoleOpen);
+  if(consoleOpen){
+    var body=document.getElementById('consoleBody');
+    body.scrollTop=body.scrollHeight;
+  }
+}
+
+function clearConsole(){
+  consoleErrors=[];
+  document.getElementById('consoleBody').innerHTML='<div class="console-empty" id="consoleEmpty"><i class="fa-solid fa-circle-check"></i>&nbsp;NO ERRORS YET</div>';
+  document.getElementById('consoleCount').textContent='0 ENTRIES';
+}
+
+function consoleLog(type,msg,src,lineno,colno,fromGame){
+  consoleErrors.push({type,msg,src,lineno,colno,fromGame,time:new Date()});
+  var empty=document.getElementById('consoleEmpty');
+  if(empty)empty.remove();
+  var count=consoleErrors.length;
+  document.getElementById('consoleCount').textContent=count+' ENTR'+(count===1?'Y':'IES');
+  var t=consoleErrors[count-1].time;
+  var timeStr=t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0')+':'+t.getSeconds().toString().padStart(2,'0');
+  var srcShort=src||'';
+  if(srcShort.length>70)srcShort='...'+srcShort.slice(-67);
+  var loc=(lineno||colno)?(' '+(lineno||'')+(colno?':'+colno:'')):'';
+  var icon=type==='error'?'fa-circle-xmark':type==='warn'?'fa-triangle-exclamation':'fa-circle-info';
+  var gameTag=fromGame?'<span class="console-tag console-tag-game">GAME</span>':'';
+  var entry=document.createElement('div');
+  entry.className='console-entry type-'+type;
+  entry.innerHTML='<i class="fa-solid '+icon+' console-entry-icon"></i><div class="console-entry-body"><div class="console-entry-msg">'+gameTag+esc(String(msg))+'</div>'+(srcShort?'<div class="console-entry-src">'+esc(srcShort)+esc(loc)+'</div>':'')+'</div><div class="console-entry-time">'+timeStr+'</div>';
+  var body=document.getElementById('consoleBody');
+  body.appendChild(entry);
+  if(consoleOpen)body.scrollTop=body.scrollHeight;
+  if(type==='error'&&!consoleOpen)toggleConsole();
+}
+
+// Hook console methods on main window
+(function(){
+  var methods={log:'log',warn:'warn',error:'error'};
+  Object.keys(methods).forEach(function(fn){
+    var orig=console[fn].bind(console);
+    console[fn]=function(){
+      var args=Array.prototype.slice.call(arguments);
+      if(document.getElementById('gameModal').classList.contains('open')){
+        consoleLog(fn,args.map(function(a){return typeof a==='object'?JSON.stringify(a):String(a);}).join(' '),'',0,0,false);
+      }
+      orig.apply(console,args);
+    };
+  });
+})();
+
+window.addEventListener('error',function(e){
+  if(!document.getElementById('gameModal').classList.contains('open'))return;
+  consoleLog('error',e.message,e.filename,e.lineno,e.colno,false);
+},true);
+
+window.addEventListener('unhandledrejection',function(e){
+  if(!document.getElementById('gameModal').classList.contains('open'))return;
+  consoleLog('error','Unhandled Promise Rejection: '+(e.reason&&e.reason.message?e.reason.message:String(e.reason)),'',0,0,false);
+});
+
+window.addEventListener('message',function(e){
+  if(!e.data||!e.data.__zenoConsole)return;
+  consoleLog(e.data.level||'log',e.data.msg,e.data.src,e.data.lineno,e.data.colno,true);
+});
+
+document.getElementById('gameModalFrame').addEventListener('load',function(){
+  clearConsole();
+  var frame=this;
+  var src=frame.src;
+  if(!src||src==='about:blank'||src===window.location.href)return;
+  fetch(src,{method:'HEAD',cache:'no-store'}).then(function(r){
+    if(!r.ok){
+      consoleLog('error','Failed to load game: HTTP '+r.status+' '+r.statusText,src,0,0,false);
+    }
+  }).catch(function(){
+    try{
+      var iwin=frame.contentWindow;
+      var doc=iwin&&iwin.document;
+      if(doc&&(!doc.body||doc.body.innerHTML.trim()==='')){
+        consoleLog('error','Failed to load game: page appears empty or unreachable',src,0,0,false);
+      }
+    }catch(e){}
+  });
+  try{
+    var iwin=this.contentWindow;
+    if(!iwin)return;
+    var script=iwin.document.createElement('script');
+    script.textContent='(function(){'+
+      'function send(level,msg,src,line,col){'+
+        'parent.postMessage({__zenoConsole:true,level:level,msg:msg,src:src||"",lineno:line||0,colno:col||0},"*");'+
+      '}'+
+      'window.addEventListener("error",function(e){send("error",e.message,e.filename,e.lineno,e.colno);},true);'+
+      'window.addEventListener("unhandledrejection",function(e){send("error","Promise: "+(e.reason&&e.reason.message?e.reason.message:String(e.reason)),"",0,0);});'+
+      '["log","warn","error"].forEach(function(fn){'+
+        'var orig=console[fn].bind(console);'+
+        'console[fn]=function(){'+
+          'var args=Array.prototype.slice.call(arguments);'+
+          'send(fn,args.map(function(a){return typeof a==="object"?JSON.stringify(a):String(a);}).join(" "),"",0,0);'+
+          'orig.apply(console,args);'+
+        '};'+
+      '});'+
+    '})();';
+    iwin.document.head.appendChild(script);
+  }catch(err){}
+});
+
 function toggleFullscreen(){const m=document.querySelector('.game-modal');if(!document.fullscreenElement)m.requestFullscreen?.();else document.exitFullscreen?.();}
 document.getElementById('gameModal').addEventListener('click',e=>{if(e.target===document.getElementById('gameModal'))closeGameModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeGameModal();closeAddGamesModal();}});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeGameModal();closeAddGamesModal();if(consoleOpen)toggleConsole();}
+  if(e.key==='|'&&!e.target.matches('input,textarea,[contenteditable]')){
+    e.preventDefault();toggleConsole();
+  }
+});
 
 // ── DRAG & DROP (global) ──────────────────────────────────────────
 document.addEventListener('dragover',e=>e.preventDefault());
@@ -1029,32 +1222,24 @@ dzMain.addEventListener('drop',async e=>{
   if(files.length)handleBulkInput(files);
 });
 
-
-// ── GIT IMPORT (GitHub + git.gay/Forgejo) ────────────────────────
+// ── GIT IMPORT (GitHub + GitLab + Forgejo) ───────────────────────
 let ghFoundGames = [];
-
-// Detect which forge the URL points to and return config
-// Known Git forge types — detected by host
 const GITHUB_HOSTS   = new Set(['github.com']);
 const GITLAB_HOSTS   = new Set(['gitlab.com']);
-// Everything else with a Gitea/Forgejo-compatible API
-// (git.gay, codeberg.org, gitea.com, etc.)
 
 function detectForgeType(host) {
   if (GITHUB_HOSTS.has(host)) return 'github';
   if (GITLAB_HOSTS.has(host) || host.startsWith('gitlab.')) return 'gitlab';
-  return 'forgejo'; // Gitea/Forgejo — works for git.gay, codeberg, gitea.com, etc.
+  return 'forgejo';
 }
 
 function parseRepoUrl(raw) {
   raw = raw.trim().replace(/\/+$/, '').replace(/\.git$/, '');
-  // Match https://host/owner/repo or host/owner/repo
   const m = raw.match(/(?:https?:\/\/)?([^/\s]+\.[^/\s]+)\/([^/\s]+)\/([^/\s]+)/);
   if (m) {
     const host = m[1], owner = m[2], repo = m[3];
     return { type: detectForgeType(host), host, owner, repo };
   }
-  // Bare owner/repo — default to git.gay
   const m2 = raw.match(/^([^/\s]+)\/([^/\s]+)$/);
   if (m2) return { type: 'forgejo', host: 'git.gay', owner: m2[1], repo: m2[2] };
   return null;
@@ -1069,7 +1254,6 @@ async function gitApiFetch(url, type) {
   return res.json();
 }
 
-// Keep old name as alias so existing call sites still work
 const ghFetch = (url, isGitHub) => gitApiFetch(url, isGitHub ? 'github' : 'forgejo');
 
 async function getDefaultBranch(cfg) {
@@ -1090,14 +1274,10 @@ async function getRepoTree(cfg, branch) {
     const data = await gitApiFetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/git/trees/${branch}?recursive=1`, 'github');
     return (data.tree || []).map(f => ({ path: f.path, type: f.type === 'blob' ? 'blob' : 'tree' }));
   } else if (cfg.type === 'gitlab') {
-    // GitLab: paginate the tree API (max 100 per page)
     const projectId = encodeURIComponent(cfg.owner + '/' + cfg.repo);
     let page = 1, items = [];
     while (true) {
-      const data = await gitApiFetch(
-        `https://${cfg.host}/api/v4/projects/${projectId}/repository/tree?recursive=true&per_page=100&page=${page}`,
-        'gitlab'
-      );
+      const data = await gitApiFetch(`https://${cfg.host}/api/v4/projects/${projectId}/repository/tree?recursive=true&per_page=100&page=${page}`, 'gitlab');
       if (!Array.isArray(data) || !data.length) break;
       items = items.concat(data);
       if (data.length < 100) break;
@@ -1105,7 +1285,6 @@ async function getRepoTree(cfg, branch) {
     }
     return items.map(f => ({ path: f.path, type: f.type === 'blob' ? 'blob' : 'tree' }));
   } else {
-    // Forgejo / Gitea
     const data = await gitApiFetch(`https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}/git/trees/${branch}?recursive=true`, 'forgejo');
     return (data.tree || []).map(f => ({ path: f.path, type: f.type }));
   }
@@ -1118,22 +1297,17 @@ function getRawUrl(cfg, branch, filePath) {
     const projectId = encodeURIComponent(cfg.owner + '/' + cfg.repo);
     return `https://${cfg.host}/api/v4/projects/${projectId}/repository/files/${encodeURIComponent(filePath)}/raw?ref=${branch}`;
   } else {
-    // Forgejo / Gitea raw
     return `https://${cfg.host}/${cfg.owner}/${cfg.repo}/raw/branch/${branch}/${filePath}`;
   }
 }
 
-// Also update the API fallback in ghFetchFile to handle GitLab
 async function gitFetchFile(url, cfg, branch, filePath) {
   try {
     const res = await fetch(url);
     if (res.ok) return res;
   } catch(e) {}
-
   if (cfg && cfg.type === 'gitlab') {
     try {
-      // GitLab API returns raw content directly at the raw URL — nothing extra needed
-      // Try with private-token header as fallback (no-op for public repos)
       const res = await fetch(url, { headers: { 'PRIVATE-TOKEN': '' } });
       if (res.ok) return res;
     } catch(e) {}
@@ -1181,7 +1355,6 @@ document.getElementById('ghUrlInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') ghScan();
 });
 
-// Store current scan config so download can use it
 let ghCurrentCfg = null;
 let ghCurrentBranch = null;
 
@@ -1189,7 +1362,6 @@ async function ghScan() {
   const raw = document.getElementById('ghUrlInput').value;
   const cfg = parseRepoUrl(raw);
   if (!cfg) { setGHStatus('INVALID URL', 'err'); return; }
-
   const btn = document.getElementById('ghScanBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>&nbsp; SCANNING';
@@ -1199,16 +1371,12 @@ async function ghScan() {
   document.getElementById('ghLoadBtn').disabled = true;
   ghFoundGames = [];
   ghCurrentCfg = cfg;
-
   try {
     setGHStatus('FETCHING REPO INFO...');
     const branch = await getDefaultBranch(cfg);
     ghCurrentBranch = branch;
-
     setGHStatus('FETCHING FILE TREE...');
     const tree = await getRepoTree(cfg, branch);
-
-    // Find top-level folders with index.html
     const folderMap = {};
     for (const item of tree) {
       if (item.type !== 'blob') continue;
@@ -1217,17 +1385,13 @@ async function ghScan() {
         folderMap[parts[0]] = [];
       }
     }
-    // Root index.html = single game repo
     if (tree.some(f => f.path === 'index.html')) folderMap['[root]'] = [];
-
     if (!Object.keys(folderMap).length) {
       setGHStatus('NO GAME FOLDERS FOUND (no index.html files)', 'err');
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';
       return;
     }
-
-    // Assign files to folders
     for (const item of tree) {
       if (item.type !== 'blob') continue;
       const parts = item.path.split('/');
@@ -1237,15 +1401,12 @@ async function ghScan() {
         folderMap[parts[0]].push({ path: parts.slice(1).join('/'), url: getRawUrl(cfg, branch, item.path) });
       }
     }
-
     ghFoundGames = Object.entries(folderMap).map(([name, files]) => ({ name, files, selected: false }));
     setGHStatus(`FOUND ${ghFoundGames.length} GAME${ghFoundGames.length !== 1 ? 'S' : ''} — ${cfg.host}`, 'ok');
     renderGHGameList();
-
   } catch(e) {
     setGHStatus(e.message || 'SCAN FAILED', 'err');
   }
-
   btn.disabled = false;
   btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';
 }
@@ -1263,11 +1424,7 @@ function renderGHGameList() {
     const g = ghFoundGames[i];
     const item = document.createElement('div');
     item.className = 'gh-game-item' + (g.selected ? ' selected' : '');
-    item.innerHTML = `
-      <div class="gh-game-check">${g.selected ? '<i class="fa-solid fa-check"></i>' : ''}</div>
-      <div class="gh-game-name">${esc(g.name === '[root]' ? 'Root Game' : g.name)}</div>
-      <div class="gh-game-files">${g.files.length}F</div>
-    `;
+    item.innerHTML = `<div class="gh-game-check">${g.selected ? '<i class="fa-solid fa-check"></i>' : ''}</div><div class="gh-game-name">${esc(g.name === '[root]' ? 'Root Game' : g.name)}</div><div class="gh-game-files">${g.files.length}F</div>`;
     item.addEventListener('click', () => ghToggleItem(i));
     list.appendChild(item);
   }
@@ -1276,30 +1433,14 @@ function renderGHGameList() {
   updateGHLoadBtn();
 }
 
-function ghToggleItem(i) {
-  ghFoundGames[i].selected = !ghFoundGames[i].selected;
-  renderGHGameList();
-}
-
-function ghToggleAll() {
-  const allSelected = ghFoundGames.every(g => g.selected);
-  ghFoundGames.forEach(g => g.selected = !allSelected);
-  renderGHGameList();
-}
-
-function updateGHSelectAllLabel() {
-  const btn = document.getElementById('ghSelectAll');
-  const allSelected = ghFoundGames.length && ghFoundGames.every(g => g.selected);
-  btn.textContent = allSelected ? 'DESELECT ALL' : 'SELECT ALL';
-}
-
+function ghToggleItem(i) { ghFoundGames[i].selected = !ghFoundGames[i].selected; renderGHGameList(); }
+function ghToggleAll() { const allSelected = ghFoundGames.every(g => g.selected); ghFoundGames.forEach(g => g.selected = !allSelected); renderGHGameList(); }
+function updateGHSelectAllLabel() { const btn = document.getElementById('ghSelectAll'); const allSelected = ghFoundGames.length && ghFoundGames.every(g => g.selected); btn.textContent = allSelected ? 'DESELECT ALL' : 'SELECT ALL'; }
 function updateGHLoadBtn() {
   const count = ghFoundGames.filter(g => g.selected).length;
   const btn = document.getElementById('ghLoadBtn');
   btn.disabled = count === 0;
-  btn.innerHTML = count > 0
-    ? `<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${count} GAME${count !== 1 ? 'S' : ''}`
-    : '<i class="fa-solid fa-bolt"></i>&nbsp; LOAD SELECTED';
+  btn.innerHTML = count > 0 ? `<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${count} GAME${count !== 1 ? 'S' : ''}` : '<i class="fa-solid fa-bolt"></i>&nbsp; LOAD SELECTED';
 }
 
 async function ghLoadSelected() {
@@ -1307,11 +1448,9 @@ async function ghLoadSelected() {
   if (!toLoad.length) return;
   if (!swReady) { await initSW(); if (!swReady) return; }
   if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(() => location.reload(), 1200); return; }
-
   closeGHModal();
   buildPips(toLoad.length);
   showProgress(true, `Downloading ${toLoad.length} game${toLoad.length !== 1 ? 's' : ''}...`);
-
   let added = 0;
   for (let i = 0; i < toLoad.length; i++) {
     const g = toLoad[i];
@@ -1322,20 +1461,16 @@ async function ghLoadSelected() {
     setPip(i, ok ? 'done' : 'fail');
     if (ok) added++;
   }
-
   showProgress(false);
   if (added > 0) { showToast(`+${added} GAME${added > 1 ? 'S' : ''} ADDED`); renderGrid(); }
   else showToast('NO GAMES LOADED', true);
 }
 
 async function ghFetchFile(url, cfg, branch, filePath) {
-  // Try the primary URL first
   try {
     const res = await fetch(url);
     if (res.ok) return res;
   } catch(e) {}
-
-  // Forgejo fallback: use the API contents endpoint which returns base64
   if (cfg && cfg.type === 'forgejo') {
     try {
       const apiUrl = `https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}/contents/${filePath}?ref=${branch}`;
@@ -1343,7 +1478,6 @@ async function ghFetchFile(url, cfg, branch, filePath) {
       if (res.ok) {
         const json = await res.json();
         if (json.content) {
-          // API returns base64-encoded content
           const binary = atob(json.content.replace(/\n/g, ''));
           const bytes = new Uint8Array(binary.length);
           for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -1361,59 +1495,43 @@ async function ghDownloadAndLoad(name, fileList, gameIdx, total) {
   const fileRecords = [];
   let iconUrl = null;
   let failedCount = 0;
-
   for (let i = 0; i < fileList.length; i++) {
     const f = fileList[i];
-    const pct = Math.round((i / fileList.length) * 80);
-    setProgress(pct, `${name}: ${i + 1}/${fileList.length} — ${f.path.split('/').pop()}`);
-
+    setProgress(Math.round((i / fileList.length) * 80), `${name}: ${i + 1}/${fileList.length} — ${f.path.split('/').pop()}`);
     try {
-      // Build the full repo path for API fallback
       const repoPath = name === '[root]' ? f.path : `${name}/${f.path}`;
       const res = await gitFetchFile(f.url, ghCurrentCfg, ghCurrentBranch, repoPath);
       if (!res) { failedCount++; console.warn('Failed to fetch:', f.url); continue; }
-
       const buf = await res.arrayBuffer();
       const mime = getMime(f.path.split('/').pop());
       const fileName = f.path.split('/').pop();
-
       const file = new File([buf], fileName, { type: mime });
       Object.defineProperty(file, 'webkitRelativePath', { value: name + '/' + f.path, writable: false, configurable: true });
-
       fileRecords.push({ file, path: f.path, mimeType: mime });
-
       if (!iconUrl && iconNames.has(fileName.toLowerCase())) {
         iconUrl = await blobToDataUrl(new Blob([buf], { type: mime }));
       }
-    } catch(e) {
-      failedCount++;
-      console.warn('Failed to fetch:', f.url, e);
-    }
+    } catch(e) { failedCount++; console.warn('Failed to fetch:', f.url, e); }
   }
-
   if (!fileRecords.some(r => r.path.split('/').pop().toLowerCase() === 'index.html')) {
     setGHStatus(`FAILED: ${name} — could not download index.html (${failedCount} files failed)`, 'err');
     showToast(`FAILED: ${name}`, true);
     return false;
   }
-
   setProgress(88, `${name}: registering...`);
   const ok = await registerGameWithSW(id, fileRecords);
   if (!ok) return false;
-
   setProgress(100, `${name}: ready!`);
   await sleep(150);
-
   const gameEntry = { id, name, icon: iconUrl, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
   games.push(gameEntry);
   saveGameToDB(gameEntry).catch(e => console.error('Failed to save game to DB:', e));
   return true;
 }
 
-
 // ── R2 IMPORT ─────────────────────────────────────────────────────
 const R2_BASE_KEY = 'zeno-r2-base';
-let r2Queue = []; // { name, indexUrl, baseUrl }
+let r2Queue = [];
 
 function openR2Modal() {
   r2Queue = [];
@@ -1444,33 +1562,21 @@ document.getElementById('r2LinkInput').addEventListener('keydown', e => {
 function r2ParseLink(raw) {
   raw = raw.trim().replace(/\/+$/, '');
   const baseRaw = document.getElementById('r2BaseInput').value.trim().replace(/\/+$/, '');
-
-  // Save base URL for next time
   if (baseRaw) localStorage.setItem(R2_BASE_KEY, baseRaw);
-
-  let indexUrl = '';
-  let name = '';
-
+  let indexUrl = '', name = '';
   if (raw.startsWith('http')) {
-    // Full URL pasted — extract name from path
     try {
       const u = new URL(raw);
       const parts = u.pathname.split('/').filter(Boolean);
-      // Find the game folder — it's the segment before index.html (or last segment if no index.html)
       const idxPos = parts.findIndex(p => p.toLowerCase() === 'index.html');
       name = idxPos > 0 ? parts[idxPos - 1] : parts[parts.length - 1];
-      // Ensure URL points to index.html
       indexUrl = raw.endsWith('index.html') ? raw : raw.replace(/\/?$/, '/index.html');
-    } catch(e) {
-      return null;
-    }
+    } catch(e) { return null; }
   } else {
-    // Just a folder name — build URL from base
     if (!baseRaw) return { error: 'PASTE A BASE URL FIRST' };
     name = raw;
     indexUrl = `${baseRaw}/${raw}/index.html`;
   }
-
   if (!name) return null;
   return { name, indexUrl, baseUrl: new URL(indexUrl).origin };
 }
@@ -1478,27 +1584,17 @@ function r2ParseLink(raw) {
 function r2AddLink() {
   const raw = document.getElementById('r2LinkInput').value;
   if (!raw.trim()) return;
-
   const parsed = r2ParseLink(raw);
   if (!parsed) { setR2Status('INVALID LINK', 'err'); return; }
   if (parsed.error) { setR2Status(parsed.error, 'err'); return; }
-
-  // Dedupe by name
-  if (r2Queue.some(g => g.name === parsed.name)) {
-    setR2Status(`"${parsed.name}" ALREADY IN QUEUE`, 'err');
-    return;
-  }
-
+  if (r2Queue.some(g => g.name === parsed.name)) { setR2Status(`"${parsed.name}" ALREADY IN QUEUE`, 'err'); return; }
   r2Queue.push(parsed);
   document.getElementById('r2LinkInput').value = '';
   setR2Status('');
   renderR2Queue();
 }
 
-function r2RemoveItem(i) {
-  r2Queue.splice(i, 1);
-  renderR2Queue();
-}
+function r2RemoveItem(i) { r2Queue.splice(i, 1); renderR2Queue(); }
 
 function renderR2Queue() {
   const el = document.getElementById('r2Queue');
@@ -1508,16 +1604,7 @@ function renderR2Queue() {
     document.getElementById('r2LoadBtn').disabled = true;
     return;
   }
-  el.innerHTML = r2Queue.map((g, i) => `
-    <div class="r2-queue-item">
-      <i class="fa-solid fa-cloud r2-queue-icon"></i>
-      <div style="flex:1;min-width:0">
-        <div class="r2-queue-name">${esc(g.name)}</div>
-        <div class="r2-queue-url">${esc(g.indexUrl)}</div>
-      </div>
-      <button class="r2-queue-remove" onclick="r2RemoveItem(${i})"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-  `).join('');
+  el.innerHTML = r2Queue.map((g, i) => `<div class="r2-queue-item"><i class="fa-solid fa-cloud r2-queue-icon"></i><div style="flex:1;min-width:0"><div class="r2-queue-name">${esc(g.name)}</div><div class="r2-queue-url">${esc(g.indexUrl)}</div></div><button class="r2-queue-remove" onclick="r2RemoveItem(${i})"><i class="fa-solid fa-xmark"></i></button></div>`).join('');
   document.getElementById('r2Count').textContent = `${r2Queue.length} GAME${r2Queue.length !== 1 ? 'S' : ''} QUEUED`;
   document.getElementById('r2LoadBtn').disabled = false;
   document.getElementById('r2LoadBtn').innerHTML = `<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${r2Queue.length} GAME${r2Queue.length !== 1 ? 'S' : ''}`;
@@ -1533,18 +1620,14 @@ function r2LoadAll() {
   if (!r2Queue.length) return;
   const toLoad = [...r2Queue];
   closeR2Modal();
-
   let added = 0;
   for (const g of toLoad) {
     const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    // R2 games are just iframed directly — no SW needed
     const gameEntry = { id, name: g.name, icon: null, entryPath: g.indexUrl, fileCount: 0, fileRecords: [], r2: true };
     games.push(gameEntry);
-    // Persist to DB (no files, just the meta + URL stored as entryPath)
     saveR2GameToDB(gameEntry).catch(e => console.error('R2 save failed:', e));
     added++;
   }
-
   if (added > 0) { showToast(`+${added} GAME${added > 1 ? 'S' : ''} ADDED`); renderGrid(); }
 }
 
@@ -1554,50 +1637,28 @@ async function saveR2GameToDB(game) {
     const tx = db.transaction(STORE_META, 'readwrite');
     tx.oncomplete = () => res();
     tx.onerror = e => rej(e.target.error);
-    tx.objectStore(STORE_META).put({
-      id: game.id,
-      name: game.name,
-      icon: game.icon,
-      entryPath: game.entryPath,
-      fileCount: 0,
-      r2: true,
-    });
+    tx.objectStore(STORE_META).put({ id: game.id, name: game.name, icon: game.icon, entryPath: game.entryPath, fileCount: 0, r2: true });
   });
 }
 
-// ── ZENOPACK EXPORT / IMPORT ─────────────────────────────────────
-
+// ── ZENOPACK EXPORT / IMPORT ──────────────────────────────────────
 async function exportZenopack(e, gameId) {
   e.stopPropagation();
   const game = games.find(g => g.id === gameId);
   if (!game) { showToast('GAME NOT FOUND', true); return; }
   if (!game.fileRecords?.length) { showToast('R2 GAMES CANNOT BE EXPORTED', true); return; }
-
   showToast('PACKAGING...');
-
-  // Read all file buffers
   const files = [];
   for (const r of game.fileRecords) {
     const buf = await r.file.arrayBuffer();
     files.push({ path: r.path, mimeType: r.mimeType, data: Array.from(new Uint8Array(buf)) });
   }
-
-  // Build the zenopack — a JSON blob with metadata + base64 file contents
-  const pack = {
-    zenopack: '1.0',
-    name: game.name,
-    icon: game.icon || null,
-    fileCount: files.length,
-    files,
-  };
-
+  const pack = { zenopack: '1.0', name: game.name, icon: game.icon || null, fileCount: files.length, files };
   const json = JSON.stringify(pack);
   const blob = new Blob([json], { type: 'application/octet-stream' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = game.name.replace(/[^a-z0-9_\-]/gi, '_') + '.zenopack';
-  a.click();
+  a.href = url; a.download = game.name.replace(/[^a-z0-9_\-]/gi, '_') + '.zenopack'; a.click();
   URL.revokeObjectURL(url);
   showToast(`EXPORTED: ${game.name}`);
 }
@@ -1609,11 +1670,9 @@ async function importZenopackFiles(fileList) {
     const s = document.getElementById('zenopackStatus');
     s.textContent = 'NO .ZENOPACK FILES FOUND'; s.className = 'share-status err'; return;
   }
-
   const statusEl = document.getElementById('zenopackStatus');
   if (!swReady) { await initSW(); if (!swReady) return; }
   if (!getSW()) { showToast('ACTIVATING SW — reloading...'); setTimeout(()=>location.reload(),1200); return; }
-
   let added = 0;
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -1623,7 +1682,6 @@ async function importZenopackFiles(fileList) {
       const text = await file.text();
       const pack = JSON.parse(text);
       if (!pack.zenopack || !pack.files?.length) { showToast(`SKIPPED: ${file.name} — invalid`, true); continue; }
-
       const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
       const fileRecords = pack.files.map(f => {
         const buf = new Uint8Array(f.data).buffer;
@@ -1631,35 +1689,22 @@ async function importZenopackFiles(fileList) {
         Object.defineProperty(fileObj, 'webkitRelativePath', { value: pack.name + '/' + f.path, writable: false, configurable: true });
         return { file: fileObj, path: f.path, mimeType: f.mimeType };
       });
-
       const ok = await registerGameWithSW(id, fileRecords);
       if (!ok) { showToast(`FAILED: ${pack.name}`, true); continue; }
-
       const gameEntry = { id, name: pack.name, icon: pack.icon, entryPath: `./zeno-games/${id}/index.html`, fileCount: fileRecords.length, fileRecords };
       games.push(gameEntry);
       saveGameToDB(gameEntry).catch(console.error);
       added++;
-    } catch(e) {
-      showToast(`ERROR: ${file.name}`, true);
-      console.error(e);
-    }
+    } catch(e) { showToast(`ERROR: ${file.name}`, true); console.error(e); }
   }
-
   statusEl.textContent = `${added} GAME${added!==1?'S':''} IMPORTED!`;
   statusEl.className = 'share-status ok';
   document.getElementById('zenopackFileInput').value = '';
-  if (added > 0) {
-    renderGrid();
-    setTimeout(() => closeAddGamesModal(), 800);
-    showToast(`+${added} GAME${added!==1?'S':''} ADDED`);
-  }
+  if (added > 0) { renderGrid(); setTimeout(() => closeAddGamesModal(), 800); showToast(`+${added} GAME${added!==1?'S':''} ADDED`); }
 }
 
-async function importZenopack(file) {
-  return importZenopackFiles(file ? [file] : []);
-}
+async function importZenopack(file) { return importZenopackFiles(file ? [file] : []); }
 
-// Drag and drop for zenopack drop zone
 (function() {
   const dz = document.getElementById('zenopackDrop');
   if (!dz) return;
@@ -1676,8 +1721,8 @@ async function importZenopack(file) {
 // ── INDEXEDDB PERSISTENCE ────────────────────────────────────────
 const DB_NAME = 'zeno-games-db';
 const DB_VERSION = 1;
-const STORE_META = 'game-meta';   // { id, name, icon, entryPath, fileCount, fileOrder }
-const STORE_FILES = 'game-files'; // { id (gameId+':'+path), gameId, path, mimeType, buffer }
+const STORE_META = 'game-meta';
+const STORE_FILES = 'game-files';
 
 function openDB() {
   return new Promise((res, rej) => {
@@ -1696,68 +1741,41 @@ function openDB() {
   });
 }
 
-function dbTx(db, stores, mode, fn) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(stores, mode);
-    tx.onerror = e => rej(e.target.error);
-    res(fn(tx));
-  });
-}
-
-function idbPut(store, value) {
-  return new Promise((res, rej) => { const r = store.put(value); r.onsuccess = () => res(); r.onerror = e => rej(e.target.error); });
-}
-function idbGet(store, key) {
-  return new Promise((res, rej) => { const r = store.get(key); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); });
-}
-function idbGetAll(store) {
-  return new Promise((res, rej) => { const r = store.getAll(); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); });
-}
-function idbGetAllByIndex(store, indexName, value) {
-  return new Promise((res, rej) => { const r = store.index(indexName).getAll(value); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); });
-}
-function idbDelete(store, key) {
-  return new Promise((res, rej) => { const r = store.delete(key); r.onsuccess = () => res(); r.onerror = e => rej(e.target.error); });
-}
+function idbPut(store, value) { return new Promise((res, rej) => { const r = store.put(value); r.onsuccess = () => res(); r.onerror = e => rej(e.target.error); }); }
+function idbGet(store, key) { return new Promise((res, rej) => { const r = store.get(key); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); }); }
+function idbGetAll(store) { return new Promise((res, rej) => { const r = store.getAll(); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); }); }
+function idbGetAllByIndex(store, indexName, value) { return new Promise((res, rej) => { const r = store.index(indexName).getAll(value); r.onsuccess = () => res(r.result); r.onerror = e => rej(e.target.error); }); }
+function idbDelete(store, key) { return new Promise((res, rej) => { const r = store.delete(key); r.onsuccess = () => res(); r.onerror = e => rej(e.target.error); }); }
 
 async function saveGameToDB(game) {
-  // Read ALL buffers before opening the transaction —
-  // IndexedDB transactions auto-close on any await, so we must do all
-  // reads outside the transaction and all writes inside it synchronously.
+  // Read ALL buffers before opening the transaction.
+  // zenoapp / r2 entries have no local files — skip file reads entirely.
   const fileData = [];
-  for (const r of game.fileRecords) {
-    const buf = await r.file.arrayBuffer();
-    fileData.push({ path: r.path, mimeType: r.mimeType, buffer: buf });
+  if (game.fileRecords && game.fileRecords.length) {
+    for (const r of game.fileRecords) {
+      const buf = await r.file.arrayBuffer();
+      fileData.push({ path: r.path, mimeType: r.mimeType, buffer: buf });
+    }
   }
-
   const db = await openDB();
   return new Promise((res, rej) => {
     const tx = db.transaction([STORE_META, STORE_FILES], 'readwrite');
     tx.oncomplete = () => res();
     tx.onerror = e => rej(e.target.error);
     tx.onabort = e => rej(e.target.error);
-
     const metaStore = tx.objectStore(STORE_META);
     const fileStore = tx.objectStore(STORE_FILES);
-
-    // Meta write
     metaStore.put({
       id: game.id,
       name: game.name,
       icon: game.icon,
       entryPath: game.entryPath,
       fileCount: game.fileCount,
+      r2: game.r2 || false,
+      zenoapp: game.zenoapp || false,
     });
-
-    // File writes — all synchronous within the transaction
     for (const f of fileData) {
-      fileStore.put({
-        id: game.id + ':' + f.path,
-        gameId: game.id,
-        path: f.path,
-        mimeType: f.mimeType,
-        buffer: f.buffer,
-      });
+      fileStore.put({ id: game.id + ':' + f.path, gameId: game.id, path: f.path, mimeType: f.mimeType, buffer: f.buffer });
     }
   });
 }
@@ -1778,55 +1796,41 @@ async function loadGamesFromDB() {
     const tx = db.transaction([STORE_META, STORE_FILES], 'readonly');
     const metas = await idbGetAll(tx.objectStore(STORE_META));
     if (!metas.length) return;
-
     showProgress(true, 'Restoring saved games...');
     buildPips(metas.length);
-
     for (let i = 0; i < metas.length; i++) {
       const meta = metas[i];
       setPip(i, 'active');
       showProgress(true, `Restoring: ${meta.name}`);
-
       try {
-        // Load file records from DB
         const tx2 = db.transaction(STORE_FILES, 'readonly');
         const fileEntries = await idbGetAllByIndex(tx2.objectStore(STORE_FILES), 'gameId', meta.id);
-
-        // Build fileRecords with synthetic File objects from stored buffers
-        // R2 games are iframed directly — no SW registration needed
+        // R2 games — iframed directly, no SW
         if (meta.r2) {
           games.push({ ...meta, fileRecords: [] });
           setPip(i, 'done');
           continue;
         }
-
+        // ZenoApps — iframed from hosted URL, no SW
+        if (meta.zenoapp) {
+          games.push({ ...meta, fileRecords: null });
+          setPip(i, 'done');
+          continue;
+        }
         const fileRecords = fileEntries.map(fe => ({
           path: fe.path,
           mimeType: fe.mimeType,
           file: new File([fe.buffer], fe.path.split('/').pop(), { type: fe.mimeType }),
         }));
-
-        // Re-register with SW
         const ok = await registerGameWithSW(meta.id, fileRecords);
-        if (ok) {
-          games.push({ ...meta, fileRecords });
-          setPip(i, 'done');
-        } else {
-          setPip(i, 'fail');
-        }
-      } catch(e) {
-        console.error('Failed to restore game:', meta.name, e);
-        setPip(i, 'fail');
-      }
+        if (ok) { games.push({ ...meta, fileRecords }); setPip(i, 'done'); }
+        else setPip(i, 'fail');
+      } catch(e) { console.error('Failed to restore game:', meta.name, e); setPip(i, 'fail'); }
     }
-
     showProgress(false);
     renderGrid();
     if (games.length) showToast(`${games.length} GAME${games.length > 1 ? 'S' : ''} RESTORED`);
-  } catch(e) {
-    console.error('loadGamesFromDB failed:', e);
-    showProgress(false);
-  }
+  } catch(e) { console.error('loadGamesFromDB failed:', e); showProgress(false); }
 }
 
 // Patch removeGame to also delete from DB
@@ -1834,15 +1838,15 @@ const _origRemoveGame = removeGame;
 removeGame = function(e, id) {
   e.stopPropagation();
   const sw = getSW(); if (sw) sw.postMessage({type:'UNREGISTER_GAME', payload:{gameId:id}});
-  games = games.filter(g => g.id !== id);
+  games.splice(0, games.length, ...games.filter(g => g.id !== id));
   deleteGameFromDB(id).catch(console.error);
   renderGrid();
   showToast('GAME REMOVED');
+  window._fbDeleteGame?.(id);
 };
 
 buildSlots();
 initSW();
-// Load saved games from IndexedDB on startup, then render
 loadGamesFromDB().then(() => { if (!games.length) renderGrid(); });
 </script>
 
@@ -1879,7 +1883,6 @@ loadGamesFromDB().then(() => { if (!games.length) renderGrid(); });
       </button>
       <div class="auth-error" id="authError"></div>
     </div>
-    <!-- Signed in state -->
     <div id="authSignedInWrap" style="display:none">
       <div class="auth-user-info">Signed in as <span id="authUserEmail"></span></div>
       <button class="auth-submit" style="margin-top:16px;border-color:rgba(255,0,110,.3);color:var(--neon-pink);background:rgba(255,0,110,.08)" onclick="handleSignOut()">
@@ -1888,8 +1891,6 @@ loadGamesFromDB().then(() => { if (!games.length) renderGrid(); });
     </div>
   </div>
 </div>
-
-
 
 <script>
 function openAuthModal() { window.openAuthModal?.() || setTimeout(() => window.openAuthModal?.(), 500); }
@@ -1964,11 +1965,9 @@ window.handleAuthSubmit = async function() {
   const password = document.getElementById('authPassword').value;
   const btn = document.getElementById('authSubmitBtn');
   const errEl = document.getElementById('authError');
-
   if (!email || !password) { errEl.textContent = 'Please fill in all fields'; return; }
   btn.disabled = true;
   errEl.textContent = '';
-
   try {
     if (authMode === 'signup') {
       const displayName = document.getElementById('authDisplayName').value.trim() || email.split('@')[0];
@@ -2021,19 +2020,13 @@ window.handleGoogleSignIn = async function() {
 
 async function syncGamesToCloud(user) {
   if (!user) return;
-  const gamesRef = collection(db, 'users', user.uid, 'games');
   const batch = window.games || [];
-
   for (const g of batch) {
     const meta = {
-      id: g.id,
-      name: g.name,
-      icon: g.icon || null,
-      fileCount: g.fileCount || 0,
-      r2: g.r2 || false,
-      entryPath: g.entryPath || null,
-      sourceUrl: g.sourceUrl || null,
-      updatedAt: Date.now(),
+      id: g.id, name: g.name, icon: g.icon || null,
+      fileCount: g.fileCount || 0, r2: g.r2 || false,
+      zenoapp: g.zenoapp || false,
+      entryPath: g.entryPath || null, sourceUrl: g.sourceUrl || null, updatedAt: Date.now(),
     };
     await setDoc(doc(db, 'users', user.uid, 'games', g.id), meta);
   }
@@ -2045,10 +2038,8 @@ async function loadGamesFromCloud(user) {
     const snap = await getDocs(collection(db, 'users', user.uid, 'games'));
     const cloudGames = snap.docs.map(d => d.data());
     if (!cloudGames.length) return;
-
     const localIds = new Set((window.games || []).map(g => g.id));
     let added = 0;
-
     for (const cg of cloudGames) {
       if (localIds.has(cg.id)) continue;
       if (cg.r2 && cg.entryPath) {
@@ -2056,23 +2047,21 @@ async function loadGamesFromCloud(user) {
         window.games.push(entry);
         window.saveGameToDB?.(entry);
         added++;
+      } else if (cg.zenoapp && cg.entryPath) {
+        const entry = { id: cg.id, name: cg.name, icon: cg.icon, zenoapp: true, entryPath: cg.entryPath, fileCount: 0, fileRecords: null };
+        window.games.push(entry);
+        window.saveGameToDB?.(entry);
+        added++;
       }
     }
-
-    if (added > 0) {
-      window.renderGrid?.();
-      showToast(`${added} GAME${added>1?'S':''} RESTORED FROM CLOUD`);
-    }
-  } catch(e) {
-    console.error('Cloud sync failed:', e);
-  }
+    if (added > 0) { window.renderGrid?.(); showToast(`${added} GAME${added>1?'S':''} RESTORED FROM CLOUD`); }
+  } catch(e) { console.error('Cloud sync failed:', e); }
 }
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   const btn = document.getElementById('authBtn');
   const label = document.getElementById('authBtnLabel');
-
   if (user) {
     btn.classList.add('signed-in');
     label.textContent = (user.displayName || user.email.split('@')[0]).toUpperCase();
@@ -2090,6 +2079,7 @@ window._fbSyncGame = async function(gameEntry) {
   const meta = {
     id: gameEntry.id, name: gameEntry.name, icon: gameEntry.icon || null,
     fileCount: gameEntry.fileCount || 0, r2: gameEntry.r2 || false,
+    zenoapp: gameEntry.zenoapp || false,
     entryPath: gameEntry.entryPath || null, updatedAt: Date.now(),
   };
   await setDoc(doc(db, 'users', currentUser.uid, 'games', gameEntry.id), meta).catch(console.error);
@@ -2105,6 +2095,384 @@ document.getElementById('authModal').addEventListener('click', function(e) {
   if (e.target === this) closeAuthModal();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('authModal').classList.contains('open')) handleAuthSubmit(); });
+</script>
+
+<!-- ── ZENOAPPS STORE MODAL ──────────────────────────────────────── -->
+<div class="zas-modal-overlay" id="zasModal" onclick="if(event.target===this)closeZasModal()">
+  <div class="zas-modal">
+    <div class="zas-topbar">
+      <div class="zas-topbar-title">ZENOAPPS</div>
+      <button class="zas-tab active" onclick="zasSetTab(this)">All Apps</button>
+      <button class="zas-tab" onclick="zasSetTab(this)">Apps</button>
+      <div class="zas-topbar-right">
+        <div class="zas-topbar-search">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="zasSearch" placeholder="Search..." oninput="zasSync(this.value)"/>
+        </div>
+        <button class="zas-close-btn" onclick="closeZasModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="zas-body">
+      <div class="zas-hero">
+        <div class="zas-hero-pill"><i class="fa-solid fa-star"></i>&nbsp; Get Apps Here!</div>
+        <div class="zas-hero-title">ZenoApps</div>
+        <div class="zas-hero-sub">Access everything directly. No uploads needed.</div>
+        <div class="zas-hero-searchbar">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="zasHeroSearch" placeholder="Search for apps and more..." oninput="zasSync(this.value)"/>
+        </div>
+      </div>
+      <div class="zas-cats">
+        <button class="zas-cat-btn active" onclick="zasSetCat(this)">All Categories</button>
+        <button class="zas-cat-btn" onclick="zasSetCat(this)">All</button>
+      </div>
+      <div class="zas-all-header">
+        <div>
+          <div class="zas-all-title">All Applications</div>
+          <div class="zas-all-sub">Browse our complete collection</div>
+        </div>
+      </div>
+      <div class="zas-all-grid" id="zasGrid">
+        <div class="zas-no-results" id="zasNoResults">NO APPS FOUND</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ICON_MAP = {
+    '1':'🎮','10-minutes-till-dawn':'🌙','2048-cupcakes':'🧁','9007199254740992':'🔢','99-balls':'🎱',
+    'a-small-world-cup':'⚽','achievement-unlocked':'🏆','animal-crossing-wild-world':'🍃',
+    'aqua-park-io':'💧','backrooms-2d':'😨','backrooms-3d':'😨','bacon-may-die':'🥓',
+    'bad-icecream':'🍦','bad-icecream-2':'🍦','bad-icecream-3':'🍦','bad-parenting':'👶',
+    'bad-piggies':'🐷','baldis-basics':'📏','ball-maze':'⚽','basket-random':'🏀',
+    'basketball-legends':'🏀','basketball-stars':'🏀','battle-karts':'🏎️',
+    'big-flappy-tower-tiny-square':'🐦','big-ice-tower-tiny-square':'🧊',
+    'big-neon-tower-tiny-square':'🟩','big-tower-tiny-square-2':'🟦',
+    'block-blast':'💥','block-blast-2':'💥','blood-money':'💰','bloxorz':'📦',
+    'brawl-stars':'⭐','buckshot-roulette':'🎲','burrito-bison-launch-alibre':'🌯',
+    'celeste':'🍓','celeste-2':'🍓','cluster-rush':'🚛','cookie-clicker':'🍪',
+    'core-ball':'🔵','crazy-cars':'🚗','crazy-cattle-3d':'🐄','crossy-road':'🐔',
+    'deltarune':'💎','drift-boss':'🚗','drive-mad':'🚙','duck-life':'🦆',
+    'duck-life-2':'🦆','duck-life-3':'🦆','eggy-car':'🥚','fire-boy-and-water-girl':'🔥',
+    'flappy-bird':'🐦','fnaf':'🐻','fnaf-2':'🐻','fnaf-3':'🐻','fnaw':'🐭',
+    'free-rider':'🚲','funny-shooter-2':'🔫','geometry-dash-3d':'📐','granny':'👴',
+    'grow-a-garden':'🌱','gta-2':'🏙️','happy-wheels':'☠️','hextris':'🔷',
+    'learn-to-fly':'🐧','learn-to-fly-2':'🐧','learn-to-fly-3':'🐧',
+    'minecraft-1.5.2':'⛏️','minecraft-indev':'⛏️','minecraft-parkour':'⛏️',
+    'minecraft-tower-defence':'⛏️','minecraft-zeta-client':'⛏️',
+    'motox3m':'🏍️','motox3m-2':'🏍️','motox3m-3':'🏍️','motox3m-spookyland':'🏍️',
+    'motox3m-winter':'🏍️','plants-vs-zombies':'🌻','retro-bowl':'🏈',
+    'short-life':'💀','slither-io':'🐍','slope-3':'🏔️','slow-roads':'🛣️',
+    'snow-rider-3d':'🛷','soccer-random':'⚽','subway-surfers':'🛹','super-hot':'🔴',
+    'the-binding-of-isaac':'😢','the-legend-of-zelda-the-minish-cap':'🗡️',
+    'the-worlds-hardest-game':'😤','tiny-fishing':'🎣','ultrakill':'⚡',
+    'vex':'🏃','vex-2':'🏃','vex-3':'🏃','vex-6':'🏃','vex-7':'🏃','vex-8':'🏃',
+    'volly-random':'🏐','word-wonders':'📝','wordle':'🔤','yohoho-io':'🏴',
+    'you-vs-100-skibidi-toilets':'🚽','zombocalypse-2':'🧟'
+  };
+
+  var DESC_MAP = {
+    '1':'A mysterious experience',
+    '10-minutes-till-dawn':'Survive waves of enemies for 10 minutes in this bullet heaven shooter',
+    '2048-cupcakes':'Sweet twist on 2048 with delicious cupcake tiles',
+    '9007199254740992':'2048 extended to the maximum JavaScript number limit',
+    '99-balls':'Break bricks with bouncing balls in this addictive arcade experience',
+    'a-small-world-cup':'Fast-paced one-on-one soccer with ragdoll physics',
+    'achievement-unlocked':'Collect every achievement in this meta-puzzle platformer',
+    'animal-crossing-wild-world':'Classic life sim on a peaceful island',
+    'aqua-park-io':'Slide down waterslides and race to the bottom',
+    'backrooms-2d':'Explore the eerie infinite backrooms in 2D',
+    'backrooms-3d':'First-person horror exploration of the backrooms',
+    'bacon-may-die':'Beat up enemies as a bacon-wielding warrior',
+    'bad-icecream':'Freeze enemies and collect fruit in icy mazes',
+    'bad-icecream-2':'More icy puzzle action with new levels',
+    'bad-icecream-3':'The third chilly chapter of bad icecream',
+    'bad-parenting':'Hilarious physics experience of parenting gone wrong',
+    'bad-piggies':'Build contraptions to help the pigs get the eggs',
+    'baldis-basics':'Survive the school of Baldis wrath',
+    'ball-maze':'Tilt and roll your ball through tricky mazes',
+    'basket-random':'Wacky two-button basketball with random physics',
+    'basketball-legends':'Play as legendary basketball stars in 1v1 matches',
+    'basketball-stars':'Street basketball with trick shots and skills',
+    'battle-karts':'Mario Kart-style racing with weapons and chaos',
+    'big-flappy-tower-tiny-square':'Flap through a massive tower as a tiny square',
+    'big-ice-tower-tiny-square':'Climb a giant ice tower as a tiny square',
+    'big-neon-tower-tiny-square':'Neon-lit tower climbing platformer',
+    'big-tower-tiny-square-2':'The sequel to the beloved tiny square tower',
+    'block-blast':'Blast and clear blocks in this addictive puzzle',
+    'block-blast-2':'More explosive block-clearing puzzle action',
+    'blood-money':'Action-packed heist and crime experience',
+    'bloxorz':'Roll a block to the goal without falling off',
+    'brawl-stars':'Fast-paced multiplayer brawler with unique heroes',
+    'buckshot-roulette':'Intense experience of chance with a shotgun twist',
+    'burrito-bison-launch-alibre':'Launch a wrestler into candy land for distance',
+    'celeste':'Tough but fair precision platformer about climbing a mountain',
+    'celeste-2':'More challenging precision platforming adventures',
+    'cluster-rush':'Jump between speeding trucks in this reflex runner',
+    'cookie-clicker':'Click cookies and build a cookie empire',
+    'core-ball':'Attach balls to a spinning core without colliding',
+    'crazy-cars':'High-speed racing with crazy physics',
+    'crazy-cattle-3d':'Chaotic 3D cattle physics battle royale',
+    'crossy-road':'Hop across roads and rivers without getting squashed',
+    'deltarune':'RPG adventure from the creator of Undertale',
+    'drift-boss':'Master the art of drifting around endless curves',
+    'drive-mad':'Navigate impossible obstacle courses in wild vehicles',
+    'duck-life':'Train your duck to become a racing champion',
+    'duck-life-2':'More duck training and racing adventures',
+    'duck-life-3':'The third chapter of duck training evolution',
+    'eggy-car':'Balance an egg on a car through bumpy terrain',
+    'fire-boy-and-water-girl':'Cooperative puzzle platformer with elemental heroes',
+    'flappy-bird':'Tap to keep your bird flying through pipes',
+    'fnaf':'Survive the night at a haunted pizza place',
+    'fnaf-2':'The terrifying sequel to Five Nights at Freddys',
+    'fnaf-3':'The third night of animatronic horror',
+    'fnaw':'Five Nights at Warios fan-made horror experience',
+    'free-rider':'Draw your own tracks and ride them',
+    'funny-shooter-2':'Hilarious first-person shooter with absurd enemies',
+    'geometry-dash-3d':'Rhythm-based obstacle course in full 3D',
+    'granny':'Escape from Grannys house before she catches you',
+    'grow-a-garden':'Cultivate and expand your dream garden',
+    'gta-2':'Top-down crime sandbox classic',
+    'happy-wheels':'Brutal ragdoll physics obstacle courses',
+    'hextris':'Fast-paced hexagonal Tetris variant',
+    'learn-to-fly':'Train a penguin to fly using ramps and gadgets',
+    'learn-to-fly-2':'More penguin flight training with upgrades',
+    'learn-to-fly-3':'The ultimate penguin flight evolution',
+    'minecraft-1.5.2':'Classic Minecraft version 1.5.2 in the browser',
+    'minecraft-indev':'Play the original indev version of Minecraft',
+    'minecraft-parkour':'Test your Minecraft parkour skills',
+    'minecraft-tower-defence':'Defend your base in Minecraft Tower Defence',
+    'minecraft-zeta-client':'Minecraft Zeta client browser edition',
+    'motox3m':'Stunt motorcycle racing over brutal obstacle tracks',
+    'motox3m-2':'More insane moto stunt tracks',
+    'motox3m-3':'The third chapter of moto stunt madness',
+    'motox3m-spookyland':'Halloween themed moto stunt racing',
+    'motox3m-winter':'Winter wonderland moto stunt racing',
+    'plants-vs-zombies':'Defend your garden from zombie hordes with plants',
+    'retro-bowl':'American football management and gameplay sim',
+    'short-life':'Ragdoll platformer with deadly obstacles',
+    'slither-io':'Grow your snake by eating others in multiplayer',
+    'slope-3':'Race a ball down an endless neon slope',
+    'slow-roads':'Relaxing endless driving through procedural scenery',
+    'snow-rider-3d':'Sled down snowy slopes avoiding obstacles',
+    'soccer-random':'Wacky two-button soccer with random physics',
+    'subway-surfers':'Run from the inspector across subway tracks',
+    'super-hot':'Time moves only when you move in this FPS',
+    'the-binding-of-isaac':'Roguelike dungeon crawler with dark themes',
+    'the-legend-of-zelda-the-minish-cap':'Classic GBA Zelda adventure in the browser',
+    'the-worlds-hardest-game':'Navigate through brutally difficult maze levels',
+    'tiny-fishing':'Cast your line and reel in increasingly rare fish',
+    'ultrakill':'Ultra-fast retro FPS with style mechanics',
+    'vex':'Stickman parkour through deadly obstacle stages',
+    'vex-2':'More intense stickman obstacle challenges',
+    'vex-3':'The third chapter of Vex stickman parkour',
+    'vex-6':'Vex series chapter six',
+    'vex-7':'Vex series chapter seven',
+    'vex-8':'The latest chapter in the Vex series',
+    'volly-random':'Wacky volleyball with random physics',
+    'word-wonders':'Explore a world built entirely from words',
+    'wordle':'Guess the five-letter word in six tries',
+    'yohoho-io':'Battle royale on a pirate island with sword fighting',
+    'you-vs-100-skibidi-toilets':'Survive waves of skibidi toilets',
+    'zombocalypse-2':'Survive endless zombie hordes with weapons'
+  };
+
+  var TAGS_MAP = {
+    '10-minutes-till-dawn':['Shooter','Roguelite'],'2048-cupcakes':['Puzzle','Casual'],
+    '9007199254740992':['Puzzle','Challenge'],'99-balls':['Arcade','Casual'],
+    'a-small-world-cup':['Sports','Casual'],'achievement-unlocked':['Puzzle','Meta'],
+    'animal-crossing-wild-world':['Simulation','Relaxing'],'aqua-park-io':['Racing','Multiplayer'],
+    'backrooms-2d':['Horror','Exploration'],'backrooms-3d':['Horror','3D'],
+    'bacon-may-die':['Action','Brawler'],'bad-icecream':['Puzzle','Co-op'],
+    'bad-icecream-2':['Puzzle','Co-op'],'bad-icecream-3':['Puzzle','Co-op'],
+    'bad-parenting':['Physics','Humor'],'bad-piggies':['Puzzle','Physics'],
+    'baldis-basics':['Horror','Education'],'ball-maze':['Puzzle','Skill'],
+    'basket-random':['Sports','Casual'],'basketball-legends':['Sports','Multiplayer'],
+    'basketball-stars':['Sports','Skill'],'battle-karts':['Racing','Multiplayer'],
+    'big-flappy-tower-tiny-square':['Platformer','Hard'],'big-ice-tower-tiny-square':['Platformer','Hard'],
+    'big-neon-tower-tiny-square':['Platformer','Hard'],'big-tower-tiny-square-2':['Platformer','Hard'],
+    'block-blast':['Puzzle','Casual'],'block-blast-2':['Puzzle','Casual'],
+    'blood-money':['Action','Crime'],'bloxorz':['Puzzle','Logic'],
+    'brawl-stars':['Action','Multiplayer'],'buckshot-roulette':['Horror','Strategy'],
+    'burrito-bison-launch-alibre':['Idle','Launch'],'celeste':['Platformer','Hard'],
+    'celeste-2':['Platformer','Hard'],'cluster-rush':['Runner','Reflex'],
+    'cookie-clicker':['Idle','Clicker'],'core-ball':['Arcade','Skill'],
+    'crazy-cars':['Racing','Casual'],'crazy-cattle-3d':['Physics','Humor'],
+    'crossy-road':['Arcade','Casual'],'deltarune':['RPG','Story'],
+    'drift-boss':['Racing','Skill'],'drive-mad':['Physics','Racing'],
+    'duck-life':['RPG','Training'],'duck-life-2':['RPG','Training'],
+    'duck-life-3':['RPG','Training'],'eggy-car':['Skill','Physics'],
+    'fire-boy-and-water-girl':['Puzzle','Co-op'],'flappy-bird':['Arcade','Hard'],
+    'fnaf':['Horror','Survival'],'fnaf-2':['Horror','Survival'],
+    'fnaf-3':['Horror','Survival'],'fnaw':['Horror','Fan-made'],
+    'free-rider':['Creative','Racing'],'funny-shooter-2':['Shooter','Humor'],
+    'geometry-dash-3d':['Rhythm','Platformer'],'granny':['Horror','Escape'],
+    'grow-a-garden':['Simulation','Relaxing'],'gta-2':['Action','Classic'],
+    'happy-wheels':['Physics','Gore'],'hextris':['Puzzle','Fast'],
+    'learn-to-fly':['Idle','Launch'],'learn-to-fly-2':['Idle','Launch'],
+    'learn-to-fly-3':['Idle','Launch'],'minecraft-1.5.2':['Sandbox','Classic'],
+    'minecraft-indev':['Sandbox','Historic'],'minecraft-parkour':['Platformer','Skill'],
+    'minecraft-tower-defence':['Strategy','Tower Defense'],'minecraft-zeta-client':['Sandbox','Client'],
+    'motox3m':['Racing','Stunt'],'motox3m-2':['Racing','Stunt'],
+    'motox3m-3':['Racing','Stunt'],'motox3m-spookyland':['Racing','Halloween'],
+    'motox3m-winter':['Racing','Winter'],'plants-vs-zombies':['Strategy','Tower Defense'],
+    'retro-bowl':['Sports','Management'],'short-life':['Platformer','Physics'],
+    'slither-io':['Multiplayer','Snake'],'slope-3':['Skill','Endless'],
+    'slow-roads':['Driving','Relaxing'],'snow-rider-3d':['Racing','Winter'],
+    'soccer-random':['Sports','Casual'],'subway-surfers':['Runner','Endless'],
+    'super-hot':['Shooter','Puzzle'],'the-binding-of-isaac':['Roguelite','Dark'],
+    'the-legend-of-zelda-the-minish-cap':['Adventure','Classic'],
+    'the-worlds-hardest-game':['Skill','Hard'],'tiny-fishing':['Casual','Idle'],
+    'ultrakill':['Shooter','Retro'],'vex':['Platformer','Skill'],
+    'vex-2':['Platformer','Skill'],'vex-3':['Platformer','Skill'],
+    'vex-6':['Platformer','Skill'],'vex-7':['Platformer','Skill'],
+    'vex-8':['Platformer','Skill'],'volly-random':['Sports','Casual'],
+    'word-wonders':['Word','Puzzle'],'wordle':['Word','Daily'],
+    'yohoho-io':['Action','Multiplayer'],'you-vs-100-skibidi-toilets':['Meme','Survival'],
+    'zombocalypse-2':['Shooter','Survival']
+  };
+
+  var GAMES = [
+    '1','10-minutes-till-dawn','2048-cupcakes','9007199254740992','99-balls',
+    'a-small-world-cup','achievement-unlocked','animal-crossing-wild-world',
+    'aqua-park-io','backrooms-2d','backrooms-3d','bacon-may-die','bad-icecream',
+    'bad-icecream-2','bad-icecream-3','bad-parenting','bad-piggies','baldis-basics',
+    'ball-maze','basket-random','basketball-legends','basketball-stars','battle-karts',
+    'big-flappy-tower-tiny-square','big-ice-tower-tiny-square','big-neon-tower-tiny-square',
+    'big-tower-tiny-square-2','block-blast','block-blast-2','blood-money','bloxorz',
+    'brawl-stars','buckshot-roulette','burrito-bison-launch-alibre','celeste','celeste-2',
+    'cluster-rush','cookie-clicker','core-ball','crazy-cars','crazy-cattle-3d',
+    'crossy-road','deltarune','drift-boss','drive-mad','duck-life','duck-life-2',
+    'duck-life-3','eggy-car','fire-boy-and-water-girl','flappy-bird','fnaf','fnaf-2',
+    'fnaf-3','fnaw','free-rider','funny-shooter-2','geometry-dash-3d','granny',
+    'grow-a-garden','gta-2','happy-wheels','hextris','learn-to-fly','learn-to-fly-2',
+    'learn-to-fly-3','minecraft-1.5.2','minecraft-indev','minecraft-parkour',
+    'minecraft-tower-defence','minecraft-zeta-client','motox3m','motox3m-2','motox3m-3',
+    'motox3m-spookyland','motox3m-winter','plants-vs-zombies','retro-bowl','short-life',
+    'slither-io','slope-3','slow-roads','snow-rider-3d','soccer-random','subway-surfers',
+    'super-hot','the-binding-of-isaac','the-legend-of-zelda-the-minish-cap',
+    'the-worlds-hardest-game','tiny-fishing','ultrakill','vex','vex-2','vex-3',
+    'vex-6','vex-7','vex-8','volly-random','word-wonders','wordle','yohoho-io',
+    'you-vs-100-skibidi-toilets','zombocalypse-2'
+  ];
+
+  var zasBuilt = false;
+
+  function fmt(s) {
+    return s.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+  }
+
+  function buildStore() {
+    if (zasBuilt) return;
+    zasBuilt = true;
+    var grid = document.getElementById('zasGrid');
+    var noRes = document.getElementById('zasNoResults');
+    GAMES.forEach(function(id, i) {
+      var tags = TAGS_MAP[id] || ['App'];
+      var tagHtml = tags.slice(0, 2).map(function(t) { return '<span class="zas-tag">' + t + '</span>'; }).join('');
+      var card = document.createElement('div');
+      card.className = 'zas-app-row';
+      card.dataset.name = fmt(id).toLowerCase();
+      card.dataset.tags = tags.join(' ').toLowerCase();
+      card.dataset.id = id;
+      card.style.animationDelay = (i * 6) + 'ms';
+      var nameEl = document.createElement('div');
+      nameEl.className = 'zas-app-row-info';
+      nameEl.innerHTML = '<div class="zas-app-row-name">' + fmt(id) + '</div>';
+      var topEl = document.createElement('div');
+      topEl.className = 'zas-app-row-top';
+      topEl.appendChild(nameEl);
+      var descEl = document.createElement('div');
+      descEl.className = 'zas-app-row-desc';
+      descEl.textContent = DESC_MAP[id] || 'Play on Zeno.';
+      var alreadyAdded = window.games && window.games.some(function(g) { return g.id === 'zas-' + id; });
+      var btn = document.createElement('button');
+      btn.className = 'zas-get-btn';
+      btn.textContent = alreadyAdded ? 'Added' : 'Get';
+      if (alreadyAdded) {
+        btn.disabled = true;
+        btn.style.background = 'rgba(0,255,136,.12)';
+        btn.style.borderColor = 'rgba(0,255,136,.35)';
+        btn.style.color = 'var(--neon-green)';
+      }
+      btn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); zasAddGame(btn, id); });
+      var footerEl = document.createElement('div');
+      footerEl.className = 'zas-app-row-footer';
+      footerEl.innerHTML = tagHtml;
+      footerEl.appendChild(btn);
+      card.appendChild(topEl);
+      card.appendChild(descEl);
+      card.appendChild(footerEl);
+      grid.insertBefore(card, noRes);
+    });
+  }
+
+  window.openZasModal = function() {
+    buildStore();
+    document.getElementById('zasModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeZasModal = function() {
+    document.getElementById('zasModal').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  window.zasSync = function(val) {
+    document.getElementById('zasSearch').value = val;
+    document.getElementById('zasHeroSearch').value = val;
+    var q = val.toLowerCase();
+    var cards = document.querySelectorAll('.zas-app-row');
+    var vis = 0;
+    cards.forEach(function(c) {
+      var show = !q || c.dataset.name.includes(q) || c.dataset.tags.includes(q);
+      c.style.display = show ? '' : 'none';
+      if (show) vis++;
+    });
+    document.getElementById('zasNoResults').style.display = vis === 0 ? 'block' : 'none';
+  };
+
+  window.zasSetTab = function(btn) {
+    document.querySelectorAll('.zas-tab').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+  };
+
+  window.zasSetCat = function(btn) {
+    document.querySelectorAll('.zas-cat-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+  };
+
+  window.zasAddGame = function(btn, id) {
+    if (window.games && window.games.some(function(g) { return g.id === 'zas-' + id; })) {
+      var existing = window.games.find(function(g) { return g.id === 'zas-' + id; });
+      if (existing) { closeZasModal(); window.openGameModal(existing); }
+      return;
+    }
+    var name = fmt(id);
+    var entry = {
+      id: 'zas-' + id, name: name, icon: null,
+      entryPath: 'games/' + id + '.html',
+      fileCount: 0, fileRecords: null, r2: false, zenoapp: true
+    };
+    if (!window.games) window.games = [];
+    window.games.push(entry);
+    if (window.saveGameToDB) window.saveGameToDB(entry).catch(function() {});
+    if (window._fbSyncGame) window._fbSyncGame(entry);
+    btn.textContent = 'Added';
+    btn.disabled = true;
+    btn.style.background = 'rgba(0,255,136,.12)';
+    btn.style.borderColor = 'rgba(0,255,136,.35)';
+    btn.style.color = 'var(--neon-green)';
+    window.renderGrid && window.renderGrid();
+    window.showToast && window.showToast(name.toUpperCase() + ' ADDED');
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeZasModal();
+  });
+})();
 </script>
 
 </body>
