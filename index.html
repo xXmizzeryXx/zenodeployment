@@ -844,7 +844,7 @@
   function closeCredits() { document.getElementById('creditsModal').classList.remove('open'); }
   function openBrowser(e) {
     e.preventDefault();
-    document.getElementById('browserFrame').src = '/Browser/Helios.html';
+    document.getElementById('browserFrame').src = '/Browser/Recursion.html';
     document.getElementById('browserOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -864,7 +864,7 @@
 <div class="browser-overlay" id="browserOverlay">
   <div class="browser-topbar">
     <button class="browser-back-btn" onclick="closeBrowser()"><i class="fa-solid fa-chevron-left"></i> HOME</button>
-    <div class="browser-title">HELIOS BROWSER</div>
+    <div class="browser-title">RECURSION</div>
   </div>
   <iframe class="browser-frame" id="browserFrame" src="" allowfullscreen allow="autoplay; fullscreen; clipboard-read; clipboard-write"></iframe>
 </div>
