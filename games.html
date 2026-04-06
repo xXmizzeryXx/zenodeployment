@@ -270,6 +270,67 @@ main{position:relative;z-index:1;padding:24px 20px}
 /* greeting */
 .greeting{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;color:var(--muted);white-space:nowrap}
 .greeting span{color:var(--neon-cyan)}
+
+/* ── SORT / FILTER BAR ── */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.sort-btn{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1.5px;padding:5px 10px;border-radius:5px;border:1px solid rgba(0,245,255,.1);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.sort-btn.active{border-color:rgba(0,245,255,.4);color:var(--neon-cyan);background:rgba(0,245,255,.06)}
+.sort-btn:hover:not(.active){border-color:rgba(0,245,255,.2);color:var(--text)}
+.filter-sep{width:1px;height:18px;background:rgba(0,245,255,.08);flex-shrink:0}
+.size-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,245,255,.1);border-radius:5px;background:transparent;color:var(--muted);cursor:pointer;font-size:10px;transition:all .2s}
+.size-btn.active{border-color:rgba(0,245,255,.4);color:var(--neon-cyan);background:rgba(0,245,255,.06)}
+.size-btn:hover:not(.active){color:var(--text)}
+
+/* ── CARD SIZES ── */
+.game-grid.size-sm{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
+.game-grid.size-md{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.game-grid.size-lg{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.game-grid.size-sm .game-card{padding:10px 6px 8px}
+.game-grid.size-sm .game-icon{width:32px;height:32px;font-size:12px}
+.game-grid.size-sm .game-name{font-size:10px}
+.game-grid.size-sm .game-meta{display:none}
+.game-grid.size-lg .game-card{padding:20px 12px 16px}
+.game-grid.size-lg .game-icon{width:52px;height:52px;font-size:20px}
+.game-grid.size-lg .game-name{font-size:13px}
+
+/* ── GAME CARD EXTRAS ── */
+.game-meta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%}
+.game-last-played{font-size:9px;color:var(--muted);letter-spacing:.3px;text-align:center}
+.game-playtime{font-size:9px;color:rgba(0,255,136,.5);letter-spacing:.3px;font-family:'Orbitron',monospace}
+.game-status-badge{display:inline-block;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;padding:2px 6px;border-radius:10px;margin-top:1px}
+.game-status-badge.playing{background:rgba(0,245,255,.1);color:var(--neon-cyan);border:1px solid rgba(0,245,255,.25)}
+.game-status-badge.completed{background:rgba(0,255,136,.1);color:var(--neon-green);border:1px solid rgba(0,255,136,.25)}
+.game-status-badge.backlog{background:rgba(255,170,0,.08);color:#fa0;border:1px solid rgba(255,170,0,.2)}
+.game-status-badge.dropped{background:rgba(255,0,110,.08);color:var(--neon-pink);border:1px solid rgba(255,0,110,.2)}
+
+/* ── FAVORITE STAR ── */
+.game-fav-btn{position:absolute;top:5px;left:5px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;border:none;background:transparent;color:rgba(255,200,0,.2);transition:all .2s;opacity:0;padding:0}
+.game-card:hover .game-fav-btn{opacity:1}
+.game-fav-btn.active{opacity:1 !important;color:#ffc800;text-shadow:0 0 6px rgba(255,200,0,.5)}
+.game-fav-btn:hover{color:#ffc800;transform:scale(1.2)}
+
+/* ── GLASSMORPHISM HOVER ── */
+.game-card::after{content:'';position:absolute;inset:0;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(0,245,255,.07) 0%,transparent 70%)}
+.game-card:hover::after{opacity:1}
+
+/* ── EMPTY STATE (improved) ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:20px;animation:fadeUp .4s ease both}
+.empty-icon-wrap{position:relative;width:80px;height:80px;display:flex;align-items:center;justify-content:center}
+.empty-icon-ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(0,245,255,.15);animation:ringPulse 3s ease infinite}
+.empty-icon-ring2{position:absolute;inset:-10px;border-radius:50%;border:1px solid rgba(0,245,255,.07);animation:ringPulse 3s ease infinite .5s}
+.empty-icon{font-size:32px;color:rgba(0,245,255,.3);position:relative;z-index:1;animation:iconFloat 4s ease-in-out infinite}
+@keyframes ringPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.5}}
+@keyframes iconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.empty-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:4px;color:var(--muted)}
+.empty-hint{font-size:12px;color:rgba(85,85,102,.6);letter-spacing:.5px;text-align:center}
+
+/* ── STATUS PICKER in card actions ── */
+.status-picker{position:absolute;top:28px;right:5px;background:rgba(8,8,16,.97);border:1px solid rgba(0,245,255,.15);border-radius:7px;padding:4px;display:none;flex-direction:column;gap:2px;z-index:50;min-width:100px}
+.status-picker.open{display:flex}
+.status-opt{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;padding:5px 8px;border-radius:4px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .15s;text-align:left;white-space:nowrap}
+.status-opt:hover{background:rgba(0,245,255,.07);color:var(--text)}
+.status-opt.clear{color:rgba(255,0,110,.4)}
+.status-opt.clear:hover{color:var(--neon-pink);background:rgba(255,0,110,.06)}
 </style>
 </head>
 <body>
@@ -493,8 +554,13 @@ main{position:relative;z-index:1;padding:24px 20px}
 <!-- MAIN -->
 <main>
   <div class="empty-state" id="emptyState">
-    <div class="empty-icon"><i class="fa-solid fa-gamepad"></i></div>
+    <div class="empty-icon-wrap">
+      <div class="empty-icon-ring"></div>
+      <div class="empty-icon-ring2"></div>
+      <div class="empty-icon"><i class="fa-solid fa-gamepad"></i></div>
+    </div>
     <div class="empty-title">NO GAMES YET</div>
+    <div class="empty-hint">Drop a game folder to get started</div>
     <div class="drop-zone" id="mainDropZone">
       <input type="file" id="mainDropInput" webkitdirectory multiple onchange="handleFolderInput(this.files,true)">
       <div class="drop-zone-label"><em>Drop game folders here</em> to get started<br>or click to browse</div>
@@ -504,7 +570,18 @@ main{position:relative;z-index:1;padding:24px 20px}
       <i class="fa-solid fa-plus"></i> MORE OPTIONS
     </button>
   </div>
-  <div class="game-grid" id="gameGrid" style="display:none">
+  <div id="filterBar" class="filter-bar" style="display:none">
+    <button class="sort-btn active" data-sort="default" onclick="setSort('default')">DEFAULT</button>
+    <button class="sort-btn" data-sort="name" onclick="setSort('name')">A–Z</button>
+    <button class="sort-btn" data-sort="recent" onclick="setSort('recent')">RECENT</button>
+    <button class="sort-btn" data-sort="playtime" onclick="setSort('playtime')">MOST PLAYED</button>
+    <button class="sort-btn" data-sort="fav" onclick="setSort('fav')">FAVORITES</button>
+    <div class="filter-sep"></div>
+    <button class="size-btn active" data-size="md" title="Medium" onclick="setSize('md')"><i class="fa-solid fa-grip"></i></button>
+    <button class="size-btn" data-size="sm" title="Small" onclick="setSize('sm')"><i class="fa-solid fa-border-all"></i></button>
+    <button class="size-btn" data-size="lg" title="Large" onclick="setSize('lg')"><i class="fa-solid fa-square-full"></i></button>
+  </div>
+  <div class="game-grid size-md" id="gameGrid" style="display:none">
     <div class="no-results" id="noResults">NO GAMES FOUND</div>
   </div>
 </main>
@@ -527,6 +604,65 @@ const blobToDataUrl = b => new Promise(r => { const fr=new FileReader(); fr.onlo
 
 window.games = window.games || [];
 let games = window.games;
+
+// ── GAME METADATA (favorites, playtime, status, lastPlayed) ──────
+const META_KEY = 'zeno-game-meta';
+function loadMeta() { try { return JSON.parse(localStorage.getItem(META_KEY) || '{}'); } catch(e) { return {}; } }
+function saveMeta(m) { localStorage.setItem(META_KEY, JSON.stringify(m)); }
+function getGameMeta(id) { const m = loadMeta(); return m[id] || {}; }
+function setGameMeta(id, patch) { const m = loadMeta(); m[id] = { ...(m[id] || {}), ...patch }; saveMeta(m); }
+
+// ── SORT & SIZE STATE ─────────────────────────────────────────────
+let currentSort = 'default';
+let currentSize = localStorage.getItem('zeno-card-size') || 'md';
+function setSort(s) {
+  currentSort = s;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === s));
+  renderGrid();
+}
+function setSize(s) {
+  currentSize = s;
+  localStorage.setItem('zeno-card-size', s);
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === s));
+  const grid = document.getElementById('gameGrid');
+  grid.className = grid.className.replace(/size-\w+/g, '').trim() + ' size-' + s;
+}
+function toggleFavorite(e, id) {
+  e.stopPropagation();
+  const meta = getGameMeta(id);
+  setGameMeta(id, { fav: !meta.fav });
+  renderGrid();
+}
+function openStatusPicker(e, id) {
+  e.stopPropagation();
+  document.querySelectorAll('.status-picker').forEach(p => p.classList.remove('open'));
+  const picker = document.getElementById('sp-' + id);
+  if (picker) picker.classList.add('open');
+}
+function setStatus(e, id, status) {
+  e.stopPropagation();
+  setGameMeta(id, { status: status || null });
+  document.querySelectorAll('.status-picker').forEach(p => p.classList.remove('open'));
+  renderGrid();
+}
+document.addEventListener('click', () => document.querySelectorAll('.status-picker').forEach(p => p.classList.remove('open')));
+function formatTime(ms) {
+  if (!ms) return null;
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return '<1m';
+  if (m < 60) return m + 'm';
+  return Math.floor(m/60) + 'h ' + (m%60) + 'm';
+}
+function formatLastPlayed(ts) {
+  if (!ts) return null;
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000), h = Math.floor(m/60), d = Math.floor(h/24);
+  if (d > 30) return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  if (d >= 1) return d + 'd ago';
+  if (h >= 1) return h + 'h ago';
+  if (m >= 1) return m + 'm ago';
+  return 'just now';
+}
 
 // ── SW ──────────────────────────────────────────────────────────
 let swReady = false;
@@ -702,18 +838,29 @@ function getAllEntries(d) {
 // ── PROCESS FOLDER ───────────────────────────────────────────────
 async function processFolder(folderName, files) {
   const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const iconNames = new Set(['favicon.ico','favicon.png','icon.png','logo.png','thumbnail.png','cover.png','icon.jpg']);
+  // Priority order: favicon.ico/.png first, then common icon names
+  const iconPriority = ['favicon.png','favicon.ico','favicon.jpg','icon.png','apple-touch-icon.png','icon.jpg','icon.ico','icon.svg','logo.png','logo.jpg','thumbnail.png','thumbnail.jpg','cover.png','cover.jpg'];
+  const iconNames = new Set(iconPriority);
   const fileRecords = []; let iconUrl = null;
+  // Two-pass: collect all files, then pick icon by priority
+  const iconCandidates = {};
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     const relPath = f.webkitRelativePath.split('/').slice(1).join('/');
     const mime = getMime(f.name);
     setProgress(Math.round((i / files.length) * 80), `${folderName}: ${i+1}/${files.length}`);
-    if (!iconUrl && iconNames.has(f.name.toLowerCase())) {
+    const nameLower = f.name.toLowerCase();
+    if (iconNames.has(nameLower)) iconCandidates[nameLower] = { f, mime };
+    fileRecords.push({ file: f, path: relPath, mimeType: mime });
+  }
+  // Pick best icon by priority
+  for (const name of iconPriority) {
+    if (iconCandidates[name]) {
+      const { f, mime } = iconCandidates[name];
       const buf = await f.arrayBuffer();
       iconUrl = await blobToDataUrl(new Blob([buf], { type: mime }));
+      break;
     }
-    fileRecords.push({ file: f, path: relPath, mimeType: mime });
   }
   setProgress(88, `${folderName}: sending to SW...`);
   const ok = await registerGameWithSW(id, fileRecords);
@@ -824,15 +971,54 @@ async function importZenopackFiles(fileList) {
 
 // ── GRID ──────────────────────────────────────────────────────────
 function renderGrid() {
-  const grid = document.getElementById('gameGrid'), empty = document.getElementById('emptyState'), noRes = document.getElementById('noResults');
-  if (!games.length) { empty.style.display = 'flex'; grid.style.display = 'none'; document.getElementById('gameCount').textContent = ''; return; }
-  empty.style.display = 'none'; grid.style.display = 'grid';
+  const grid = document.getElementById('gameGrid'), empty = document.getElementById('emptyState'), noRes = document.getElementById('noResults'), fb = document.getElementById('filterBar');
+  if (!games.length) { empty.style.display = 'flex'; grid.style.display = 'none'; fb.style.display = 'none'; document.getElementById('gameCount').textContent = ''; return; }
+  empty.style.display = 'none'; grid.style.display = 'grid'; fb.style.display = 'flex';
+  // apply card size
+  grid.className = grid.className.replace(/size-\w+/g, '').trim() + ' size-' + currentSize;
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === currentSize));
   grid.querySelectorAll('.game-card,.add-card').forEach(el => el.remove());
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  const filtered = q ? games.filter(g => g.name.toLowerCase().includes(q)) : games;
+  let filtered = q ? games.filter(g => g.name.toLowerCase().includes(q)) : [...games];
+  const meta = loadMeta();
+  // sort
+  if (currentSort === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name));
+  else if (currentSort === 'recent') filtered.sort((a,b) => ((meta[b.id]||{}).lastPlayed||0) - ((meta[a.id]||{}).lastPlayed||0));
+  else if (currentSort === 'playtime') filtered.sort((a,b) => ((meta[b.id]||{}).playtime||0) - ((meta[a.id]||{}).playtime||0));
+  else if (currentSort === 'fav') filtered.sort((a,b) => ((meta[b.id]||{}).fav?1:0) - ((meta[a.id]||{}).fav?1:0));
+  else { // default: favorites first
+    filtered.sort((a,b) => ((meta[b.id]||{}).fav?1:0) - ((meta[a.id]||{}).fav?1:0));
+  }
   filtered.forEach((g, i) => {
+    const gm = meta[g.id] || {};
+    const isFav = !!gm.fav;
+    const status = gm.status || null;
+    const lastPlayed = formatLastPlayed(gm.lastPlayed);
+    const playtime = formatTime(gm.playtime);
+    const statusLabels = { playing:'PLAYING', completed:'DONE', backlog:'BACKLOG', dropped:'DROPPED' };
+    const statusBadge = status ? `<span class="game-status-badge ${status}">${statusLabels[status]||status}</span>` : '';
     const card = document.createElement('div'); card.className = 'game-card'; card.style.animationDelay = (i * .018) + 's';
-    card.innerHTML = `<div class="game-actions"><button class="game-action-btn exp" title="Export .zenopack" onclick="exportZenopack(event,'${g.id}')"><i class="fa-solid fa-box-archive"></i></button><button class="game-action-btn del" onclick="removeGame(event,'${g.id}')"><i class="fa-solid fa-xmark"></i></button></div><div class="game-icon">${g.icon ? `<img src="${g.icon}" alt="">` : '<i class="fa-solid fa-gamepad"></i>'}</div><div class="game-name">${esc(g.name)}</div>`;
+    card.innerHTML = `
+      <button class="game-fav-btn${isFav?' active':''}" onclick="toggleFavorite(event,'${g.id}')" title="${isFav?'Unfavorite':'Favorite'}"><i class="fa-${isFav?'solid':'regular'} fa-star"></i></button>
+      <div class="game-actions">
+        <button class="game-action-btn exp" title="Status" onclick="openStatusPicker(event,'${g.id}')"><i class="fa-solid fa-tag"></i></button>
+        <button class="game-action-btn exp" title="Export .zenopack" onclick="exportZenopack(event,'${g.id}')"><i class="fa-solid fa-box-archive"></i></button>
+        <button class="game-action-btn del" onclick="removeGame(event,'${g.id}')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="status-picker" id="sp-${g.id}">
+        <button class="status-opt" onclick="setStatus(event,'${g.id}','playing')">▶ PLAYING</button>
+        <button class="status-opt" onclick="setStatus(event,'${g.id}','completed')">✓ COMPLETED</button>
+        <button class="status-opt" onclick="setStatus(event,'${g.id}','backlog')">⏸ BACKLOG</button>
+        <button class="status-opt" onclick="setStatus(event,'${g.id}','dropped')">✕ DROPPED</button>
+        ${status ? '<button class="status-opt clear" onclick="setStatus(event,\''+g.id+'\',null)">✕ CLEAR</button>' : ''}
+      </div>
+      <div class="game-icon">${g.icon ? `<img src="${g.icon}" alt="">` : '<i class="fa-solid fa-gamepad"></i>'}</div>
+      <div class="game-name">${esc(g.name)}</div>
+      <div class="game-meta">
+        ${statusBadge}
+        ${lastPlayed ? `<div class="game-last-played">${lastPlayed}</div>` : ''}
+        ${playtime ? `<div class="game-playtime">${playtime}</div>` : ''}
+      </div>`;
     card.addEventListener('click', () => openGameModal(g));
     grid.insertBefore(card, noRes);
   });
@@ -853,6 +1039,7 @@ function removeGame(e, id) {
 }
 
 // ── GAME MODAL ───────────────────────────────────────────────────
+let _gameSessionStart = null, _gameSessionId = null;
 async function openGameModal(g) {
   const frame = document.getElementById('gameModalFrame');
   document.getElementById('gameModalTitle').textContent = g.name;
@@ -860,6 +1047,9 @@ async function openGameModal(g) {
   document.getElementById('gameModalLoading').classList.remove('hidden');
   document.getElementById('gameModal').classList.add('open');
   document.body.style.overflow = 'hidden';
+  // track last played
+  setGameMeta(g.id, { lastPlayed: Date.now() });
+  _gameSessionStart = Date.now(); _gameSessionId = g.id;
   frame.src = '';
   try {
     const sw = getSW();
@@ -875,6 +1065,14 @@ async function openGameModal(g) {
   frame.onload = () => document.getElementById('gameModalLoading').classList.add('hidden');
 }
 function closeGameModal() {
+  // accumulate playtime
+  if (_gameSessionStart && _gameSessionId) {
+    const elapsed = Date.now() - _gameSessionStart;
+    const cur = getGameMeta(_gameSessionId).playtime || 0;
+    setGameMeta(_gameSessionId, { playtime: cur + elapsed });
+    _gameSessionStart = null; _gameSessionId = null;
+    renderGrid();
+  }
   document.getElementById('gameModal').classList.remove('open');
   document.getElementById('gameModalFrame').src = '';
   document.body.style.overflow = '';
