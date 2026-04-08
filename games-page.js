@@ -56,7 +56,6 @@ function addCollection() {
 function deleteCollection(id) {
   const colls = loadCollections().filter(c=>c.id!==id);
   saveCollections(colls);
-  // remove from all game metas
   const meta = loadMeta();
   for (const k of Object.keys(meta)) { if (meta[k].collections) meta[k].collections = meta[k].collections.filter(c=>c!==id); }
   saveMeta(meta);
@@ -87,10 +86,11 @@ function setCollFilter(id) {
 }
 
 // ── SORT & SIZE ──────────────────────────────────────────────────
-let currentSort = 'default';
+let currentSort = localStorage.getItem('zeno-sort') || 'default';
 let currentSize = localStorage.getItem('zeno-card-size') || 'md';
 function setSort(s) {
   currentSort = s;
+  localStorage.setItem('zeno-sort', s);
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === s));
   renderGrid();
 }
@@ -119,7 +119,10 @@ function setStatus(e, id, status) {
   document.querySelectorAll('.status-picker').forEach(p => p.classList.remove('open'));
   renderGrid();
 }
-document.addEventListener('click', () => document.querySelectorAll('.status-picker').forEach(p => p.classList.remove('open')));
+document.addEventListener('click', () => {
+  document.querySelectorAll('.status-picker').forEach(p => p.classList.remove('open'));
+  closeCtxMenu();
+});
 function formatTime(ms) {
   if (!ms) return null;
   const m = Math.floor(ms / 60000);
@@ -136,6 +139,92 @@ function formatLastPlayed(ts) {
   if (h >= 1) return h + 'h ago';
   if (m >= 1) return m + 'm ago';
   return 'just now';
+}
+
+// ── CONTEXT MENU ─────────────────────────────────────────────────
+let ctxGameId = null;
+function openCtxMenu(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  ctxGameId = id;
+  const menu = document.getElementById('ctxMenu');
+  if (!menu) return;
+  menu.style.display = 'flex';
+  let x = e.clientX, y = e.clientY;
+  const mw = 180, mh = 240;
+  if (x + mw > window.innerWidth) x = window.innerWidth - mw - 8;
+  if (y + mh > window.innerHeight) y = window.innerHeight - mh - 8;
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  const gm = getGameMeta(id);
+  const isFav = !!gm.fav;
+  document.getElementById('ctxFavLabel').textContent = isFav ? '★ UNFAVORITE' : '☆ FAVORITE';
+}
+function closeCtxMenu() {
+  const m = document.getElementById('ctxMenu');
+  if (m) m.style.display = 'none';
+  ctxGameId = null;
+}
+function ctxAction(action) {
+  const id = ctxGameId;
+  closeCtxMenu();
+  if (!id) return;
+  const game = games.find(g=>g.id===id);
+  if (action === 'play' && game) openGameModal(game);
+  else if (action === 'fav') { const m=getGameMeta(id); setGameMeta(id,{fav:!m.fav}); renderGrid(); }
+  else if (action === 'info') openSidebar({stopPropagation:()=>{}}, id);
+  else if (action === 'export' && game) exportZenopack({stopPropagation:()=>{}}, id);
+  else if (action === 'delete') removeGame({stopPropagation:()=>{}}, id);
+}
+
+// ── BULK SELECT MODE ─────────────────────────────────────────────
+let bulkMode = false;
+let bulkSelected = new Set();
+function toggleBulkMode() {
+  bulkMode = !bulkMode;
+  bulkSelected.clear();
+  renderGrid();
+  const bar = document.getElementById('bulkBar');
+  if (bar) bar.style.display = bulkMode ? 'flex' : 'none';
+  if (!bulkMode) updateBulkBar();
+}
+function toggleBulkSelect(e, id) {
+  e.stopPropagation();
+  if (!bulkMode) return;
+  if (bulkSelected.has(id)) bulkSelected.delete(id);
+  else bulkSelected.add(id);
+  updateBulkBar();
+  renderGrid();
+}
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  if (!bar) return;
+  const count = bulkSelected.size;
+  const label = document.getElementById('bulkCount');
+  if (label) label.textContent = count + ' SELECTED';
+  const delBtn = document.getElementById('bulkDeleteBtn');
+  if (delBtn) delBtn.disabled = count === 0;
+}
+function bulkDeleteSelected() {
+  if (!bulkSelected.size) return;
+  const count = bulkSelected.size;
+  const sw = getSW();
+  for (const id of bulkSelected) {
+    if (sw) sw.postMessage({type:'UNREGISTER_GAME',payload:{gameId:id}});
+    games.splice(0, games.length, ...games.filter(g=>g.id!==id));
+    deleteGameFromDB(id).catch(console.error);
+    window._fbDeleteGame?.(id);
+  }
+  bulkSelected.clear();
+  toggleBulkMode();
+  showToast(`${count} GAME${count>1?'S':''} REMOVED`);
+  renderGrid();
+}
+function bulkSelectAll() {
+  if (bulkSelected.size === games.length) bulkSelected.clear();
+  else games.forEach(g => bulkSelected.add(g.id));
+  updateBulkBar();
+  renderGrid();
 }
 
 // ── ANIMATED BACKGROUNDS ─────────────────────────────────────────
@@ -205,7 +294,6 @@ window.addEventListener('resize', () => {
     if (type && type !== 'none') setBg(type);
   }
 });
-// init bg
 (function(){const t=localStorage.getItem(BG_KEY)||'none'; setBg(t);})();
 
 // ── SW ───────────────────────────────────────────────────────────
@@ -363,7 +451,7 @@ async function processFolder(folderName, files) {
   const iconNames=new Set(iconPriority); const fileRecords=[]; let iconUrl=null; const iconCandidates={};
   for(let i=0;i<files.length;i++) {
     const f=files[i]; const relPath=f.webkitRelativePath.split('/').slice(1).join('/'); const mime=getMime(f.name);
-    setProgress(Math.round((i/files.length)*80),`${folderName}: ${i+1}/${files.length}`);
+    setProgress(Math.round((i/files.length)*80),`${folderName}: ${f.name} (${i+1}/${files.length})`);
     if(iconNames.has(f.name.toLowerCase())) iconCandidates[f.name.toLowerCase()]={f,mime};
     fileRecords.push({file:f,path:relPath,mimeType:mime});
   }
@@ -460,7 +548,7 @@ async function importZenopackFiles(fileList) {
 function renderRecentRow() {
   const meta = loadMeta();
   const recent = games
-    .map(g => ({ game:g, lp:(meta[g.id]||{}).lastPlayed||0 }))
+    .map(g => ({ game:g, lp:(meta[g.id]||{}).lastPlayed||0, pt:(meta[g.id]||{}).playtime||0 }))
     .filter(x => x.lp > 0)
     .sort((a,b) => b.lp - a.lp)
     .slice(0,8);
@@ -468,12 +556,29 @@ function renderRecentRow() {
   const strip = document.getElementById('recentStrip');
   if (!recent.length) { row.style.display='none'; return; }
   row.style.display = 'block';
-  strip.innerHTML = recent.map(({game:g, lp}) => `
+  strip.innerHTML = recent.map(({game:g, lp, pt}) => `
     <div class="recent-chip" onclick="openGameModal(games.find(x=>x.id==='${g.id}'))">
       <div class="recent-chip-icon">${gameIconHtml(g.icon)}</div>
-      <div class="recent-chip-name">${esc(g.name)}</div>
-      <div class="recent-chip-time">${formatLastPlayed(lp)}</div>
+      <div>
+        <div class="recent-chip-name">${esc(g.name)}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="recent-chip-time">${formatLastPlayed(lp)}</div>
+          ${pt?`<div style="font-family:'Orbitron',monospace;font-size:7px;color:rgba(0,255,136,.5)">${formatTime(pt)}</div>`:''}
+        </div>
+      </div>
     </div>`).join('');
+}
+
+// ── HIGHLIGHT SEARCH ─────────────────────────────────────────────
+function highlightText(text, query) {
+  if (!query) return esc(text);
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx < 0) return esc(text);
+  return esc(text.slice(0, idx)) +
+    '<mark style="background:rgba(0,245,255,.25);color:var(--neon-cyan);border-radius:2px;padding:0 1px">' +
+    esc(text.slice(idx, idx + query.length)) +
+    '</mark>' +
+    esc(text.slice(idx + query.length));
 }
 
 // ── GRID ─────────────────────────────────────────────────────────
@@ -483,10 +588,10 @@ function renderGrid() {
   empty.style.display='none';grid.style.display='grid';fb.style.display='flex';
   grid.className='game-grid size-'+currentSize;
   document.querySelectorAll('.size-btn').forEach(b=>b.classList.toggle('active',b.dataset.size===currentSize));
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===currentSort));
   grid.querySelectorAll('.game-card,.add-card').forEach(el=>el.remove());
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   let filtered=q?games.filter(g=>g.name.toLowerCase().includes(q)):[...games];
-  // collection filter
   if(activeCollFilter) filtered=filtered.filter(g=>(getGameMeta(g.id).collections||[]).includes(activeCollFilter));
   const meta=loadMeta();
   if(currentSort==='name') filtered.sort((a,b)=>a.name.localeCompare(b.name));
@@ -501,13 +606,16 @@ function renderGrid() {
     const isFav=!!gm.fav,status=gm.status||null,lastPlayed=formatLastPlayed(gm.lastPlayed),playtime=formatTime(gm.playtime);
     const rating=gm.rating||0;
     const banner=gm.banner||null;
+    const isBulkSel=bulkSelected.has(g.id);
     const statusLabels={playing:'PLAYING',completed:'DONE',backlog:'BACKLOG',dropped:'DROPPED'};
     const statusBadge=status?`<span class="game-status-badge ${status}">${statusLabels[status]||status}</span>`:'';
     const stars=[1,2,3,4,5].map(n=>`<span class="s${n<=rating?' lit':''}">★</span>`).join('');
-    const card=document.createElement('div');card.className='game-card';card.style.animationDelay=(i*.018)+'s';
+    const card=document.createElement('div');
+    card.className='game-card'+(bulkMode?' bulk-mode':'')+(isBulkSel?' bulk-selected':'');
+    card.style.animationDelay=(i*.018)+'s';
     card.innerHTML=`
       ${imgSrcTag(banner,'game-card-banner visible')}
-      <button class="game-fav-btn${isFav?' active':''}" onclick="toggleFavorite(event,'${g.id}')" title="${isFav?'Unfavorite':'Favorite'}"><i class="fa-${isFav?'solid':'regular'} fa-star"></i></button>
+      ${bulkMode?`<div class="bulk-check${isBulkSel?' checked':''}" onclick="toggleBulkSelect(event,'${g.id}')"><i class="fa-solid fa-${isBulkSel?'check':'square'}"></i></div>`:`<button class="game-fav-btn${isFav?' active':''}" onclick="toggleFavorite(event,'${g.id}')" title="${isFav?'Unfavorite':'Favorite'}"><i class="fa-${isFav?'solid':'regular'} fa-star"></i></button>`}
       <div class="game-actions">
         <button class="game-action-btn info-btn" title="Info / Edit" onclick="openSidebar(event,'${g.id}')"><i class="fa-solid fa-circle-info"></i></button>
         <button class="game-action-btn exp" title="Status" onclick="openStatusPicker(event,'${g.id}')"><i class="fa-solid fa-tag"></i></button>
@@ -522,24 +630,34 @@ function renderGrid() {
         ${status?`<button class="status-opt clear" onclick="setStatus(event,'${g.id}',null)">✕ CLEAR</button>`:''}
       </div>
       <div class="game-icon">${gameIconHtml(g.icon)}</div>
-      <div class="game-name">${esc(g.name)}</div>
+      <div class="game-name">${highlightText(g.name, q)}</div>
       <div class="game-meta">
         ${statusBadge}
         ${rating>0?`<div class="game-stars">${stars}</div>`:''}
         ${lastPlayed?`<div class="game-last-played">${lastPlayed}</div>`:''}
         ${playtime?`<div class="game-playtime">${playtime}</div>`:''}
       </div>`;
-    card.addEventListener('click',()=>openGameModal(g));
+    card.addEventListener('click', () => {
+      if (bulkMode) { toggleBulkSelect({stopPropagation:()=>{}}, g.id); return; }
+      openGameModal(g);
+    });
+    card.addEventListener('contextmenu', e => openCtxMenu(e, g.id));
     grid.insertBefore(card,noRes);
   });
-  const add=document.createElement('div');add.className='add-card';
-  add.innerHTML='<i class="fa-solid fa-plus"></i><span>ADD GAMES</span>';
-  add.addEventListener('click',()=>openAddModal('folders'));
-  grid.insertBefore(add,noRes);
+
+  if (!bulkMode) {
+    const add=document.createElement('div');add.className='add-card';
+    add.innerHTML='<i class="fa-solid fa-plus"></i><span>ADD GAMES</span>';
+    add.addEventListener('click',()=>openAddModal('folders'));
+    grid.insertBefore(add,noRes);
+  }
+
   noRes.style.display=filtered.length===0?'block':'none';
-  document.getElementById('gameCount').textContent=games.length+' GAME'+(games.length!==1?'S':'');
+  const total = games.length;
+  document.getElementById('gameCount').textContent=total+' GAME'+(total!==1?'S':'');
   renderRecentRow();
   renderCollFilterBtns();
+  updateBulkBar();
 }
 function filterGames(){renderGrid();}
 function removeGame(e,id){
@@ -566,14 +684,11 @@ function openSidebar(e, id) {
   const game = games.find(g=>g.id===id);
   if (!game) return;
   const gm = getGameMeta(id);
-  // header
   document.getElementById('sidebarIcon').innerHTML = gameIconHtml(game.icon);
   document.getElementById('sidebarTitle').textContent = game.name;
-  // body
   const colls = loadCollections();
   const gameCols = gm.collections || [];
   const playtime = gm.playtime||0;
-  const sessions = gm.sessions||0;
   const rating = gm.rating||0;
   const stars = [1,2,3,4,5].map(n=>`<button class="star-btn${n<=rating?' active':''}" onclick="setSidebarRating(${n})">${n<=rating?'★':'☆'}</button>`).join('');
   const statusMap = {playing:'PLAYING',completed:'DONE',backlog:'BACKLOG',dropped:'DROPPED'};
@@ -678,7 +793,6 @@ function captureScreenshot() {
     const idoc = iframe.contentDocument||iwin.document;
     canvas.width = iframe.clientWidth; canvas.height = iframe.clientHeight;
     const ctx = canvas.getContext('2d');
-    // try html2canvas-style capture via foreignObject
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${canvas.width}' height='${canvas.height}'><foreignObject width='100%' height='100%'><body xmlns='http://www.w3.org/1999/xhtml'>${idoc.documentElement.outerHTML}</body></foreignObject></svg>`;
     const blob = new Blob([svg], {type:'image/svg+xml'});
     const url = URL.createObjectURL(blob);
@@ -792,7 +906,6 @@ async function openGameModal(g) {
   } catch(e){console.warn('SW re-register check failed:',e);}
   setTimeout(()=>{frame.src=g.entryPath;},100);
   frame.onload=()=>document.getElementById('gameModalLoading').classList.add('hidden');
-  // auto start playtime goal if default set
   const def=parseInt(localStorage.getItem('zeno-ptgoal-default')||'0');
   if(def>0) startPtGoal(def);
 }
@@ -815,6 +928,18 @@ function toggleFullscreen() {
   if(!document.fullscreenElement) m.requestFullscreen?.(); else document.exitFullscreen?.();
 }
 document.getElementById('gameModal').addEventListener('click',e=>{if(e.target===document.getElementById('gameModal')) closeGameModal();});
+
+// ── MOBILE SWIPE TO CLOSE GAME MODAL ─────────────────────────────
+(function(){
+  let touchStartY=0, touchStartX=0;
+  const modal = document.getElementById('gameModal');
+  modal.addEventListener('touchstart', e=>{touchStartY=e.touches[0].clientY;touchStartX=e.touches[0].clientX;},{passive:true});
+  modal.addEventListener('touchend', e=>{
+    const dy=e.changedTouches[0].clientY-touchStartY;
+    const dx=Math.abs(e.changedTouches[0].clientX-touchStartX);
+    if(dy>80&&dx<60&&modal.classList.contains('open')) closeGameModal();
+  },{passive:true});
+})();
 
 // ── CONSOLE ──────────────────────────────────────────────────────
 let consoleErrors=[],consoleOpen=false;
@@ -890,8 +1015,8 @@ function r2LoadAll(){if(!r2Queue.length) return;const toLoad=[...r2Queue];closeA
 async function saveR2GameToDB(game){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE_META,'readwrite');tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);tx.objectStore(STORE_META).put({id:game.id,name:game.name,icon:game.icon,entryPath:game.entryPath,fileCount:0,r2:true});});}
 
 // ── ZENOAPPS GRID ─────────────────────────────────────────────────
-const ICON_MAP={'10-minutes-till-dawn':'🌙','2048-cupcakes':'🧁','99-balls':'🎱','a-small-world-cup':'⚽','achievement-unlocked':'🏆','animal-crossing-wild-world':'🍃','aqua-park-io':'💧','backrooms-2d':'😨','backrooms-3d':'😨','bacon-may-die':'🥓','bad-icecream':'🍦','bad-icecream-2':'🍦','bad-icecream-3':'🍦','bad-parenting':'👶','bad-piggies':'🐷','baldis-basics':'📏','ball-maze':'⚽','basket-random':'🏀','basketball-legends':'🏀','basket-bros': '🏀', 'basketball-stars':'🏀','battle-karts':'🏎️','big-flappy-tower-tiny-square':'🐦','big-ice-tower-tiny-square':'🧊','big-neon-tower-tiny-square':'🟩','big-tower-tiny-square-2':'🟦','block-blast':'💥','block-blast-2':'💥','blood-money':'💰','bloxorz':'📦','brawl-stars':'⭐','buckshot-roulette':'🎲','burrito-bison-launch-alibre':'🌯','celeste':'🍓','celeste-2':'🍓','cluster-rush':'🚛','cookie-clicker':'🍪','core-ball':'🔵','crazy-cars':'🚗','crazy-cattle-3d':'🐄','crossy-road':'🐔','deltarune':'💎','drift-boss':'🚗','drive-mad':'🚙','duck-life':'🦆','duck-life-2':'🦆','duck-life-3':'🦆','eggy-car':'🥚','fire-boy-and-water-girl':'🔥','flappy-bird':'🐦','fnaf':'🐻','fnaf-2':'🐻','fnaf-3':'🐻','fnaw':'🐭','free-rider':'🚲','funny-shooter-2':'🔫','geometry-dash-3d':'📐','granny':'👴','grow-a-garden':'🌱','gta-2':'🏙️','happy-wheels':'☠️','hextris':'🔷','learn-to-fly':'🐧','learn-to-fly-2':'🐧','learn-to-fly-3':'🐧','minecraft-1.5.2':'⛏️','minecraft-indev':'⛏️','minecraft-parkour':'⛏️','minecraft-tower-defence':'⛏️','minecraft-zeta-client':'⛏️','motox3m':'🏍️','motox3m-2':'🏍️','motox3m-3':'🏍️','motox3m-spookyland':'🏍️','motox3m-winter':'🏍️','plants-vs-zombies':'🌻','retro-bowl':'🏈','short-life':'💀','slither-io':'🐍','slope-3':'🏔️','slow-roads':'🛣️','snow-rider-3d':'🛷','soccer-random':'⚽','subway-surfers':'🛹','super-hot':'🔴','the-binding-of-isaac':'😢','the-legend-of-zelda-the-minish-cap':'🗡️','the-worlds-hardest-game':'😤','tiny-fishing':'🎣','ultrakill':'⚡','vex':'🏃','vex-2':'🏃','vex-3':'🏃','vex-6':'🏃','vex-7':'🏃','vex-8':'🏃','volly-random':'🏐','word-wonders':'📝','wordle':'🔤','yohoho-io':'🏴','you-vs-100-skibidi-toilets':'🚽','zombocalypse-2':'🧟'};
-const DESC_MAP={'10-minutes-till-dawn':'Survive waves of enemies for 10 minutes','2048-cupcakes':'Sweet twist on 2048 with cupcake tiles','99-balls':'Break bricks with bouncing balls','a-small-world-cup':'Fast-paced ragdoll soccer','achievement-unlocked':'Collect every achievement in this meta-platformer','animal-crossing-wild-world':'Classic life sim on a peaceful island','aqua-park-io':'Slide down waterslides and race to the bottom','backrooms-2d':'Explore the eerie infinite backrooms in 2D','backrooms-3d':'First-person horror exploration of the backrooms','bacon-may-die':'Beat up enemies as a bacon-wielding warrior','bad-icecream':'Freeze enemies and collect fruit in icy mazes','bad-icecream-2':'More icy puzzle action','bad-icecream-3':'The third chilly chapter','bad-parenting':'Hilarious physics parenting gone wrong','bad-piggies':'Build contraptions to help the pigs','baldis-basics':'Survive the school of Baldi\'s wrath','ball-maze':'Tilt and roll your ball through mazes','basket-random':'Wacky two-button basketball','basket-bros':'Basketball for the bros','basketball-legends':'Play as legendary stars in 1v1 matches','basketball-stars':'Street basketball with trick shots','battle-karts':'Mario Kart-style racing with weapons','big-flappy-tower-tiny-square':'Flap through a massive tower','big-ice-tower-tiny-square':'Climb a giant ice tower','big-neon-tower-tiny-square':'Neon-lit tower climbing','big-tower-tiny-square-2':'Sequel to the beloved tiny square tower','block-blast':'Blast and clear blocks in this puzzle','block-blast-2':'More explosive block-clearing action','blood-money':'Action-packed heist experience','bloxorz':'Roll a block to the goal without falling','brawl-stars':'Fast-paced multiplayer brawler','buckshot-roulette':'Intense game of chance with a shotgun twist','burrito-bison-launch-alibre':'Launch a wrestler into candy land','celeste':'Precision platformer about climbing a mountain','celeste-2':'More challenging precision platforming','cluster-rush':'Jump between speeding trucks','cookie-clicker':'Click cookies and build a cookie empire','core-ball':'Attach balls to a spinning core','crazy-cars':'High-speed racing with crazy physics','crazy-cattle-3d':'Chaotic 3D cattle physics battle royale','crossy-road':'Hop across roads without getting squashed','deltarune':'RPG adventure from the creator of Undertale','drift-boss':'Master drifting around endless curves','drive-mad':'Navigate impossible obstacle courses','duck-life':'Train your duck to become a racing champion','duck-life-2':'More duck training adventures','duck-life-3':'The third chapter of duck training','eggy-car':'Balance an egg on a car over bumpy terrain','fire-boy-and-water-girl':'Cooperative elemental puzzle platformer','flappy-bird':'Tap to keep your bird flying through pipes','fnaf':'Survive the night at a haunted pizza place','fnaf-2':'The terrifying sequel','fnaf-3':'The third night of animatronic horror','fnaw':'Five Nights at Wario\'s fan-made horror','free-rider':'Draw your own tracks and ride them','funny-shooter-2':'Hilarious FPS with absurd enemies','geometry-dash-3d':'Rhythm-based obstacle course in 3D','granny':'Escape from Granny\'s house','grow-a-garden':'Cultivate and expand your dream garden','gta-2':'Top-down crime sandbox classic','happy-wheels':'Brutal ragdoll physics obstacle courses','hextris':'Fast-paced hexagonal Tetris','learn-to-fly':'Train a penguin to fly','learn-to-fly-2':'More penguin flight training','learn-to-fly-3':'Ultimate penguin flight evolution','minecraft-1.5.2':'Classic Minecraft 1.5.2 in browser','minecraft-indev':'Play the original indev Minecraft','minecraft-parkour':'Test your Minecraft parkour skills','minecraft-tower-defence':'Defend your base in MC Tower Defence','minecraft-zeta-client':'Minecraft Zeta browser edition','motox3m':'Stunt motorcycle racing','motox3m-2':'More insane moto stunt tracks','motox3m-3':'Third chapter of moto stunt madness','motox3m-spookyland':'Halloween themed moto racing','motox3m-winter':'Winter wonderland moto racing','plants-vs-zombies':'Defend your garden from zombie hordes','retro-bowl':'American football management sim','short-life':'Ragdoll platformer with deadly obstacles','slither-io':'Grow your snake by eating others','slope-3':'Race a ball down an endless neon slope','slow-roads':'Relaxing endless driving','snow-rider-3d':'Sled down snowy slopes','soccer-random':'Wacky two-button soccer','subway-surfers':'Run from the inspector across subway tracks','super-hot':'Time moves only when you move','the-binding-of-isaac':'Roguelike dungeon crawler','the-legend-of-zelda-the-minish-cap':'Classic GBA Zelda adventure','the-worlds-hardest-game':'Navigate brutally difficult maze levels','tiny-fishing':'Cast your line and reel in rare fish','ultrakill':'Ultra-fast retro FPS','vex':'Stickman parkour through deadly stages','vex-2':'More intense stickman challenges','vex-3':'Third chapter of Vex parkour','vex-6':'Vex series chapter six','vex-7':'Vex series chapter seven','vex-8':'Latest chapter in the Vex series','volly-random':'Wacky volleyball with random physics','word-wonders':'A world built entirely from words','wordle':'Guess the five-letter word in six tries','yohoho-io':'Battle royale on a pirate island','you-vs-100-skibidi-toilets':'Survive waves of skibidi toilets','zombocalypse-2':'Survive endless zombie hordes'};
+const ICON_MAP={'10-minutes-till-dawn':'🌙','2048-cupcakes':'🧁','9007199254740992':'🔢','99-balls':'🎱','a-small-world-cup':'⚽','achievement-unlocked':'🏆','animal-crossing-wild-world':'🍃','aqua-park-io':'💧','backrooms-2d':'😨','backrooms-3d':'😨','bacon-may-die':'🥓','bad-icecream':'🍦','bad-icecream-2':'🍦','bad-icecream-3':'🍦','bad-parenting':'👶','bad-piggies':'🐷','baldis-basics':'📏','ball-maze':'⚽','basket-random':'🏀','basketball-legends':'🏀','basket-bros':'🏀','basketball-stars':'🏀','battle-karts':'🏎️','big-flappy-tower-tiny-square':'🐦','big-ice-tower-tiny-square':'🧊','big-neon-tower-tiny-square':'🟩','big-tower-tiny-square-2':'🟦','block-blast':'💥','block-blast-2':'💥','blood-money':'💰','bloxorz':'📦','brawl-stars':'⭐','buckshot-roulette':'🎲','burrito-bison-launch-alibre':'🌯','celeste':'🍓','celeste-2':'🍓','cluster-rush':'🚛','cookie-clicker':'🍪','core-ball':'🔵','crazy-cars':'🚗','crazy-cattle-3d':'🐄','crossy-road':'🐔','deltarune':'💎','drift-boss':'🚗','drive-mad':'🚙','duck-life':'🦆','duck-life-2':'🦆','duck-life-3':'🦆','eggy-car':'🥚','fire-boy-and-water-girl':'🔥','flappy-bird':'🐦','fnaf':'🐻','fnaf-2':'🐻','fnaf-3':'🐻','fnaw':'🐭','free-rider':'🚲','funny-shooter-2':'🔫','geometry-dash-3d':'📐','granny':'👴','grow-a-garden':'🌱','gta-2':'🏙️','happy-wheels':'☠️','hextris':'🔷','learn-to-fly':'🐧','learn-to-fly-2':'🐧','learn-to-fly-3':'🐧','minecraft-1.5.2':'⛏️','minecraft-indev':'⛏️','minecraft-parkour':'⛏️','minecraft-tower-defence':'⛏️','minecraft-zeta-client':'⛏️','motox3m':'🏍️','motox3m-2':'🏍️','motox3m-3':'🏍️','motox3m-spookyland':'🏍️','motox3m-winter':'🏍️','plants-vs-zombies':'🌻','retro-bowl':'🏈','short-life':'💀','slither-io':'🐍','slope-3':'🏔️','slow-roads':'🛣️','snow-rider-3d':'🛷','soccer-random':'⚽','subway-surfers':'🛹','super-hot':'🔴','the-binding-of-isaac':'😢','the-legend-of-zelda-the-minish-cap':'🗡️','the-worlds-hardest-game':'😤','tiny-fishing':'🎣','ultrakill':'⚡','vex':'🏃','vex-2':'🏃','vex-3':'🏃','vex-6':'🏃','vex-7':'🏃','vex-8':'🏃','volly-random':'🏐','word-wonders':'📝','wordle':'🔤','yohoho-io':'🏴','you-vs-100-skibidi-toilets':'🚽','zombocalypse-2':'🧟'};
+const DESC_MAP={'10-minutes-till-dawn':'Survive waves of enemies for 10 minutes','2048-cupcakes':'Sweet twist on 2048 with cupcake tiles','9007199254740992':'Reach the largest safe JavaScript integer','99-balls':'Break bricks with bouncing balls','a-small-world-cup':'Fast-paced ragdoll soccer','achievement-unlocked':'Collect every achievement in this meta-platformer','animal-crossing-wild-world':'Classic life sim on a peaceful island','aqua-park-io':'Slide down waterslides and race to the bottom','backrooms-2d':'Explore the eerie infinite backrooms in 2D','backrooms-3d':'First-person horror exploration of the backrooms','bacon-may-die':'Beat up enemies as a bacon-wielding warrior','bad-icecream':'Freeze enemies and collect fruit in icy mazes','bad-icecream-2':'More icy puzzle action','bad-icecream-3':'The third chilly chapter','bad-parenting':'Hilarious physics parenting gone wrong','bad-piggies':'Build contraptions to help the pigs','baldis-basics':'Survive the school of Baldi\'s wrath','ball-maze':'Tilt and roll your ball through mazes','basket-random':'Wacky two-button basketball','basket-bros':'Basketball for the bros','basketball-legends':'Play as legendary stars in 1v1 matches','basketball-stars':'Street basketball with trick shots','battle-karts':'Mario Kart-style racing with weapons','big-flappy-tower-tiny-square':'Flap through a massive tower','big-ice-tower-tiny-square':'Climb a giant ice tower','big-neon-tower-tiny-square':'Neon-lit tower climbing','big-tower-tiny-square-2':'Sequel to the beloved tiny square tower','block-blast':'Blast and clear blocks in this puzzle','block-blast-2':'More explosive block-clearing action','blood-money':'Action-packed heist experience','bloxorz':'Roll a block to the goal without falling','brawl-stars':'Fast-paced multiplayer brawler','buckshot-roulette':'Intense game of chance with a shotgun twist','burrito-bison-launch-alibre':'Launch a wrestler into candy land','celeste':'Precision platformer about climbing a mountain','celeste-2':'More challenging precision platforming','cluster-rush':'Jump between speeding trucks','cookie-clicker':'Click cookies and build a cookie empire','core-ball':'Attach balls to a spinning core','crazy-cars':'High-speed racing with crazy physics','crazy-cattle-3d':'Chaotic 3D cattle physics battle royale','crossy-road':'Hop across roads without getting squashed','deltarune':'RPG adventure from the creator of Undertale','drift-boss':'Master drifting around endless curves','drive-mad':'Navigate impossible obstacle courses','duck-life':'Train your duck to become a racing champion','duck-life-2':'More duck training adventures','duck-life-3':'The third chapter of duck training','eggy-car':'Balance an egg on a car over bumpy terrain','fire-boy-and-water-girl':'Cooperative elemental puzzle platformer','flappy-bird':'Tap to keep your bird flying through pipes','fnaf':'Survive the night at a haunted pizza place','fnaf-2':'The terrifying sequel','fnaf-3':'The third night of animatronic horror','fnaw':'Five Nights at Wario\'s fan-made horror','free-rider':'Draw your own tracks and ride them','funny-shooter-2':'Hilarious FPS with absurd enemies','geometry-dash-3d':'Rhythm-based obstacle course in 3D','granny':'Escape from Granny\'s house','grow-a-garden':'Cultivate and expand your dream garden','gta-2':'Top-down crime sandbox classic','happy-wheels':'Brutal ragdoll physics obstacle courses','hextris':'Fast-paced hexagonal Tetris','learn-to-fly':'Train a penguin to fly','learn-to-fly-2':'More penguin flight training','learn-to-fly-3':'Ultimate penguin flight evolution','minecraft-1.5.2':'Classic Minecraft 1.5.2 in browser','minecraft-indev':'Play the original indev Minecraft','minecraft-parkour':'Test your Minecraft parkour skills','minecraft-tower-defence':'Defend your base in MC Tower Defence','minecraft-zeta-client':'Minecraft Zeta browser edition','motox3m':'Stunt motorcycle racing','motox3m-2':'More insane moto stunt tracks','motox3m-3':'Third chapter of moto stunt madness','motox3m-spookyland':'Halloween themed moto racing','motox3m-winter':'Winter wonderland moto racing','plants-vs-zombies':'Defend your garden from zombie hordes','retro-bowl':'American football management sim','short-life':'Ragdoll platformer with deadly obstacles','slither-io':'Grow your snake by eating others','slope-3':'Race a ball down an endless neon slope','slow-roads':'Relaxing endless driving','snow-rider-3d':'Sled down snowy slopes','soccer-random':'Wacky two-button soccer','subway-surfers':'Run from the inspector across subway tracks','super-hot':'Time moves only when you move','the-binding-of-isaac':'Roguelike dungeon crawler','the-legend-of-zelda-the-minish-cap':'Classic GBA Zelda adventure','the-worlds-hardest-game':'Navigate brutally difficult maze levels','tiny-fishing':'Cast your line and reel in rare fish','ultrakill':'Ultra-fast retro FPS','vex':'Stickman parkour through deadly stages','vex-2':'More intense stickman challenges','vex-3':'Third chapter of Vex parkour','vex-6':'Vex series chapter six','vex-7':'Vex series chapter seven','vex-8':'Latest chapter in the Vex series','volly-random':'Wacky volleyball with random physics','word-wonders':'A world built entirely from words','wordle':'Guess the five-letter word in six tries','yohoho-io':'Battle royale on a pirate island','you-vs-100-skibidi-toilets':'Survive waves of skibidi toilets','zombocalypse-2':'Survive endless zombie hordes'};
 const ZAS_GAMES=['10-minutes-till-dawn','2048-cupcakes','9007199254740992','99-balls','a-small-world-cup','achievement-unlocked','animal-crossing-wild-world','aqua-park-io','backrooms-2d','backrooms-3d','bacon-may-die','bad-icecream','bad-icecream-2','bad-icecream-3','bad-parenting','bad-piggies','baldis-basics','ball-maze','basket-random','basketball-legends','basketball-stars','battle-karts','big-flappy-tower-tiny-square','big-ice-tower-tiny-square','big-neon-tower-tiny-square','big-tower-tiny-square-2','block-blast','block-blast-2','blood-money','bloxorz','brawl-stars','buckshot-roulette','burrito-bison-launch-alibre','celeste','celeste-2','cluster-rush','cookie-clicker','core-ball','crazy-cars','crazy-cattle-3d','crossy-road','deltarune','drift-boss','drive-mad','duck-life','duck-life-2','duck-life-3','eggy-car','fire-boy-and-water-girl','flappy-bird','fnaf','fnaf-2','fnaf-3','fnaw','free-rider','funny-shooter-2','geometry-dash-3d','granny','grow-a-garden','gta-2','happy-wheels','hextris','learn-to-fly','learn-to-fly-2','learn-to-fly-3','minecraft-1.5.2','minecraft-indev','minecraft-parkour','minecraft-tower-defence','minecraft-zeta-client','motox3m','motox3m-2','motox3m-3','motox3m-spookyland','motox3m-winter','plants-vs-zombies','retro-bowl','short-life','slither-io','slope-3','slow-roads','snow-rider-3d','soccer-random','subway-surfers','super-hot','the-binding-of-isaac','the-legend-of-zelda-the-minish-cap','the-worlds-hardest-game','tiny-fishing','ultrakill','vex','vex-2','vex-3','vex-6','vex-7','vex-8','volly-random','word-wonders','wordle','yohoho-io','you-vs-100-skibidi-toilets','zombocalypse-2'];
 let zasBuilt=false;
 function fmt(s){return s.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());}
@@ -915,10 +1040,214 @@ async function loadGamesFromDB(){try{const db=await openDB();const tx=db.transac
 document.addEventListener('keydown',e=>{
   const active=document.activeElement;
   const inInput=active&&(active.tagName==='INPUT'||active.tagName==='TEXTAREA'||active.tagName==='SELECT');
-  if(e.key==='Escape'){closeGameModal();closeAddModal();closeCollModal();closeSettingsModal();closeSidebar();if(consoleOpen)toggleConsole();closeOverflow();closeKL();}
+  if(e.key==='Escape'){
+    if(bulkMode){toggleBulkMode();return;}
+    closeGameModal();closeAddModal();closeCollModal();closeSettingsModal();closeSidebar();
+    if(consoleOpen)toggleConsole();closeOverflow();closeKL();closeCtxMenu();
+  }
   if(e.key==='|'&&!inInput){e.preventDefault();toggleConsole();}
   if((e.key==='/'||e.key==='k'&&(e.metaKey||e.ctrlKey))&&!inInput&&!document.getElementById('gameModal').classList.contains('open')){e.preventDefault();openKL();}
+  if(e.key==='b'&&!inInput&&!document.getElementById('gameModal').classList.contains('open')&&games.length){e.preventDefault();toggleBulkMode();}
+  if(e.key==='?'&&!inInput){e.preventDefault();openShortcutsModal();}
 });
+
+// ── SHORTCUTS MODAL ───────────────────────────────────────────────
+function openShortcutsModal() {
+  let overlay = document.getElementById('shortcutsOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'shortcutsOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(16px);z-index:500;display:flex;align-items:center;justify-content:center';
+    overlay.innerHTML = `
+      <div style="background:var(--bg2);border:1px solid rgba(0,245,255,.18);border-radius:14px;padding:28px 32px;width:360px;max-width:95vw;animation:slideIn .2s ease">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--neon-cyan)">KEYBOARD SHORTCUTS</div>
+          <button onclick="closeShortcutsModal()" style="background:none;border:1px solid rgba(0,245,255,.12);border-radius:4px;color:var(--muted);width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${[
+            ['/','Open game launcher'],
+            ['Ctrl+K','Open game launcher'],
+            ['B','Toggle bulk select mode'],
+            ['|','Toggle error console'],
+            ['?','Show this help'],
+            ['Esc','Close any modal / exit bulk mode'],
+          ].map(([k,d])=>`
+            <div style="display:flex;align-items:center;gap:12px">
+              <kbd style="font-family:'Orbitron',monospace;font-size:9px;background:rgba(0,245,255,.07);border:1px solid rgba(0,245,255,.2);border-radius:4px;padding:4px 8px;color:var(--neon-cyan);white-space:nowrap;flex-shrink:0;min-width:60px;text-align:center">${k}</kbd>
+              <span style="font-size:12px;color:var(--muted)">${d}</span>
+            </div>`).join('')}
+          <div style="height:1px;background:rgba(0,245,255,.07);margin:4px 0"></div>
+          <div style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:4px">IN-GAME</div>
+          ${[
+            ['Swipe ↓','Close game (mobile)'],
+            ['Right-click','Context menu on any card'],
+          ].map(([k,d])=>`
+            <div style="display:flex;align-items:center;gap:12px">
+              <kbd style="font-family:'Orbitron',monospace;font-size:9px;background:rgba(0,245,255,.07);border:1px solid rgba(0,245,255,.2);border-radius:4px;padding:4px 8px;color:var(--neon-cyan);white-space:nowrap;flex-shrink:0;min-width:60px;text-align:center">${k}</kbd>
+              <span style="font-size:12px;color:var(--muted)">${d}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    overlay.addEventListener('click', e => { if(e.target===overlay) closeShortcutsModal(); });
+    document.body.appendChild(overlay);
+  } else {
+    overlay.style.display = 'flex';
+  }
+}
+function closeShortcutsModal() {
+  const overlay = document.getElementById('shortcutsOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// ── INJECT EXTRA STYLES ───────────────────────────────────────────
+(function injectStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Context menu */
+    #ctxMenu {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      background: rgba(8,8,18,.98);
+      border: 1px solid rgba(0,245,255,.15);
+      border-radius: 9px;
+      padding: 5px;
+      z-index: 900;
+      min-width: 160px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 20px rgba(0,245,255,.04);
+      animation: slideIn .1s ease;
+    }
+    .ctx-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Orbitron', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      transition: all .12s;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+    .ctx-item:hover { background: rgba(0,245,255,.07); color: var(--text); }
+    .ctx-item i { width: 14px; text-align: center; font-size: 11px; }
+    .ctx-item.ctx-danger:hover { color: var(--neon-pink); background: rgba(255,0,110,.06); }
+    .ctx-sep { height: 1px; background: rgba(0,245,255,.07); margin: 3px 0; }
+
+    /* Bulk mode */
+    .bulk-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 460;
+      background: rgba(8,8,18,.97);
+      border: 1px solid rgba(0,245,255,.25);
+      border-radius: 10px;
+      padding: 10px 18px;
+      display: none;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 0 30px rgba(0,245,255,.1);
+      animation: slideIn .2s ease;
+    }
+    .bulk-check {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,245,255,.25);
+      background: rgba(0,245,255,.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: rgba(0,245,255,.4);
+      cursor: pointer;
+      z-index: 10;
+      transition: all .15s;
+    }
+    .bulk-check.checked {
+      background: rgba(0,245,255,.2);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+    .game-card.bulk-mode { cursor: pointer; }
+    .game-card.bulk-selected { border-color: rgba(0,245,255,.45); background: rgba(0,245,255,.06); }
+    .game-card.bulk-mode .game-actions { display: none; }
+    .game-card.bulk-mode .game-fav-btn { display: none; }
+
+    /* Shortcut hint in top bar */
+    .shortcut-hint {
+      font-family: 'Orbitron', monospace;
+      font-size: 7px;
+      letter-spacing: 1.5px;
+      color: rgba(0,245,255,.2);
+      cursor: pointer;
+      transition: color .2s;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+    .shortcut-hint:hover { color: rgba(0,245,255,.5); }
+
+    /* Recent chip playtime glow */
+    .recent-chip:hover .recent-chip-icon { box-shadow: 0 0 10px rgba(0,245,255,.2); }
+  `;
+  document.head.appendChild(style);
+})();
+
+// ── INJECT CONTEXT MENU & BULK BAR DOM ────────────────────────────
+(function injectDom() {
+  const ctx = document.createElement('div');
+  ctx.id = 'ctxMenu';
+  ctx.innerHTML = `
+    <button class="ctx-item" onclick="ctxAction('play')"><i class="fa-solid fa-play"></i> PLAY</button>
+    <button class="ctx-item" id="ctxFavLabel" onclick="ctxAction('fav')"><i class="fa-regular fa-star"></i> FAVORITE</button>
+    <button class="ctx-item" onclick="ctxAction('info')"><i class="fa-solid fa-circle-info"></i> INFO / EDIT</button>
+    <div class="ctx-sep"></div>
+    <button class="ctx-item" onclick="ctxAction('export')"><i class="fa-solid fa-box-archive"></i> EXPORT</button>
+    <button class="ctx-item ctx-danger" onclick="ctxAction('delete')"><i class="fa-solid fa-trash"></i> REMOVE</button>`;
+  document.body.appendChild(ctx);
+
+  const bulkBar = document.createElement('div');
+  bulkBar.id = 'bulkBar';
+  bulkBar.className = 'bulk-bar';
+  bulkBar.innerHTML = `
+    <span id="bulkCount" style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--neon-cyan)">0 SELECTED</span>
+    <button onclick="bulkSelectAll()" style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;padding:6px 12px;border-radius:5px;cursor:pointer;border:1px solid rgba(0,245,255,.2);background:rgba(0,245,255,.04);color:var(--muted);transition:all .2s">ALL</button>
+    <button id="bulkDeleteBtn" onclick="bulkDeleteSelected()" disabled style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;padding:6px 14px;border-radius:5px;cursor:pointer;border:1px solid rgba(255,0,110,.25);background:rgba(255,0,110,.06);color:var(--neon-pink);transition:all .2s;opacity:.4">DELETE</button>
+    <button onclick="toggleBulkMode()" style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;padding:6px 12px;border-radius:5px;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:transparent;color:var(--muted)">CANCEL</button>`;
+  document.body.appendChild(bulkBar);
+
+  const hintBtn = document.createElement('button');
+  hintBtn.className = 'shortcut-hint';
+  hintBtn.title = 'Keyboard shortcuts';
+  hintBtn.innerHTML = '? SHORTCUTS';
+  hintBtn.onclick = openShortcutsModal;
+  const tbRight = document.querySelector('.tb-right');
+  if (tbRight) tbRight.insertBefore(hintBtn, tbRight.firstChild);
+
+  const overflowMenu = document.getElementById('overflowMenu');
+  if (overflowMenu) {
+    const sep = document.createElement('div');
+    sep.className = 'overflow-sep';
+    const bulkBtn = document.createElement('button');
+    bulkBtn.className = 'overflow-item';
+    bulkBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> BULK SELECT';
+    bulkBtn.onclick = () => { toggleBulkMode(); closeOverflow(); };
+    overflowMenu.appendChild(sep);
+    overflowMenu.appendChild(bulkBtn);
+  }
+})();
 
 // ── INIT ─────────────────────────────────────────────────────────
 initSW();
