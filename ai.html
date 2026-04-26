@@ -6,6 +6,9 @@
 <title>Zeno — AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
 :root {
   --bg: #02030a;
@@ -73,11 +76,32 @@ body::after {
   padding: 5px 10px; transition: all .2s;
 }
 .btn-home:hover { color: var(--cyan); border-color: rgba(0,245,255,0.35); }
-.model-badge {
+
+.model-select-wrap {
+  position: relative;
+}
+.model-select {
   font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px;
   color: var(--purple); border: 1px solid rgba(191,0,255,0.25);
-  padding: 4px 9px; border-radius: 3px; background: rgba(191,0,255,0.04);
+  padding: 4px 22px 4px 9px; border-radius: 3px; background: rgba(191,0,255,0.04);
+  cursor: pointer; appearance: none; outline: none;
+  transition: all .2s;
 }
+.model-select:hover { border-color: rgba(191,0,255,0.5); background: rgba(191,0,255,0.08); }
+.model-select option { background: #0d0f1e; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+.model-select-arrow {
+  position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+  color: var(--purple); font-size: 7px; pointer-events: none;
+}
+
+.token-badge {
+  font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 1px;
+  color: var(--muted); border: 1px solid rgba(0,245,255,0.06);
+  padding: 4px 9px; border-radius: 3px;
+  transition: color .3s;
+}
+.token-badge.active { color: var(--cyan); border-color: rgba(0,245,255,0.2); }
+
 .status-dot-wrap { display: flex; align-items: center; gap: 5px; font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px; color: var(--muted); }
 .status-dot-live { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2s infinite; }
 @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
@@ -87,6 +111,7 @@ body::after {
   padding: 20px 24px 8px;
   position: relative; z-index: 1;
   display: flex; flex-direction: column; gap: 0;
+  scroll-behavior: smooth;
 }
 .chat-area::-webkit-scrollbar { width: 3px; }
 .chat-area::-webkit-scrollbar-track { background: transparent; }
@@ -111,7 +136,7 @@ body::after {
 .msg-response {
   padding-left: 24px; font-size: 13px;
   color: var(--text); line-height: 1.75;
-  white-space: pre-wrap; word-break: break-word;
+  word-break: break-word;
 }
 .msg-response.thinking {
   color: var(--muted);
@@ -126,70 +151,189 @@ body::after {
 .think-dots span:nth-child(3) { animation-delay: .3s; }
 @keyframes thinkBounce { 0%,80%,100%{transform:translateY(0);opacity:.3}40%{transform:translateY(-4px);opacity:1} }
 
+/* Markdown rendered content */
+.msg-response p { margin-bottom: 8px; }
+.msg-response p:last-child { margin-bottom: 0; }
+.msg-response ul, .msg-response ol { padding-left: 20px; margin-bottom: 8px; }
+.msg-response li { margin-bottom: 3px; }
+.msg-response h1,.msg-response h2,.msg-response h3,.msg-response h4 {
+  font-family: 'Orbitron', monospace; color: var(--cyan);
+  margin: 12px 0 6px; letter-spacing: 1px;
+}
+.msg-response h1 { font-size: 15px; }
+.msg-response h2 { font-size: 13px; }
+.msg-response h3 { font-size: 12px; }
+.msg-response strong { color: #fff; }
+.msg-response em { color: var(--muted); }
+.msg-response a { color: var(--cyan); text-decoration: none; }
+.msg-response a:hover { text-decoration: underline; }
+.msg-response blockquote {
+  border-left: 2px solid var(--muted); padding-left: 12px;
+  color: var(--muted); margin: 8px 0;
+}
+.msg-response table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 12px; }
+.msg-response th { background: rgba(0,245,255,0.07); color: var(--cyan); padding: 6px 10px; border: 1px solid var(--dim); text-align: left; }
+.msg-response td { padding: 5px 10px; border: 1px solid var(--dim); }
+.msg-response tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+/* Inline code */
 .msg-response code {
   background: rgba(0,245,255,0.05); border: 1px solid rgba(0,245,255,0.1);
-  border-radius: 3px; padding: 1px 5px; font-family: 'JetBrains Mono', monospace;
+  border-radius: 3px; padding: 1px 5px;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 12px; color: var(--cyan);
 }
+
+/* Code blocks */
+.code-block-wrap {
+  position: relative; margin: 10px 0;
+}
+.code-block-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(0,245,255,0.08);
+  border-bottom: none; border-radius: 6px 6px 0 0;
+  padding: 5px 12px; font-size: 10px; color: var(--muted); letter-spacing: 1px;
+}
+.code-block-lang { color: var(--purple); font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px; }
+.copy-btn {
+  background: none; border: 1px solid rgba(0,245,255,0.12); border-radius: 3px;
+  color: var(--muted); font-size: 10px; padding: 2px 8px;
+  cursor: pointer; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;
+  transition: all .2s; display: flex; align-items: center; gap: 5px;
+}
+.copy-btn:hover { color: var(--cyan); border-color: rgba(0,245,255,0.35); }
+.copy-btn.copied { color: var(--green); border-color: rgba(0,255,136,0.35); }
 .msg-response pre {
-  background: rgba(0,0,0,0.4); border: 1px solid rgba(0,245,255,0.08);
-  border-radius: 6px; padding: 12px 14px; margin: 8px 0;
-  overflow-x: auto; font-size: 12px; color: #a0c8a0;
+  background: rgba(0,0,0,0.4) !important;
+  border: 1px solid rgba(0,245,255,0.08);
+  border-radius: 0 0 6px 6px; padding: 12px 14px; margin: 0;
+  overflow-x: auto; font-size: 12px;
   font-family: 'JetBrains Mono', monospace; line-height: 1.6;
+}
+.msg-response pre code {
+  background: none !important; border: none !important;
+  padding: 0 !important; color: inherit; font-size: inherit;
 }
 .msg-response pre::-webkit-scrollbar { height: 3px; }
 .msg-response pre::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.15); border-radius: 3px; }
 
 .msg-meta {
   padding-left: 24px; font-size: 10px; color: var(--dim);
-  margin-top: 2px; display: flex; align-items: center; gap: 8px;
+  margin-top: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
+.msg-meta .meta-sep { color: rgba(58,64,96,0.4); }
+.msg-meta .meta-tokens { color: var(--purple); opacity: 0.7; }
 
 .error-msg {
   padding-left: 24px; font-size: 12px; color: var(--pink);
   display: flex; align-items: center; gap: 8px;
 }
 
-.input-row {
+/* Scroll to bottom button */
+.scroll-btn {
+  position: fixed; bottom: 90px; right: 28px; z-index: 20;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(6,8,16,0.9); border: 1px solid rgba(0,245,255,0.2);
+  color: var(--cyan); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; opacity: 0; pointer-events: none;
+  box-shadow: 0 0 12px rgba(0,245,255,0.1);
+}
+.scroll-btn.visible { opacity: 1; pointer-events: all; }
+.scroll-btn:hover { border-color: rgba(0,245,255,0.5); box-shadow: 0 0 16px rgba(0,245,255,0.2); }
+
+/* Keyboard shortcut overlay */
+.kb-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(2,3,10,0.92); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.kb-overlay.visible { opacity: 1; pointer-events: all; }
+.kb-box {
+  border: 1px solid rgba(0,245,255,0.12); border-radius: 8px;
+  background: rgba(6,8,16,0.95); padding: 28px 36px; min-width: 380px;
+}
+.kb-title {
+  font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 3px;
+  color: var(--cyan); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.kb-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.kb-key {
+  display: inline-flex; gap: 4px;
+}
+.key {
+  background: rgba(0,245,255,0.05); border: 1px solid rgba(0,245,255,0.12);
+  border-radius: 4px; padding: 3px 8px; font-size: 11px; color: var(--cyan);
+  font-family: 'JetBrains Mono', monospace;
+}
+.kb-desc { font-size: 11px; color: var(--muted); }
+.kb-close-hint { margin-top: 20px; font-size: 10px; color: var(--dim); text-align: center; }
+
+/* Input area */
+.input-area {
   position: relative; z-index: 10;
-  display: flex; align-items: center; gap: 0;
   padding: 10px 24px 14px;
   border-top: 1px solid rgba(0,245,255,0.06);
   background: rgba(2,3,10,0.97); flex-shrink: 0;
 }
+.input-row {
+  display: flex; align-items: flex-end; gap: 0;
+}
 .input-prompt {
   font-size: 13px; color: var(--cyan); flex-shrink: 0;
   user-select: none; display: flex; align-items: center; gap: 4px;
+  padding-bottom: 3px;
 }
 .input-prompt .u { color: var(--green); }
 .input-prompt .sep { color: var(--muted); }
 .input-prompt .arrow { color: var(--cyan); margin: 0 6px; }
+
 #userInput {
   flex: 1; background: transparent; border: none; outline: none;
   font-family: 'JetBrains Mono', monospace; font-size: 13px;
   color: var(--green); caret-color: var(--green); letter-spacing: .3px;
+  resize: none; overflow-y: hidden; line-height: 1.6;
+  min-height: 22px; max-height: 160px; overflow-y: auto;
 }
+#userInput::-webkit-scrollbar { width: 2px; }
+#userInput::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.1); }
 #userInput::selection { background: rgba(0,245,255,0.2); }
-.send-btn {
+
+.input-actions {
+  display: flex; align-items: flex-end; gap: 6px; flex-shrink: 0; padding-bottom: 2px;
+}
+.char-count {
+  font-size: 9px; color: var(--dim); letter-spacing: 1px; padding-bottom: 3px;
+}
+.icon-btn {
   background: none; border: none; cursor: pointer;
   color: var(--muted); font-size: 13px; padding: 2px 4px;
-  transition: color .2s; flex-shrink: 0;
+  transition: color .2s; flex-shrink: 0; line-height: 1;
 }
-.send-btn:hover { color: var(--cyan); }
-.send-btn:disabled { opacity: .3; cursor: not-allowed; }
+.icon-btn:hover { color: var(--cyan); }
+.icon-btn:disabled { opacity: .3; cursor: not-allowed; }
+.icon-btn.stop-btn { color: var(--pink); }
+.icon-btn.stop-btn:hover { color: #ff4499; }
 
-.char-count {
-  font-size: 9px; color: var(--dim); flex-shrink: 0;
-  letter-spacing: 1px; margin-right: 6px;
+.input-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 6px;
 }
-
-.clear-btn {
-  position: absolute; bottom: 52px; right: 24px;
+.input-hint {
+  font-size: 9px; color: var(--dim); letter-spacing: 1px;
+}
+.input-hint span { color: rgba(58,64,96,0.6); }
+.footer-btns { display: flex; gap: 8px; }
+.text-btn {
   font-family: 'Orbitron', monospace; font-size: 8px; letter-spacing: 2px;
   color: var(--muted); background: none; border: 1px solid rgba(255,255,255,0.06);
   border-radius: 3px; padding: 4px 10px; cursor: pointer; transition: all .2s;
 }
-.clear-btn:hover { color: var(--pink); border-color: rgba(255,0,110,0.25); }
+.text-btn:hover { color: var(--pink); border-color: rgba(255,0,110,0.25); }
+.text-btn.export-btn:hover { color: var(--green); border-color: rgba(0,255,136,0.25); }
+.text-btn.kb-btn:hover { color: var(--cyan); border-color: rgba(0,245,255,0.25); }
 </style>
 </head>
 <body>
@@ -204,8 +348,17 @@ body::after {
     <div class="tb-title">zeno@eclipse: ~/ai</div>
   </div>
   <div class="tb-right">
+    <div class="token-badge" id="tokenBadge">TOKENS: —</div>
     <div class="status-dot-wrap"><div class="status-dot-live"></div>ONLINE</div>
-    <div class="model-badge">LLAMA-3.3-70B</div>
+    <div class="model-select-wrap">
+      <select class="model-select" id="modelSelect">
+        <option value="llama-3.3-70b-versatile">LLAMA-3.3-70B</option>
+        <option value="llama-3.1-8b-instant">LLAMA-3.1-8B</option>
+        <option value="mixtral-8x7b-32768">MIXTRAL-8X7B</option>
+        <option value="gemma2-9b-it">GEMMA2-9B</option>
+      </select>
+      <span class="model-select-arrow"><i class="fa-solid fa-chevron-down"></i></span>
+    </div>
     <a href="index.html" class="btn-home"><i class="fa-solid fa-chevron-left"></i> HOME</a>
   </div>
 </div>
@@ -213,34 +366,130 @@ body::after {
 <div class="chat-area" id="chatArea">
   <div class="boot-msg" id="bootMsg">
     <div class="hi">Zeno AI — powered by Groq</div>
-    <div>Model &nbsp;&nbsp;&nbsp;: llama-3.3-70b-versatile</div>
+    <div id="bootModel">Model &nbsp;&nbsp;&nbsp;: llama-3.3-70b-versatile</div>
     <div>Context : 128k tokens</div>
     <div>Status &nbsp;: ready</div>
     <br>
     <div id="bootWelcome"></div>
     <br>
-    <div>Type and press Enter to start. Ctrl+L to clear.</div>
+    <div>Type and press Enter to start. Press <strong style="color:var(--cyan)">?</strong> for keyboard shortcuts.</div>
   </div>
 </div>
 
-<div class="input-row">
-  <div class="input-prompt">
-    <span class="u" id="inputUser">guest</span><span class="sep">@</span><span style="color:var(--cyan)">zeno-ai</span><span class="sep">:</span><span style="color:var(--purple)">~</span><span class="arrow">❯</span>
+<button class="scroll-btn" id="scrollBtn" title="Scroll to bottom">
+  <i class="fa-solid fa-chevron-down"></i>
+</button>
+
+<!-- Keyboard shortcuts overlay -->
+<div class="kb-overlay" id="kbOverlay">
+  <div class="kb-box">
+    <div class="kb-title"><i class="fa-solid fa-keyboard"></i> KEYBOARD SHORTCUTS</div>
+    <div class="kb-row">
+      <div class="kb-key"><span class="key">Enter</span></div>
+      <div class="kb-desc">Send message</div>
+    </div>
+    <div class="kb-row">
+      <div class="kb-key"><span class="key">Shift</span><span class="key">Enter</span></div>
+      <div class="kb-desc">New line</div>
+    </div>
+    <div class="kb-row">
+      <div class="kb-key"><span class="key">↑</span> <span class="kb-desc" style="margin:0 4px">/ </span><span class="key">↓</span></div>
+      <div class="kb-desc">Browse input history</div>
+    </div>
+    <div class="kb-row">
+      <div class="kb-key"><span class="key">Ctrl</span><span class="key">L</span></div>
+      <div class="kb-desc">Clear chat</div>
+    </div>
+    <div class="kb-row">
+      <div class="kb-key"><span class="key">Ctrl</span><span class="key">E</span></div>
+      <div class="kb-desc">Export chat</div>
+    </div>
+    <div class="kb-row">
+      <div class="kb-key"><span class="key">Esc</span></div>
+      <div class="kb-desc">Stop generation / close overlay</div>
+    </div>
+    <div class="kb-row">
+      <div class="kb-key"><span class="key">?</span></div>
+      <div class="kb-desc">Toggle this overlay</div>
+    </div>
+    <div class="kb-close-hint">Press Esc or ? to close</div>
   </div>
-  <input type="text" id="userInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus placeholder="Ask me anything..."/>
-  <span class="char-count" id="charCount"></span>
-  <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send (Enter)">
-    <i class="fa-solid fa-paper-plane"></i>
-  </button>
 </div>
 
-<button class="clear-btn" onclick="clearChat()">CLEAR</button>
+<div class="input-area">
+  <div class="input-row">
+    <div class="input-prompt">
+      <span class="u" id="inputUser">guest</span><span class="sep">@</span><span style="color:var(--cyan)">zeno-ai</span><span class="sep">:</span><span style="color:var(--purple)">~</span><span class="arrow">❯</span>
+    </div>
+    <textarea id="userInput" rows="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus placeholder="Ask me anything..."></textarea>
+    <div class="input-actions">
+      <span class="char-count" id="charCount"></span>
+      <button class="icon-btn stop-btn" id="stopBtn" onclick="stopGeneration()" title="Stop generation (Esc)" style="display:none">
+        <i class="fa-solid fa-stop"></i>
+      </button>
+      <button class="icon-btn" id="sendBtn" onclick="sendMessage()" title="Send (Enter)">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+  <div class="input-footer">
+    <div class="input-hint">Shift+Enter for new line <span>•</span> ? for shortcuts</div>
+    <div class="footer-btns">
+      <button class="text-btn kb-btn" onclick="toggleKb()">SHORTCUTS</button>
+      <button class="text-btn export-btn" onclick="exportChat()">EXPORT</button>
+      <button class="text-btn" onclick="clearChat()">CLEAR</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const GROQ_API_KEY = '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';
-const MODEL = 'llama-3.3-70b-versatile';
 const SYSTEM_PROMPT = `You are a sharp, knowledgeable AI assistant running inside Zeno — a browser-based platform built by Eclipse Suite. You are helpful, direct, and technically capable. You can help with coding, writing, math, research, creative tasks, and general questions. Keep responses concise but complete. When showing code, use proper markdown code blocks.`;
 
+// marked + highlight.js setup
+marked.setOptions({
+  highlight: (code, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      return hljs.highlight(code, { language: lang }).value;
+    }
+    return hljs.highlightAuto(code).value;
+  },
+  breaks: true,
+  gfm: true,
+});
+
+// Custom renderer to wrap code blocks with copy button header
+const renderer = new marked.Renderer();
+renderer.code = (code, lang) => {
+  const highlighted = (lang && hljs.getLanguage(lang))
+    ? hljs.highlight(code, { language: lang }).value
+    : hljs.highlightAuto(code).value;
+  const langLabel = lang ? lang.toUpperCase() : 'CODE';
+  const id = 'cb-' + Math.random().toString(36).slice(2, 8);
+  return `<div class="code-block-wrap">
+    <div class="code-block-header">
+      <span class="code-block-lang">${langLabel}</span>
+      <button class="copy-btn" onclick="copyCode('${id}', this)"><i class="fa-regular fa-copy"></i> COPY</button>
+    </div>
+    <pre><code id="${id}">${highlighted}</code></pre>
+  </div>`;
+};
+marked.use({ renderer });
+
+function copyCode(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = '<i class="fa-regular fa-copy"></i> COPY';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// State
 const username = (localStorage.getItem('zeno-username') || 'guest').toLowerCase();
 document.getElementById('inputUser').textContent = username;
 const welcomeName = username !== 'guest' ? username.charAt(0).toUpperCase() + username.slice(1) : 'there';
@@ -250,34 +499,149 @@ let messages = [{ role: 'system', content: SYSTEM_PROMPT }];
 let isThinking = false;
 let historyIdx = -1;
 let inputHistory = [];
+let totalTokens = 0;
+let abortController = null;
 
 const input = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
+const stopBtn = document.getElementById('stopBtn');
 const chatArea = document.getElementById('chatArea');
+const scrollBtn = document.getElementById('scrollBtn');
+const modelSelect = document.getElementById('modelSelect');
+const tokenBadge = document.getElementById('tokenBadge');
+const kbOverlay = document.getElementById('kbOverlay');
+
+// Load saved history
+try {
+  const saved = localStorage.getItem('zeno-chat-history');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    messages = parsed;
+    parsed.slice(1).forEach(m => {
+      if (m.role === 'user') {
+        appendUserMsg(m.content, false);
+      } else if (m.role === 'assistant') {
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `<div class="msg-response">${marked.parse(m.content)}</div>
+          <div class="msg-meta"><i class="fa-solid fa-microchip"></i> ${modelSelect.value} <span class="meta-sep">•</span> <i class="fa-solid fa-clock-rotate-left"></i> restored</div>`;
+        chatArea.appendChild(div);
+      }
+    });
+    scrollBottom();
+  }
+} catch(e) {}
+
+// Auto-resize textarea
+function resizeTextarea() {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+}
 
 input.addEventListener('input', () => {
+  resizeTextarea();
   const len = input.value.length;
   document.getElementById('charCount').textContent = len > 0 ? len : '';
 });
 
 input.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); if (historyIdx < inputHistory.length-1) { historyIdx++; input.value = inputHistory[historyIdx]; } }
-  else if (e.key === 'ArrowDown') { e.preventDefault(); if (historyIdx > 0) { historyIdx--; input.value = inputHistory[historyIdx]; } else { historyIdx = -1; input.value = ''; } }
-  else if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); clearChat(); }
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  } else if (e.key === 'ArrowUp' && !input.value.includes('\n')) {
+    e.preventDefault();
+    if (historyIdx < inputHistory.length - 1) { historyIdx++; input.value = inputHistory[historyIdx]; resizeTextarea(); }
+  } else if (e.key === 'ArrowDown' && !input.value.includes('\n')) {
+    e.preventDefault();
+    if (historyIdx > 0) { historyIdx--; input.value = inputHistory[historyIdx]; }
+    else { historyIdx = -1; input.value = ''; }
+    resizeTextarea();
+  } else if (e.key === 'l' && e.ctrlKey) {
+    e.preventDefault(); clearChat();
+  } else if (e.key === 'e' && e.ctrlKey) {
+    e.preventDefault(); exportChat();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (kbOverlay.classList.contains('visible')) { toggleKb(); return; }
+    if (isThinking) stopGeneration();
+  }
+  if (e.key === '?' && document.activeElement !== input) {
+    e.preventDefault(); toggleKb();
+  }
 });
 
 window.addEventListener('focus', () => input.focus());
-document.addEventListener('click', e => { if (!e.target.closest('button') && !e.target.closest('a')) input.focus(); });
+document.addEventListener('click', e => {
+  if (!e.target.closest('button') && !e.target.closest('a') && !e.target.closest('select') && !e.target.closest('.kb-overlay'))
+    input.focus();
+});
 
-function scrollBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
+// Scroll to bottom
+function scrollBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
 
-function appendUserMsg(text) {
+chatArea.addEventListener('scroll', () => {
+  const fromBottom = chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight;
+  scrollBtn.classList.toggle('visible', fromBottom > 120);
+});
+
+scrollBtn.onclick = () => scrollBottom();
+
+// Model change
+modelSelect.addEventListener('change', () => {
+  document.getElementById('bootModel').textContent = 'Model     : ' + modelSelect.value;
+});
+
+// Token badge update
+function updateTokenBadge(count) {
+  totalTokens += count;
+  tokenBadge.textContent = `TOKENS: ${totalTokens.toLocaleString()}`;
+  tokenBadge.classList.add('active');
+}
+
+// localStorage persistence with 7500-token hard cap
+const STORAGE_TOKEN_LIMIT = 7500;
+
+function estimateTokens(str) {
+  // ~4 chars per token is a standard approximation
+  return Math.ceil(str.length / 4);
+}
+
+function saveHistory() {
+  try {
+    const system = messages[0];
+    const convo = messages.slice(1);
+
+    // Trim oldest pairs from the front until we're under the limit
+    let trimmed = [...convo];
+    while (trimmed.length > 0) {
+      const payload = JSON.stringify([system, ...trimmed]);
+      if (estimateTokens(payload) <= STORAGE_TOKEN_LIMIT) break;
+      // Remove oldest message (drop in pairs when possible)
+      trimmed.shift();
+    }
+
+    localStorage.setItem('zeno-chat-history', JSON.stringify([system, ...trimmed]));
+  } catch(e) {}
+}
+
+// KB overlay
+function toggleKb() {
+  kbOverlay.classList.toggle('visible');
+}
+kbOverlay.addEventListener('click', e => { if (e.target === kbOverlay) toggleKb(); });
+
+// Append user message
+function appendUserMsg(text, scroll = true) {
   const div = document.createElement('div');
   div.className = 'msg';
   div.innerHTML = `<div class="msg-prompt"><span class="prompt-user">${username}@zeno-ai</span><span class="prompt-arrow">❯</span><span>${esc(text)}</span></div>`;
   chatArea.appendChild(div);
-  scrollBottom();
+  if (scroll) scrollBottom();
   return div;
 }
 
@@ -290,34 +654,40 @@ function appendThinking() {
   return div;
 }
 
-function renderResponse(text, thinkDiv, ms) {
+function renderResponse(text, thinkDiv, ms, model, tokens) {
+  const metaParts = [
+    `<i class="fa-solid fa-microchip"></i> ${model}`,
+    `<span class="meta-sep">•</span> <i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}`,
+    `<span class="meta-sep">•</span> ${ms}ms`,
+  ];
+  if (tokens) metaParts.push(`<span class="meta-sep">•</span> <span class="meta-tokens"><i class="fa-solid fa-coins"></i> ${tokens} tok</span>`);
+
   thinkDiv.innerHTML = `
-    <div class="msg-response">${formatResponse(text)}</div>
-    <div class="msg-meta"><i class="fa-solid fa-microchip"></i> ${MODEL} &nbsp;•&nbsp; ${ms}ms</div>`;
+    <div class="msg-response">${marked.parse(text)}</div>
+    <div class="msg-meta">${metaParts.join(' ')}</div>`;
   scrollBottom();
 }
 
-function formatResponse(text) {
-  let html = esc(text);
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
-    `<pre><code>${code.trimEnd()}</code></pre>`);
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text)">$1</strong>');
-  html = html.replace(/\*(.+?)\*/g, '<em style="color:var(--muted)">$1</em>');
-  html = html.replace(/\n/g, '<br>');
-  return html;
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Stop generation
+function stopGeneration() {
+  if (abortController) { abortController.abort(); }
+}
 
+// Send
 async function sendMessage() {
   const text = input.value.trim();
   if (!text || isThinking) return;
 
   isThinking = true;
-  sendBtn.disabled = true;
+  sendBtn.style.display = 'none';
+  stopBtn.style.display = '';
   input.value = '';
   document.getElementById('charCount').textContent = '';
+  resizeTextarea();
   inputHistory.unshift(text);
   historyIdx = -1;
 
@@ -327,6 +697,11 @@ async function sendMessage() {
   messages.push({ role: 'user', content: text });
 
   const start = Date.now();
+  const currentModel = modelSelect.value;
+  abortController = new AbortController();
+
+  let fullText = '';
+  let responseDiv = null;
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -336,12 +711,13 @@ async function sendMessage() {
         'Authorization': `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: currentModel,
         messages: messages,
         max_tokens: 2048,
         temperature: 0.7,
-        stream: false,
+        stream: true,
       }),
+      signal: abortController.signal,
     });
 
     if (!res.ok) {
@@ -349,25 +725,83 @@ async function sendMessage() {
       throw new Error(err.error?.message || `HTTP ${res.status}`);
     }
 
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || '(no response)';
-    const ms = Date.now() - start;
+    // Set up streaming container
+    thinkDiv.innerHTML = `<div class="msg-response" id="streamingResponse"></div>
+      <div class="msg-meta" id="streamingMeta"><i class="fa-solid fa-spinner fa-spin"></i> streaming...</div>`;
+    responseDiv = document.getElementById('streamingResponse');
 
-    messages.push({ role: 'assistant', content: reply });
-    renderResponse(reply, thinkDiv, ms);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let usage = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+
+      for (const line of lines) {
+        const json = line.slice(6).trim();
+        if (json === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(json);
+          const delta = parsed.choices?.[0]?.delta?.content || '';
+          fullText += delta;
+          if (parsed.x_groq?.usage) usage = parsed.x_groq.usage;
+          // Update rendering live
+          responseDiv.innerHTML = marked.parse(fullText);
+          scrollBottom();
+        } catch {}
+      }
+    }
+
+    const ms = Date.now() - start;
+    const tokCount = usage?.total_tokens || null;
+    if (tokCount) updateTokenBadge(tokCount);
+
+    const metaParts = [
+      `<i class="fa-solid fa-microchip"></i> ${currentModel}`,
+      `<span class="meta-sep">•</span> <i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}`,
+      `<span class="meta-sep">•</span> ${ms}ms`,
+    ];
+    if (tokCount) metaParts.push(`<span class="meta-sep">•</span> <span class="meta-tokens"><i class="fa-solid fa-coins"></i> ${tokCount} tok</span>`);
+    document.getElementById('streamingMeta').innerHTML = metaParts.join(' ');
+
+    messages.push({ role: 'assistant', content: fullText });
 
     if (messages.length > 41) {
       messages = [messages[0], ...messages.slice(-40)];
     }
 
-  } catch(e) {
-    thinkDiv.innerHTML = `<div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i> Error: ${esc(e.message)}</div>`;
-    messages.pop();
+    // Persist to localStorage (respects 7500-token cap)
+    saveHistory();
+
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      // Partial response — keep what we got
+      if (fullText) {
+        messages.push({ role: 'assistant', content: fullText });
+        if (responseDiv) {
+          responseDiv.innerHTML = marked.parse(fullText);
+          const metaEl = document.getElementById('streamingMeta');
+          if (metaEl) metaEl.innerHTML = `<i class="fa-solid fa-stop"></i> stopped <span class="meta-sep">•</span> ${new Date().toLocaleTimeString()}`;
+        }
+        saveHistory();
+      } else {
+        thinkDiv.innerHTML = `<div class="error-msg"><i class="fa-solid fa-stop"></i> Generation stopped.</div>`;
+      }
+    } else {
+      thinkDiv.innerHTML = `<div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i> Error: ${esc(e.message)}</div>`;
+      messages.pop();
+    }
     scrollBottom();
   }
 
   isThinking = false;
-  sendBtn.disabled = false;
+  abortController = null;
+  sendBtn.style.display = '';
+  stopBtn.style.display = 'none';
   input.focus();
 }
 
@@ -376,6 +810,35 @@ function clearChat() {
   chatArea.innerHTML = '';
   if (boot) chatArea.appendChild(boot);
   messages = [messages[0]];
+  totalTokens = 0;
+  tokenBadge.textContent = 'TOKENS: —';
+  tokenBadge.classList.remove('active');
+  try { localStorage.removeItem('zeno-chat-history'); } catch {}
+}
+
+function exportChat() {
+  const lines = [];
+  lines.push('ZENO AI — CHAT EXPORT');
+  lines.push('Exported: ' + new Date().toLocaleString());
+  lines.push('Model: ' + modelSelect.value);
+  lines.push('=' .repeat(60));
+  lines.push('');
+
+  messages.forEach(m => {
+    if (m.role === 'system') return;
+    const label = m.role === 'user' ? `[${username}]` : '[ZENO AI]';
+    lines.push(label);
+    lines.push(m.content);
+    lines.push('');
+  });
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `zeno-chat-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 </body>
