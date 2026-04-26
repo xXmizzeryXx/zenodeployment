@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +17,8 @@
     --neon-green: #00ff88;
     --neon-yellow: #ffe600;
     --neon-orange: #ff8c00;
+    --accent: #00f5ff;
+    --accent-rgb: 0,245,255;
     --card-bg: rgba(255,255,255,0.03);
     --card-border: rgba(0,245,255,0.12);
     --text: #e0e8ff;
@@ -37,19 +40,112 @@
     position: relative;
   }
 
+  /* ── WALLPAPER ── */
+  #wallpaper-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    opacity: 0; transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+  #wallpaper-layer.active { opacity: 1; }
+  #wallpaper-layer.active ~ .bg-grid { opacity: 0.4; }
+  #wallpaper-layer.active ~ .bg-glow { opacity: 0.3; }
+
+  /* ── WALLPAPER CONTRAST MODES ──
+     JS samples the image and sets data-wp-theme on <body>.
+     "dark"  = wallpaper is dark  → keep neon text, add subtle dark scrim
+     "light" = wallpaper is light → switch to dark text + stronger scrim
+     "mixed" = mid-tones          → strong frosted scrim, keep neon text
+  */
+
+  /* Frosted scrim sits between wallpaper and content */
+  #wp-scrim {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.5s ease, background 0.5s ease;
+  }
+
+  /* Dark wallpaper — light neon text is fine, just a gentle scrim */
+  body[data-wp-theme="dark"] #wp-scrim {
+    background: rgba(0,0,0,0.45);
+    opacity: 1;
+  }
+
+  /* Light wallpaper — need dark text + heavy scrim */
+  body[data-wp-theme="light"] #wp-scrim {
+    background: rgba(255,255,255,0.55);
+    opacity: 1;
+  }
+
+  /* Mixed — frosted dark scrim */
+  body[data-wp-theme="mixed"] #wp-scrim {
+    background: rgba(5,5,8,0.6);
+    opacity: 1;
+  }
+
+  /* Container gets a backdrop card when wallpaper is active */
+  body[data-wp-theme] .container {
+    background: rgba(0,0,0,0.38);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 2.5rem 3rem;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+  }
+
+  /* Light wallpaper overrides — dark text on frosted white card */
+  body[data-wp-theme="light"] .container {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 48px rgba(0,0,0,0.15);
+  }
+  body[data-wp-theme="light"] #greeting {
+    color: #111;
+  }
+  body[data-wp-theme="light"] #date {
+    color: #555;
+  }
+  body[data-wp-theme="light"] #clock {
+    color: #c0003a;
+    text-shadow: 0 0 12px rgba(192,0,58,0.25);
+  }
+  body[data-wp-theme="light"] .app-btn {
+    background: rgba(255,255,255,0.6);
+    border-color: rgba(0,0,0,0.12);
+    color: #222;
+  }
+  body[data-wp-theme="light"] .app-btn span {
+    color: #333;
+  }
+  body[data-wp-theme="light"] .header-container {
+    border-bottom-color: rgba(0,0,0,0.1);
+  }
+  body[data-wp-theme="light"] .bottom-bar .bar-btn {
+    color: rgba(0,0,0,0.55);
+    background: rgba(255,255,255,0.7);
+    border-color: rgba(0,0,0,0.15);
+  }
+  body[data-wp-theme="light"] .bottom-bar .bar-btn:hover {
+    color: var(--accent);
+    background: rgba(255,255,255,0.9);
+  }
+
   .bg-grid {
     position: fixed; inset: 0;
     background-image:
-      linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+      linear-gradient(rgba(var(--accent-rgb),0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--accent-rgb),0.025) 1px, transparent 1px);
     background-size: 60px 60px;
-    z-index: 0; pointer-events: none;
+    z-index: 0; pointer-events: none; transition: opacity 0.4s;
   }
   .bg-glow {
     position: fixed; width: 900px; height: 900px;
-    background: radial-gradient(circle, rgba(0,245,255,0.04) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(var(--accent-rgb),0.04) 0%, transparent 65%);
     top: 50%; left: 50%; transform: translate(-50%, -50%);
-    z-index: 0; pointer-events: none;
+    z-index: 0; pointer-events: none; transition: opacity 0.4s;
   }
   .bg-glow-pink {
     position: fixed; width: 500px; height: 500px;
@@ -62,6 +158,12 @@
     z-index: 0; pointer-events: none;
   }
 
+  /* ── CURSOR GLOW ── */
+  #cursor-canvas {
+    position: fixed; inset: 0; z-index: 9998;
+    pointer-events: none;
+  }
+
   .container {
     width: 100%; max-width: 1000px;
     padding: 2.5rem; z-index: 1; position: relative;
@@ -70,7 +172,7 @@
   .header-container {
     display: flex; justify-content: space-between; align-items: flex-end;
     margin-bottom: 2.8rem; padding-bottom: 1.2rem;
-    border-bottom: 1px solid rgba(0,245,255,0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb),0.1);
   }
 
   #greeting {
@@ -79,13 +181,13 @@
     line-height: 1.3; animation: fadeSlideUp 0.6s ease both;
   }
   #greeting span {
-    display: block; color: var(--neon-cyan);
-    text-shadow: 0 0 20px rgba(0,245,255,0.5);
+    display: block; color: var(--accent);
+    text-shadow: 0 0 20px rgba(var(--accent-rgb),0.5);
     font-size: 2.4rem; letter-spacing: 6px;
   }
   #greeting.empty::after {
-    content: "HELLO,"; display: block; color: var(--neon-cyan);
-    text-shadow: 0 0 20px rgba(0,245,255,0.5);
+    content: "HELLO,"; display: block; color: var(--accent);
+    text-shadow: 0 0 20px rgba(var(--accent-rgb),0.5);
     font-size: 2.4rem; letter-spacing: 6px;
   }
 
@@ -102,7 +204,7 @@
   }
 
   .app-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 1rem; justify-items: center;
     animation: fadeSlideUp 0.6s 0.2s ease both;
   }
@@ -158,6 +260,7 @@
     50% { opacity: 0.5; transform: scale(0.7); }
   }
 
+  /* ── MODALS ── */
   .modal {
     position: fixed; inset: 0; background: rgba(5,5,8,0.92);
     backdrop-filter: blur(16px); display: flex;
@@ -174,6 +277,7 @@
   }
   .modal.open .modal-box { transform: translateY(0); }
   .modal-box.cloak-modal-box { border-color: rgba(255,230,0,0.25); box-shadow: 0 0 80px rgba(255,230,0,0.05); }
+  .modal-box.disclaimer-box { border-color: rgba(255,0,110,0.25); box-shadow: 0 0 80px rgba(255,0,110,0.06); max-width: 480px; }
 
   .modal-logo {
     font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 900;
@@ -181,9 +285,11 @@
     text-shadow: 0 0 30px rgba(0,245,255,0.5); margin-bottom: 6px;
   }
   .modal-logo.yellow { color: var(--neon-yellow); text-shadow: 0 0 30px rgba(255,230,0,0.5); font-size: 22px; letter-spacing: 6px; }
+  .modal-logo.pink { color: var(--neon-pink); text-shadow: 0 0 30px rgba(255,0,110,0.5); font-size: 20px; letter-spacing: 6px; }
   .modal-sub { font-size: 10px; letter-spacing: 3px; color: var(--muted); font-family: 'Orbitron', sans-serif; margin-bottom: 28px; }
   .modal-divider { width: 50px; height: 1px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); margin: 0 auto 28px; }
   .modal-divider.yellow { background: linear-gradient(90deg, transparent, var(--neon-yellow), transparent); }
+  .modal-divider.pink { background: linear-gradient(90deg, transparent, var(--neon-pink), transparent); }
   .modal-box h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text); letter-spacing: 1px; margin-bottom: 18px; }
   .modal-box input {
     width: 100%; background: rgba(0,245,255,0.04); border: 1px solid rgba(0,245,255,0.18);
@@ -193,6 +299,14 @@
   }
   .modal-box input::placeholder { color: var(--muted); }
   .modal-box input:focus { border-color: rgba(0,245,255,0.6); box-shadow: 0 0 20px rgba(0,245,255,0.08); }
+
+  .disclaimer-text {
+    font-family: 'Rajdhani', sans-serif; font-size: 1rem; color: rgba(224,232,255,0.75);
+    line-height: 1.7; letter-spacing: 0.3px; margin-bottom: 22px;
+    border: 1px solid rgba(255,0,110,0.12); border-radius: 8px;
+    padding: 1rem 1.2rem; background: rgba(255,0,110,0.04); text-align: left;
+  }
+  .disclaimer-text strong { color: var(--neon-pink); font-weight: 600; }
 
   .btn-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
   .mbtn {
@@ -209,6 +323,8 @@
   .mbtn-yellow:hover { border-color: var(--neon-yellow); box-shadow: 0 0 20px rgba(255,230,0,0.15); }
   .mbtn-danger { background: linear-gradient(135deg, rgba(255,0,110,0.12), rgba(255,0,0,0.08)); border-color: rgba(255,0,110,0.3); color: var(--neon-pink); }
   .mbtn-danger:hover { border-color: var(--neon-pink); box-shadow: 0 0 20px rgba(255,0,110,0.15); }
+  .mbtn-pink { background: linear-gradient(135deg, rgba(255,0,110,0.15), rgba(255,0,110,0.08)); border-color: rgba(255,0,110,0.4); color: var(--neon-pink); }
+  .mbtn-pink:hover { border-color: var(--neon-pink); box-shadow: 0 0 20px rgba(255,0,110,0.2); }
 
   .cloak-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
   .preset-btn {
@@ -224,16 +340,90 @@
   .custom-row { display: flex; gap: 8px; margin-bottom: 18px; }
   .custom-row input { flex: 1; margin-bottom: 0; font-size: 0.9rem; padding: 0.7rem 0.8rem; }
 
-  /* ── CREDITS ── */
-  .credits-btn {
+  /* ── BOTTOM BAR BUTTONS ── */
+  .bottom-bar {
     position: fixed; bottom: 22px; left: 26px; z-index: 50;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .bar-btn {
     font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px;
     color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 6px; padding: 9px 16px; cursor: pointer; transition: all .2s;
+    border-radius: 6px; padding: 9px 14px; cursor: pointer; transition: all .2s;
+    white-space: nowrap;
   }
-  .credits-btn:hover { color: var(--neon-cyan); border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.06); }
+  .bar-btn:hover { color: var(--accent); border-color: rgba(var(--accent-rgb),0.4); background: rgba(var(--accent-rgb),0.06); }
+  .bar-btn.wallpaper-btn:hover { color: var(--neon-purple); border-color: rgba(191,0,255,0.4); background: rgba(191,0,255,0.06); }
+  .bar-btn.accent-btn:hover { color: var(--neon-pink); border-color: rgba(255,0,110,0.4); background: rgba(255,0,110,0.06); }
 
+  /* ── WALLPAPER MODAL ── */
+  .wallpaper-modal-box {
+    background: var(--bg2); border: 1px solid rgba(191,0,255,0.25);
+    padding: 2.5rem 3rem; border-radius: 16px; text-align: center;
+    box-shadow: 0 0 80px rgba(191,0,255,0.06);
+    transform: translateY(24px); transition: transform 0.35s ease;
+    max-width: 500px; width: 90%;
+  }
+  .modal.open .wallpaper-modal-box { transform: translateY(0); }
+  .wp-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px;
+  }
+  .wp-swatch {
+    aspect-ratio: 16/9; border-radius: 8px; cursor: pointer;
+    border: 2px solid transparent; transition: all 0.2s;
+    background-size: cover; background-position: center;
+    position: relative; overflow: hidden;
+  }
+  .wp-swatch:hover { border-color: rgba(191,0,255,0.6); transform: scale(1.04); }
+  .wp-swatch.selected { border-color: var(--neon-purple); box-shadow: 0 0 14px rgba(191,0,255,0.4); }
+  .wp-swatch-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    font-family: 'Orbitron', sans-serif; font-size: 7px; letter-spacing: 1px;
+    background: rgba(0,0,0,0.7); color: rgba(255,255,255,0.8);
+    padding: 4px; text-align: center;
+  }
+  .wp-url-row { display: flex; gap: 8px; margin-bottom: 18px; }
+  .wp-url-row input {
+    flex: 1; background: rgba(191,0,255,0.04); border: 1px solid rgba(191,0,255,0.2);
+    padding: 0.75rem 1rem; color: var(--text); font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem; border-radius: 8px; outline: none; transition: all 0.25s;
+    margin-bottom: 0;
+  }
+  .wp-url-row input:focus { border-color: rgba(191,0,255,0.6); }
+  .wp-url-row input::placeholder { color: var(--muted); }
+
+  /* ── ACCENT MODAL ── */
+  .accent-modal-box {
+    background: var(--bg2); border: 1px solid rgba(255,0,110,0.25);
+    padding: 2.5rem 3rem; border-radius: 16px; text-align: center;
+    box-shadow: 0 0 80px rgba(255,0,110,0.05);
+    transform: translateY(24px); transition: transform 0.35s ease;
+    max-width: 420px; width: 90%;
+  }
+  .modal.open .accent-modal-box { transform: translateY(0); }
+  .accent-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px;
+  }
+  .accent-swatch {
+    height: 52px; border-radius: 10px; cursor: pointer;
+    border: 2px solid transparent; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', sans-serif; font-size: 7px; letter-spacing: 1px;
+    color: rgba(0,0,0,0.7); font-weight: 700; position: relative;
+  }
+  .accent-swatch:hover { transform: scale(1.06); }
+  .accent-swatch.selected::after {
+    content: '✓'; position: absolute; font-size: 18px; color: rgba(0,0,0,0.6);
+  }
+  .accent-preview {
+    font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 3px;
+    margin-bottom: 18px; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid rgba(var(--accent-rgb),0.3);
+    color: var(--accent); background: rgba(var(--accent-rgb),0.06);
+    transition: all 0.3s;
+  }
+
+  /* ── CREDITS ── */
   .credits-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(5,5,8,0.92); backdrop-filter: blur(16px);
@@ -319,126 +509,130 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── INTRO ── */
+  /* ── INTRO — TERMINAL BOOT ── */
   #intro {
     position: fixed; inset: 0; z-index: 9999;
     background: #000; overflow: hidden;
     display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    transition: opacity 1.6s ease;
+    transition: opacity 1.2s ease;
   }
   #intro.fade-out { opacity: 0; pointer-events: none; }
-  #intro-canvas { position: absolute; inset: 0; }
-
-  /* Letterbox bars */
-  #intro::before, #intro::after {
-    content: ''; position: absolute; left: 0; right: 0; z-index: 3;
-    background: #000; height: 0;
-    transition: height 0s; /* controlled via JS */
+  #intro-scanlines {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px);
   }
-  #intro::before { top: 0; }
-  #intro::after  { bottom: 0; }
-  #intro.letterbox::before, #intro.letterbox::after { height: 10vh; }
-
-  .intro-logo-wrap {
-    position: relative; z-index: 2;
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
-    transition: transform 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transform: scale(1);
+  #boot-topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 24px; border-bottom: 1px solid rgba(0,245,255,0.15);
+    flex-shrink: 0; z-index: 3; position: relative;
   }
-  .intro-logo-wrap.zooming { transform: scale(1.12); }
-
-  .intro-logo {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(3rem, 10vw, 7rem);
-    font-weight: 900; letter-spacing: 20px;
-    color: #fff; opacity: 0;
-    text-shadow: 0 0 60px rgba(0,245,255,0.8), 0 0 120px rgba(0,245,255,0.3);
-    transition: opacity .4s ease;
-    transform: translateX(10px);
-    will-change: filter;
+  #boot-topbar .bt-left {
+    font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 3px;
+    color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0,245,255,0.4);
   }
-  .intro-logo.visible { opacity: 1; }
-  .intro-logo.glitch { animation: introGlitch 0.5s steps(1) forwards; }
-
-  @keyframes introGlitch {
-    0%   { filter: none; transform: translateX(10px); }
-    10%  { filter: drop-shadow(-4px 0 #ff006e) drop-shadow(4px 0 #00f5ff); transform: translateX(14px) skewX(-2deg); }
-    20%  { filter: none; transform: translateX(8px); }
-    30%  { filter: drop-shadow(3px 0 #bf00ff) drop-shadow(-3px 0 #00f5ff); transform: translateX(13px) skewX(1deg); }
-    40%  { filter: none; transform: translateX(10px); }
-    55%  { filter: drop-shadow(-6px 0 #ff006e) drop-shadow(6px 0 #00f5ff); transform: translateX(16px) skewX(-3deg); }
-    70%  { filter: drop-shadow(2px 0 #00ff88); transform: translateX(9px); }
-    85%  { filter: none; transform: translateX(10px); }
-    100% { filter: none; transform: translateX(10px); }
+  #boot-topbar .bt-right {
+    font-family: 'Orbitron', monospace; font-size: 9px; letter-spacing: 2px; color: #3d4a5c;
   }
-
-  .intro-sub {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(0.6rem, 1.5vw, 0.85rem);
-    letter-spacing: 8px; color: rgba(0,245,255,0.6);
-    opacity: 0; transition: opacity .6s ease .3s;
+  #boot-topbar .bt-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--neon-green); margin-right: 8px;
+    box-shadow: 0 0 6px var(--neon-green); animation: boot-blink 1.2s infinite;
   }
-  .intro-sub.visible { opacity: 1; }
-  .intro-line {
-    width: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-    transition: width 1s ease .1s; margin: 4px 0;
+  @keyframes boot-blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  #boot-terminal {
+    flex: 1; overflow: hidden; padding: 18px 28px 0;
+    position: relative; z-index: 3;
+    display: flex; flex-direction: column; justify-content: flex-end;
   }
-  .intro-line.visible { width: 280px; }
-
-  /* Flash overlay */
-  #intro-flash {
+  #boot-lines { display: flex; flex-direction: column; gap: 1px; overflow: hidden; }
+  .boot-line {
+    font-family: 'Courier New', 'Lucida Console', monospace;
+    font-size: clamp(11px, 1.3vw, 13px);
+    line-height: 1.7; white-space: pre; opacity: 0;
+    animation: boot-line-appear 0.04s forwards;
+  }
+  @keyframes boot-line-appear { to { opacity: 1; } }
+  .bl-dim    { color: #1e2530; }
+  .bl-muted  { color: #3d4a5c; }
+  .bl-normal { color: #6a7f96; }
+  .bl-bright { color: #9ab0c8; }
+  .bl-cyan   { color: #00f5ff; text-shadow: 0 0 8px rgba(0,245,255,0.4); }
+  .bl-green  { color: #00ff88; text-shadow: 0 0 8px rgba(0,255,136,0.4); }
+  .bl-yellow { color: #ffe600; text-shadow: 0 0 8px rgba(255,230,0,0.3); }
+  .bl-pink   { color: #ff006e; text-shadow: 0 0 8px rgba(255,0,110,0.3); }
+  .bl-purple { color: #bf00ff; text-shadow: 0 0 8px rgba(191,0,255,0.3); }
+  .bl-white  { color: #e0e8ff; }
+  .boot-cursor {
+    display: inline-block; width: 8px; height: 0.9em;
+    background: var(--neon-cyan); vertical-align: text-bottom;
+    animation: cur-blink 0.7s steps(1) infinite; margin-left: 2px;
+  }
+  @keyframes cur-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  #boot-logo-wrap {
     position: absolute; inset: 0; z-index: 4;
-    background: #fff; opacity: 0; pointer-events: none;
-    transition: opacity 0s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.9s ease;
   }
-
-  /* Shockwave ring */
-  #intro-shockwave {
-    position: absolute; z-index: 3;
-    top: 50%; left: 50%;
-    width: 0; height: 0;
-    border-radius: 50%;
-    border: 2px solid rgba(0,245,255,0.8);
-    transform: translate(-50%, -50%);
-    pointer-events: none; opacity: 0;
+  #boot-logo-wrap.show { opacity: 1; }
+  #boot-logo-text {
+    font-family: 'Orbitron', monospace; font-weight: 900;
+    font-size: clamp(4rem, 12vw, 8rem); letter-spacing: 20px; color: #fff;
+    text-shadow: 0 0 60px rgba(0,245,255,0.9), 0 0 120px rgba(0,245,255,0.3);
+    animation: logo-pulse 1.6s ease both;
   }
-  #intro-shockwave.fire {
-    animation: shockwave 1.1s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+  #boot-logo-sub {
+    font-family: 'Orbitron', monospace; font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+    letter-spacing: 8px; color: rgba(0,245,255,0.6);
+    margin-top: 12px; animation: logo-pulse 1.6s 0.2s ease both;
   }
-  @keyframes shockwave {
-    0%   { width: 0; height: 0; opacity: 0.9; border-color: rgba(255,255,255,0.9); }
-    30%  { border-color: rgba(0,245,255,0.7); }
-    100% { width: 180vmax; height: 180vmax; opacity: 0; border-color: rgba(0,245,255,0); }
+  @keyframes logo-pulse {
+    0%   { opacity: 0; transform: scale(0.96); }
+    40%  { opacity: 1; }
+    100% { opacity: 1; transform: scale(1); }
   }
-
   .intro-skip {
-    position: absolute; bottom: 32px; right: 36px;
+    position: absolute; bottom: 28px; right: 28px;
     font-family: 'Orbitron', monospace; font-size: 9px;
-    letter-spacing: 3px; color: rgba(255,255,255,0.25);
+    letter-spacing: 3px; color: rgba(255,255,255,0.22);
     background: none; border: 1px solid rgba(255,255,255,0.1);
     border-radius: 4px; padding: 8px 16px; cursor: pointer;
     transition: all .2s; z-index: 10;
   }
   .intro-skip:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.3); }
+  /* ── APP BUTTON IDLE BREATH ── */
+  @keyframes btn-breathe {
+    0%,100% { box-shadow: 0 0 0 rgba(var(--breath-rgb),0); border-color: var(--card-border); }
+    50%     { box-shadow: 0 0 20px rgba(var(--breath-rgb),0.25), 0 0 6px rgba(var(--breath-rgb),0.12) inset; border-color: rgba(var(--breath-rgb),0.38); }
+  }
+  .app-btn.breathing { animation: btn-breathe 3s ease-in-out infinite; }
+
+
 </style>
 </head>
 <body>
 
+<!-- CURSOR GLOW CANVAS -->
+<canvas id="cursor-canvas"></canvas>
 
 <div id="intro">
-  <canvas id="intro-canvas"></canvas>
-  <div id="intro-flash"></div>
-  <div id="intro-shockwave"></div>
-  <div class="intro-logo-wrap" id="introLogoWrap">
-    <div class="intro-line" id="introLineTop"></div>
-    <div class="intro-logo" id="introLogo">ZENO</div>
-    <div class="intro-sub" id="introSub">// ECLIPSE SUITE</div>
-    <div class="intro-line" id="introLineBot"></div>
+  <div id="intro-scanlines"></div>
+  <div id="boot-topbar">
+    <div class="bt-left"><span class="bt-dot"></span>ZENO // ECLIPSE SUITE</div>
+    <div class="bt-right" id="boot-clock-display">--:--:--</div>
+  </div>
+  <div id="boot-terminal">
+    <div id="boot-lines"></div>
+  </div>
+  <div id="boot-logo-wrap">
+    <div id="boot-logo-text">ZENO</div>
+    <div id="boot-logo-sub">// ECLIPSE SUITE</div>
   </div>
   <button class="intro-skip" onclick="skipIntro()">SKIP ❯</button>
 </div>
+
+<!-- WALLPAPER LAYER -->
+<div id="wallpaper-layer"></div>
+<div id="wp-scrim"></div>
 
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
@@ -502,6 +696,22 @@
   </div>
 </div>
 
+<!-- DISCLAIMER MODAL -->
+<div class="modal" id="disclaimerModal">
+  <div class="modal-box disclaimer-box">
+    <div class="modal-logo pink">NOTICE</div>
+    <div class="modal-sub">// BEFORE YOU CONTINUE</div>
+    <div class="modal-divider pink"></div>
+    <div class="disclaimer-text">
+      Zeno is a <strong>file hosting platform</strong>. The content you access, share, or interact with is entirely your own responsibility — the Eclipse Suite has no visibility into or control over what individual users do within this environment.<br><br>
+      If you're accessing Zeno from a <strong>work or educational setting</strong>, proceed with full awareness of your institution's policies. You assume all risk.
+    </div>
+    <div class="btn-group">
+      <button class="mbtn mbtn-pink" onclick="acceptDisclaimer()">I UNDERSTAND</button>
+    </div>
+  </div>
+</div>
+
 <!-- CLOAK MODAL -->
 <div class="modal" id="cloakModal">
   <div class="modal-box cloak-modal-box">
@@ -541,18 +751,139 @@
   </div>
 </div>
 
+<!-- WALLPAPER MODAL -->
+<div class="modal" id="wallpaperModal">
+  <div class="wallpaper-modal-box">
+    <div class="modal-logo" style="color:var(--neon-purple);text-shadow:0 0 30px rgba(191,0,255,0.5);font-size:20px;letter-spacing:6px;">WALLPAPER</div>
+    <div class="modal-sub">// BACKGROUND CUSTOMIZATION</div>
+    <div class="modal-divider" style="background:linear-gradient(90deg,transparent,var(--neon-purple),transparent);"></div>
+    <div class="wp-grid" id="wpGrid">
+      <div class="wp-swatch" data-url="" style="background:linear-gradient(135deg,#050508,#0a0a1a);" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">DEFAULT</div>
+      </div>
+      <div class="wp-swatch" data-url="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80" style="background:url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=60') center/cover;" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">MOUNTAINS</div>
+      </div>
+      <div class="wp-swatch" data-url="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&q=80" style="background:url('https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&q=60') center/cover;" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">NEBULA</div>
+      </div>
+      <div class="wp-swatch" data-url="https://images.unsplash.com/photo-1557683316-973673baf926?w=1920&q=80" style="background:url('https://images.unsplash.com/photo-1557683316-973673baf926?w=400&q=60') center/cover;" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">PRISM</div>
+      </div>
+      <div class="wp-swatch" data-url="https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1920&q=80" style="background:url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=400&q=60') center/cover;" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">CITY NIGHT</div>
+      </div>
+      <div class="wp-swatch" data-url="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=80" style="background:url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=400&q=60') center/cover;" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">FOREST</div>
+      </div>
+      <div class="wp-swatch" data-url="https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=1920&q=80" style="background:url('https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=400&q=60') center/cover;" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">OCEAN</div>
+      </div>
+      <div class="wp-swatch" data-url="https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?w=1920&q=80" style="background:url('https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?w=400&q=60') center/cover;" onclick="selectWallpaper(this)">
+        <div class="wp-swatch-label">STARS</div>
+      </div>
+    </div>
+    <div class="wp-url-row">
+      <input type="text" id="wpUrlInput" placeholder="Or paste an image URL..." autocomplete="off">
+    </div>
+    <div class="btn-group">
+      <button class="mbtn" style="border-color:rgba(191,0,255,0.4);color:var(--neon-purple);background:linear-gradient(135deg,rgba(191,0,255,0.12),rgba(191,0,255,0.06));" onclick="applyWallpaper()">APPLY</button>
+      <button class="mbtn mbtn-danger" onclick="removeWallpaper()">REMOVE</button>
+      <button class="mbtn mbtn-skip" onclick="closeWallpaperModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCENT MODAL -->
+<div class="modal" id="accentModal">
+  <div class="accent-modal-box">
+    <div class="modal-logo pink" style="font-size:20px;letter-spacing:6px;">ACCENTS</div>
+    <div class="modal-sub">// UI COLOR THEME</div>
+    <div class="modal-divider pink"></div>
+    <div class="accent-grid" id="accentGrid">
+      <div class="accent-swatch selected" data-color="#00f5ff" data-rgb="0,245,255" style="background:#00f5ff;" onclick="previewAccent(this)"><span>CYAN</span></div>
+      <div class="accent-swatch" data-color="#bf00ff" data-rgb="191,0,255" style="background:#bf00ff;color:rgba(255,255,255,0.8);" onclick="previewAccent(this)"><span>PURPLE</span></div>
+      <div class="accent-swatch" data-color="#ff006e" data-rgb="255,0,110" style="background:#ff006e;color:rgba(255,255,255,0.8);" onclick="previewAccent(this)"><span>PINK</span></div>
+      <div class="accent-swatch" data-color="#00ff88" data-rgb="0,255,136" style="background:#00ff88;" onclick="previewAccent(this)"><span>GREEN</span></div>
+      <div class="accent-swatch" data-color="#ffe600" data-rgb="255,230,0" style="background:#ffe600;" onclick="previewAccent(this)"><span>YELLOW</span></div>
+      <div class="accent-swatch" data-color="#ff8c00" data-rgb="255,140,0" style="background:#ff8c00;color:rgba(255,255,255,0.8);" onclick="previewAccent(this)"><span>ORANGE</span></div>
+      <div class="accent-swatch" data-color="#ffffff" data-rgb="255,255,255" style="background:#ffffff;" onclick="previewAccent(this)"><span>WHITE</span></div>
+      <div class="accent-swatch" data-color="#ff4444" data-rgb="255,68,68" style="background:#ff4444;color:rgba(255,255,255,0.8);" onclick="previewAccent(this)"><span>RED</span></div>
+    </div>
+    <div class="accent-preview" id="accentPreview">// ZENO ECLIPSE SUITE — PREVIEW</div>
+    <div class="btn-group">
+      <button class="mbtn mbtn-pink" onclick="applyAccent()">APPLY</button>
+      <button class="mbtn mbtn-skip" onclick="closeAccentModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- BROWSER OVERLAY -->
+<div class="browser-overlay" id="browserOverlay">
+  <div class="browser-topbar">
+    <button class="browser-back-btn" onclick="closeBrowser()"><i class="fa-solid fa-chevron-left"></i> HOME</button>
+    <div class="browser-title">RECURSION</div>
+  </div>
+  <iframe class="browser-frame" id="browserFrame" src="" allowfullscreen allow="autoplay; fullscreen; clipboard-read; clipboard-write"></iframe>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="bar-btn" onclick="openCredits()"><i class="fa-solid fa-circle-info"></i>&nbsp; CREDITS</button>
+  <button class="bar-btn wallpaper-btn" onclick="openWallpaperModal()"><i class="fa-solid fa-image"></i>&nbsp; WALLPAPER</button>
+  <button class="bar-btn accent-btn" onclick="openAccentModal()"><i class="fa-solid fa-palette"></i>&nbsp; ACCENTS</button>
+</div>
+
+<!-- CREDITS MODAL -->
+<div class="credits-overlay" id="creditsModal">
+  <div class="credits-box">
+    <div class="credits-logo">ZENO</div>
+    <div class="credits-tagline">// PART OF THE ECLIPSE SUITE</div>
+    <div class="credits-divider"></div>
+
+    <div class="credits-section-label">DEVELOPMENT</div>
+    <div class="credits-row">
+      <span class="credits-name">Mizzery</span>
+      <span class="credits-role">MAIN DEVELOPER</span>
+    </div>
+    <div class="credits-row">
+      <span class="credits-name">GuyThatDidNothing</span>
+      <span class="credits-role">CO-DEVELOPER</span>
+    </div>
+
+    <div style="height:20px"></div>
+    <div class="credits-section-label">PARTNERS</div>
+    <div class="credits-row">
+      <span class="credits-name">GN-Stream</span>
+      <span class="credits-role partner">PARTNER</span>
+    </div>
+
+    <div style="height:20px"></div>
+    <div class="credits-section-label">MOVIE ASSETS</div>
+    <div class="credits-row">
+      <span class="credits-name">TMDB</span>
+      <span class="credits-role partner">METADATA &amp; SEARCH</span>
+    </div>
+    <div class="credits-row">
+      <span class="credits-name">Videasy</span>
+      <span class="credits-role partner">STREAM PLAYER</span>
+    </div>
+
+    <button class="credits-close" onclick="closeCredits()">CLOSE</button>
+  </div>
+</div>
+
 <script>
-  // ── AUTO-REDIRECT TO DEFAULT APP ──
-  // Only redirect on a "fresh" visit — not when navigating back from another Zeno page
+  // ── AUTO-REDIRECT ──
   (function() {
     const defaultApp = localStorage.getItem('zeno-default-app');
     if (!defaultApp || defaultApp === 'index.html') return;
     const ref = document.referrer;
-    // If coming from another page on the same origin, skip redirect
     if (ref && new URL(ref).origin === window.location.origin) return;
     window.location.replace(defaultApp);
   })();
 
+  // ── CLOCK ──
   (function() {
     const clockEl = document.getElementById('clock');
     const dateEl  = document.getElementById('date');
@@ -569,12 +900,13 @@
         const m = String(now.getMinutes()).padStart(2, '0');
         clockEl.textContent = h + ':' + m;
       }
-      dateEl.textContent  = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+      dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
     }
     setInterval(update, 1000);
     update();
   })();
 
+  // ── GREETING ──
   function updateGreeting() {
     const name = localStorage.getItem('zeno-username');
     const el   = document.getElementById('greeting');
@@ -585,8 +917,9 @@
   }
   updateGreeting();
 
+  // ── WELCOME ──
   function saveUsername() {
-    const val  = document.getElementById('welcomeInput').value.trim();
+    const val = document.getElementById('welcomeInput').value.trim();
     localStorage.setItem('zeno-username', val || 'Player');
     updateGreeting(); closeWelcome();
   }
@@ -595,14 +928,26 @@
     updateGreeting(); closeWelcome();
   }
   function closeWelcome() { document.getElementById('welcomeModal').classList.remove('open'); }
-  document.getElementById('welcomeInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') saveUsername(); });
   (function() {
     if (localStorage.getItem('zeno-username') === null) {
       document.getElementById('welcomeModal').classList.add('open');
       setTimeout(() => document.getElementById('welcomeInput').focus(), 100);
+      document.getElementById('welcomeInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') saveUsername(); });
     }
   })();
 
+  // ── DISCLAIMER ──
+  function acceptDisclaimer() {
+    sessionStorage.setItem('zeno-disclaimer-accepted', '1');
+    document.getElementById('disclaimerModal').classList.remove('open');
+  }
+  function maybeShowDisclaimer() {
+    if (!sessionStorage.getItem('zeno-disclaimer-accepted')) {
+      document.getElementById('disclaimerModal').classList.add('open');
+    }
+  }
+
+  // ── CLOAK ──
   let selectedPreset = null;
   function openCloakModal(e) {
     e.preventDefault();
@@ -658,22 +1003,186 @@
     }
   })();
 
+  // ── WALLPAPER + LUMINANCE DETECTION ──
+  let selectedWpUrl = '';
+
+  /**
+   * Samples a crossOrigin image at low resolution and computes average luminance.
+   * Returns a promise that resolves to "dark" | "light" | "mixed".
+   */
+  function detectWallpaperTheme(url) {
+    return new Promise(resolve => {
+      if (!url) { resolve(null); return; }
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        try {
+          const SIZE = 80; // sample at 80×80 — fast, enough for avg brightness
+          const c = document.createElement('canvas');
+          c.width = c.height = SIZE;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, SIZE, SIZE);
+          const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+          let total = 0, count = 0;
+          // Sample every 4th pixel for speed
+          for (let i = 0; i < data.length; i += 16) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            // Perceived luminance (ITU-R BT.709)
+            total += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            count++;
+          }
+          const avg = total / count; // 0–255
+          if (avg < 80)        resolve('dark');
+          else if (avg > 180)  resolve('light');
+          else                 resolve('mixed');
+        } catch(e) {
+          // CORS block or tainted canvas — default to dark scrim (safe)
+          resolve('dark');
+        }
+      };
+      img.onerror = () => resolve('dark');
+      img.src = url;
+    });
+  }
+
+  function applyWpTheme(theme) {
+    const body = document.body;
+    body.removeAttribute('data-wp-theme');
+    if (theme) body.setAttribute('data-wp-theme', theme);
+  }
+
+  function openWallpaperModal() {
+    const saved = localStorage.getItem('zeno-wallpaper') || '';
+    selectedWpUrl = saved;
+    document.getElementById('wpUrlInput').value = '';
+    document.querySelectorAll('.wp-swatch').forEach(s => {
+      s.classList.toggle('selected', s.dataset.url === saved);
+    });
+    document.getElementById('wallpaperModal').classList.add('open');
+  }
+  function closeWallpaperModal() { document.getElementById('wallpaperModal').classList.remove('open'); }
+  function selectWallpaper(el) {
+    document.querySelectorAll('.wp-swatch').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedWpUrl = el.dataset.url;
+    document.getElementById('wpUrlInput').value = '';
+  }
+  async function applyWallpaper() {
+    const custom = document.getElementById('wpUrlInput').value.trim();
+    const url = custom || selectedWpUrl;
+    const layer = document.getElementById('wallpaper-layer');
+    if (!url) { removeWallpaper(); return; }
+    layer.style.backgroundImage = `url('${url}')`;
+    layer.classList.add('active');
+    localStorage.setItem('zeno-wallpaper', url);
+    closeWallpaperModal();
+    // Detect and store theme
+    const theme = await detectWallpaperTheme(url);
+    applyWpTheme(theme);
+    if (theme) localStorage.setItem('zeno-wallpaper-theme', theme);
+  }
+  function removeWallpaper() {
+    const layer = document.getElementById('wallpaper-layer');
+    layer.classList.remove('active');
+    layer.style.backgroundImage = '';
+    localStorage.removeItem('zeno-wallpaper');
+    localStorage.removeItem('zeno-wallpaper-theme');
+    applyWpTheme(null);
+    closeWallpaperModal();
+  }
+  // Restore on load
+  (function() {
+    const saved = localStorage.getItem('zeno-wallpaper');
+    if (saved) {
+      const layer = document.getElementById('wallpaper-layer');
+      layer.style.backgroundImage = `url('${saved}')`;
+      layer.classList.add('active');
+      // Try cached theme first (instant), then re-detect in background
+      const cached = localStorage.getItem('zeno-wallpaper-theme');
+      if (cached) applyWpTheme(cached);
+      detectWallpaperTheme(saved).then(theme => {
+        if (theme) {
+          applyWpTheme(theme);
+          localStorage.setItem('zeno-wallpaper-theme', theme);
+        }
+      });
+    }
+  })();
+
+  // ── ACCENT ──
+  const ACCENT_PRESETS = {
+    '#00f5ff': '0,245,255',
+    '#bf00ff': '191,0,255',
+    '#ff006e': '255,0,110',
+    '#00ff88': '0,255,136',
+    '#ffe600': '255,230,0',
+    '#ff8c00': '255,140,0',
+    '#ffffff': '255,255,255',
+    '#ff4444': '255,68,68',
+  };
+  let pendingAccent = null;
+
+  function applyAccentVars(color, rgb) {
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--accent-rgb', rgb);
+    document.documentElement.style.setProperty('--neon-cyan', color);
+    document.documentElement.style.setProperty('--card-border', `rgba(${rgb},0.12)`);
+  }
+  function previewAccent(el) {
+    document.querySelectorAll('.accent-swatch').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    pendingAccent = { color: el.dataset.color, rgb: el.dataset.rgb };
+    applyAccentVars(pendingAccent.color, pendingAccent.rgb);
+    document.getElementById('accentPreview').style.color = pendingAccent.color;
+    document.getElementById('accentPreview').style.borderColor = `rgba(${pendingAccent.rgb},0.3)`;
+    document.getElementById('accentPreview').style.background = `rgba(${pendingAccent.rgb},0.06)`;
+  }
+  function openAccentModal() {
+    const saved = localStorage.getItem('zeno-accent') || '#00f5ff';
+    pendingAccent = { color: saved, rgb: ACCENT_PRESETS[saved] || '0,245,255' };
+    document.querySelectorAll('.accent-swatch').forEach(s => {
+      s.classList.toggle('selected', s.dataset.color === saved);
+    });
+    const prev = document.getElementById('accentPreview');
+    prev.style.color = saved;
+    prev.style.borderColor = `rgba(${pendingAccent.rgb},0.3)`;
+    prev.style.background = `rgba(${pendingAccent.rgb},0.06)`;
+    document.getElementById('accentModal').classList.add('open');
+  }
+  function applyAccent() {
+    if (!pendingAccent) { closeAccentModal(); return; }
+    localStorage.setItem('zeno-accent', pendingAccent.color);
+    localStorage.setItem('zeno-accent-rgb', pendingAccent.rgb);
+    closeAccentModal();
+  }
+  function closeAccentModal() {
+    // Revert preview to saved if cancelled
+    const saved = localStorage.getItem('zeno-accent') || '#00f5ff';
+    const savedRgb = localStorage.getItem('zeno-accent-rgb') || '0,245,255';
+    applyAccentVars(saved, savedRgb);
+    document.getElementById('accentModal').classList.remove('open');
+    pendingAccent = null;
+  }
+  (function() {
+    const saved = localStorage.getItem('zeno-accent');
+    const savedRgb = localStorage.getItem('zeno-accent-rgb');
+    if (saved && savedRgb) applyAccentVars(saved, savedRgb);
+  })();
+
+  // ── MODAL BACKDROP CLOSES ──
   document.getElementById('cloakModal').addEventListener('click', function(e) { if (e.target === this) closeCloakModal(); });
   document.getElementById('welcomeModal').addEventListener('click', function(e) { if (e.target === this) closeWelcome(); });
+  document.getElementById('wallpaperModal').addEventListener('click', function(e) { if (e.target === this) closeWallpaperModal(); });
 
-  // ── INTRO ──────────────────────────────────────────────────────
+  // ── CURSOR GLOW ──
   (function() {
-    // Only play once per session — skip if navigating back from another page
-    if (sessionStorage.getItem('zeno-intro-played')) {
-      const intro = document.getElementById('intro');
-      intro.style.display = 'none';
-      return;
-    }
-    sessionStorage.setItem('zeno-intro-played', '1');
-
-    const canvas = document.getElementById('intro-canvas');
+    const canvas = document.getElementById('cursor-canvas');
     const ctx = canvas.getContext('2d');
-    let W, H, particles, animId, done = false;
+    let W, H;
+    const trail = [];
+    const TRAIL_LEN = 22;
+    let mouse = { x: -999, y: -999 };
+    let animId;
 
     function resize() {
       W = canvas.width  = window.innerWidth;
@@ -682,164 +1191,285 @@
     resize();
     window.addEventListener('resize', resize);
 
-    // Parse ZENO letter positions from a virtual text render
-    function getLetterPoints(text, fontSize) {
-      const offscreen = document.createElement('canvas');
-      offscreen.width = W; offscreen.height = H;
-      const c = offscreen.getContext('2d');
-      c.font = `900 ${fontSize}px Orbitron, monospace`;
-      c.fillStyle = '#fff';
-      c.textAlign = 'center';
-      c.textBaseline = 'middle';
-      c.fillText(text, W / 2, H / 2);
-      const data = c.getImageData(0, 0, W, H).data;
-      const pts = [];
-      const step = Math.max(2, Math.floor(fontSize / 30));
-      for (let y = 0; y < H; y += step) {
-        for (let x = 0; x < W; x += step) {
-          if (data[(y * W + x) * 4 + 3] > 128) pts.push({ x, y });
-        }
-      }
-      return pts;
+    window.addEventListener('mousemove', function(e) {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      trail.push({ x: e.clientX, y: e.clientY, t: Date.now() });
+      if (trail.length > TRAIL_LEN) trail.shift();
+    });
+
+    function getAccentColor() {
+      return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00f5ff';
     }
 
-    const fontSize = Math.min(W, H) * 0.18;
-    const targets = getLetterPoints('ZENO', fontSize);
-
-    // Create particles — start scattered, fly to letter positions
-    const COUNT = Math.min(targets.length, 1800);
-    const step = Math.max(1, Math.floor(targets.length / COUNT));
-    particles = targets.filter((_, i) => i % step === 0).slice(0, COUNT).map(t => ({
-      tx: t.x, ty: t.y,
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: 0, vy: 0,
-      size: Math.random() * 1.8 + 0.6,
-      color: Math.random() > 0.85 ? '#ffffff' : (Math.random() > 0.5 ? '#00f5ff' : '#bf00ff'),
-      speed: Math.random() * 0.03 + 0.018,
-      arrived: false,
-    }));
-
-    let startTime = null;
-    const ASSEMBLE_DURATION = 3200;
-    const HOLD_DURATION = 2600;
-    let holdStart = null;
-    let allArrived = false;
-    let flashFired = false;
-
-    // Letterbox on load
-    setTimeout(() => document.getElementById('intro').classList.add('letterbox'), 10);
-
-    function fireShockwave() {
-      // White flash
-      const flash = document.getElementById('intro-flash');
-      flash.style.transition = 'none';
-      flash.style.opacity = '0.85';
-      setTimeout(() => {
-        flash.style.transition = 'opacity 0.6s ease';
-        flash.style.opacity = '0';
-      }, 30);
-
-      // Shockwave ring
-      const sw = document.getElementById('intro-shockwave');
-      sw.classList.remove('fire');
-      void sw.offsetWidth; // reflow
-      sw.classList.add('fire');
-
-      // Glitch on logo
-      const logo = document.getElementById('introLogo');
-      logo.classList.remove('glitch');
-      void logo.offsetWidth;
-      logo.classList.add('glitch');
+    function hexToRgb(hex) {
+      const stored = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+      if (stored) return stored;
+      hex = hex.replace('#','');
+      if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+      const n = parseInt(hex, 16);
+      return `${(n>>16)&255},${(n>>8)&255},${n&255}`;
     }
 
-    function animate(ts) {
-      if (done) return;
-      if (!startTime) startTime = ts;
-      animId = requestAnimationFrame(animate);
-
+    function draw() {
+      animId = requestAnimationFrame(draw);
       ctx.clearRect(0, 0, W, H);
+      if (mouse.x < 0) return;
 
-      // Radial glow
-      const grad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.35);
-      grad.addColorStop(0, 'rgba(0,245,255,0.05)');
-      grad.addColorStop(1, 'transparent');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
+      const accent = getAccentColor();
+      const rgb = hexToRgb(accent);
 
-      let arrivedCount = 0;
-      const progress = Math.min((ts - startTime) / ASSEMBLE_DURATION, 1);
+      // Main glow orb
+      const grd = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 80);
+      grd.addColorStop(0,   `rgba(${rgb}, 0.18)`);
+      grd.addColorStop(0.4, `rgba(${rgb}, 0.07)`);
+      grd.addColorStop(1,   `rgba(${rgb}, 0)`);
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, 80, 0, Math.PI * 2);
+      ctx.fill();
 
-      for (const p of particles) {
-        const dx = p.tx - p.x, dy = p.ty - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+      // Inner bright core
+      const core = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 14);
+      core.addColorStop(0,   `rgba(${rgb}, 0.55)`);
+      core.addColorStop(0.5, `rgba(${rgb}, 0.18)`);
+      core.addColorStop(1,   `rgba(${rgb}, 0)`);
+      ctx.fillStyle = core;
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, 14, 0, Math.PI * 2);
+      ctx.fill();
 
-        if (dist < 1.5) {
-          p.x = p.tx; p.y = p.ty; p.arrived = true;
-          arrivedCount++;
-        } else {
-          const ease = p.speed + progress * 0.12;
-          p.x += dx * ease;
-          p.y += dy * ease;
-        }
-
-        const alpha = p.arrived ? 1 : (0.4 + Math.random() * 0.6);
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = p.color;
+      // Trail
+      for (let i = 0; i < trail.length; i++) {
+        const p = trail[i];
+        const frac = i / trail.length;
+        const r = 5 * frac;
+        const alpha = frac * 0.45;
+        ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.globalAlpha = 1;
+    }
+    draw();
+  })();
 
-      if (!allArrived && arrivedCount > COUNT * 0.92) {
-        allArrived = true;
-        holdStart = ts;
+  // ── INTRO — TERMINAL BOOT ──
+  (function() {
+    if (sessionStorage.getItem('zeno-intro-played')) {
+      document.getElementById('intro').style.display = 'none';
+      maybeShowDisclaimer();
+      startBreathing();
+      return;
+    }
+    sessionStorage.setItem('zeno-intro-played', '1');
 
-        // Flash + shockwave on assembly
-        fireShockwave();
+    // Live clock in topbar
+    const bootClockEl = document.getElementById('boot-clock-display');
+    const clockTick = setInterval(() => {
+      const n = new Date();
+      bootClockEl.textContent = [n.getHours(), n.getMinutes(), n.getSeconds()]
+        .map(v => String(v).padStart(2,'0')).join(':');
+    }, 1000);
+    bootClockEl.textContent = (() => {
+      const n = new Date();
+      return [n.getHours(), n.getMinutes(), n.getSeconds()].map(v => String(v).padStart(2,'0')).join(':');
+    })();
 
-        // Show text elements
-        document.getElementById('introLogo').classList.add('visible');
-        document.getElementById('introSub').classList.add('visible');
-        document.getElementById('introLineTop').classList.add('visible');
-        document.getElementById('introLineBot').classList.add('visible');
+    const linesEl = document.getElementById('boot-lines');
+    let done = false;
+    let lineTimers = [];
 
-        // Start slow zoom
-        setTimeout(() => {
-          document.getElementById('introLogoWrap').classList.add('zooming');
-        }, 80);
+    // Helper: make a span with class
+    function span(cls, text) { return `<span class="${cls}">${text}</span>`; }
+    const OK   = span('bl-green',  '[ OK ]');
+    const FAIL = span('bl-pink',   '[FAIL]');
+    const WARN = span('bl-yellow', '[WARN]');
+    const INFO = span('bl-cyan',   '[INFO]');
+    const RUN  = span('bl-purple', '[ >> ]');
+
+    // Script: array of [delay_ms, html_string, css_class]
+    // class is applied to the outer .boot-line div
+    const SCRIPT = [
+      [0,    span('bl-dim', '────────────────────────────────────────────────────────────────'), ''],
+      [60,   span('bl-cyan','ZENO ECLIPSE SUITE') + span('bl-muted','  //  kernel v4.6.1-eclipse'), ''],
+      [120,  span('bl-dim', 'Copyright (c) Eclipse Foundation. All rights reserved.'), ''],
+      [180,  span('bl-dim', '────────────────────────────────────────────────────────────────'), ''],
+      [260,  '', ''],
+      [340,  RUN + span('bl-bright', '  Initializing boot sequence...'), ''],
+      [500,  RUN + span('bl-normal', '  Loading BIOS configuration table'), ''],
+      [660,  OK  + span('bl-muted',  '  bios.conf                                    1.2 KB'), ''],
+      [780,  RUN + span('bl-normal', '  Mounting virtual filesystem'), ''],
+      [920,  OK  + span('bl-muted',  '  /dev/nvme0  →  tmpfs                        mounted'), ''],
+      [1040, RUN + span('bl-normal', '  Starting entropy daemon'), ''],
+      [1160, OK  + span('bl-muted',  '  /dev/random                                  seeded'), ''],
+      [1260, '', ''],
+      [1340, span('bl-cyan',   '[ KERNEL ]') + span('bl-muted', '  Decompressing eclipse-kernel-4.6.1.gz'), ''],
+      [1500, OK  + span('bl-muted',  '  Checksum verified                       SHA256 OK'), ''],
+      [1620, RUN + span('bl-normal', '  Loading kernel modules'), ''],
+      [1720, OK  + span('bl-muted',  '  mod: neon_display.ko'), ''],
+      [1800, OK  + span('bl-muted',  '  mod: cursor_fx.ko'), ''],
+      [1880, OK  + span('bl-muted',  '  mod: audio_core.ko'), ''],
+      [1960, OK  + span('bl-muted',  '  mod: net_proxy.ko'), ''],
+      [2040, WARN + span('bl-muted', '  mod: cloak_layer.ko              [optional — loaded]'), ''],
+      [2120, OK  + span('bl-muted',  '  mod: wallpaper_engine.ko'), ''],
+      [2200, '', ''],
+      [2280, span('bl-cyan',   '[ SERVICES ]') + span('bl-muted', '  Starting system services'), ''],
+      [2400, RUN + span('bl-normal', '  zeno-display.service'), ''],
+      [2520, OK  + span('bl-muted',  '  Display compositor                        started'), ''],
+      [2620, RUN + span('bl-normal', '  zeno-network.service'), ''],
+      [2740, OK  + span('bl-muted',  '  Network bridge                            started'), ''],
+      [2840, RUN + span('bl-normal', '  zeno-auth.service'), ''],
+      [2960, OK  + span('bl-muted',  '  Auth daemon                               started'), ''],
+      [3060, RUN + span('bl-normal', '  zeno-ai.service'), ''],
+      [3180, OK  + span('bl-muted',  '  AI inference engine                       started'), ''],
+      [3280, RUN + span('bl-normal', '  zeno-media.service'), ''],
+      [3400, OK  + span('bl-muted',  '  Media proxy                               started'), ''],
+      [3500, RUN + span('bl-normal', '  zeno-browser.service'), ''],
+      [3620, OK  + span('bl-muted',  '  Recursion browser                         started'), ''],
+      [3720, '', ''],
+      [3800, span('bl-cyan',   '[ MODULES ]') + span('bl-muted', '  Loading application modules'), ''],
+      [3900, OK  + span('bl-muted',  '  games.bin                               loaded'), ''],
+      [3980, OK  + span('bl-muted',  '  movies.bin                              loaded'), ''],
+      [4060, OK  + span('bl-muted',  '  terminal.bin                            loaded'), ''],
+      [4140, OK  + span('bl-muted',  '  settings.bin                            loaded'), ''],
+      [4220, OK  + span('bl-muted',  '  ai.bin                                  loaded'), ''],
+      [4300, '', ''],
+      [4380, span('bl-cyan',   '[ HEALTH ]') + span('bl-muted', '  Running system diagnostics'), ''],
+      [4480, OK  + span('bl-muted',  '  Memory integrity check                  PASSED'), ''],
+      [4560, OK  + span('bl-muted',  '  Storage checksum                        PASSED'), ''],
+      [4640, OK  + span('bl-muted',  '  Network ping                            12 ms'), ''],
+      [4720, OK  + span('bl-muted',  '  Entropy pool                            healthy'), ''],
+      [4800, '', ''],
+      [4880, span('bl-green',  '[ READY ]') + span('bl-bright', '  All systems operational.  Booting ZENO...'), ''],
+      [5000, '', ''],
+    ];
+
+    // Cursor line that updates as boot progresses
+    let cursorLineEl = null;
+
+    function addLine(html, extraClass) {
+      const div = document.createElement('div');
+      div.className = 'boot-line' + (extraClass ? ' ' + extraClass : '');
+      div.innerHTML = html;
+      linesEl.appendChild(div);
+      // Keep only last ~28 lines visible (scroll effect)
+      while (linesEl.children.length > 32) {
+        linesEl.removeChild(linesEl.firstChild);
       }
+    }
 
-      // Second glitch burst midway through hold
-      if (allArrived && !flashFired && ts - holdStart > HOLD_DURATION * 0.45) {
-        flashFired = true;
-        const logo = document.getElementById('introLogo');
-        logo.classList.remove('glitch');
-        void logo.offsetWidth;
-        logo.classList.add('glitch');
-      }
+    // Animate progress bar on a line
+    function addProgressLine(startDelay, label, durationMs) {
+      const SLOTS = 32;
+      lineTimers.push(setTimeout(() => {
+        if (done) return;
+        const div = document.createElement('div');
+        div.className = 'boot-line';
+        div.innerHTML = span('bl-purple', '[ >> ]') + span('bl-normal', '  ' + label + '  ') + span('bl-dim', '[' + '░'.repeat(SLOTS) + ']') + span('bl-muted', '  0%');
+        linesEl.appendChild(div);
+        while (linesEl.children.length > 32) linesEl.removeChild(linesEl.firstChild);
 
-      if (allArrived && ts - holdStart > HOLD_DURATION) {
-        finishIntro();
-      }
+        let filled = 0;
+        const step = durationMs / SLOTS;
+        const barTimer = setInterval(() => {
+          if (done) { clearInterval(barTimer); return; }
+          filled++;
+          const pct = Math.round((filled / SLOTS) * 100);
+          const bar = span('bl-cyan', '█'.repeat(filled)) + span('bl-dim', '░'.repeat(SLOTS - filled));
+          div.innerHTML = span('bl-purple', '[ >> ]') + span('bl-normal', '  ' + label + '  ') + '[' + bar + ']' + span('bl-muted', '  ' + pct + '%');
+          if (filled >= SLOTS) {
+            clearInterval(barTimer);
+            div.innerHTML = span('bl-green', '[ OK ]') + span('bl-normal', '  ' + label + '  ') + '[' + span('bl-cyan', '█'.repeat(SLOTS)) + ']' + span('bl-green', '  100%');
+          }
+        }, step);
+      }, startDelay));
+    }
+
+    // Schedule all lines
+    SCRIPT.forEach(([delay, html, cls]) => {
+      lineTimers.push(setTimeout(() => {
+        if (done) return;
+        addLine(html, cls);
+      }, delay));
+    });
+
+    // Progress bars
+    addProgressLine(2260, 'Loading assets         ', 300);
+    addProgressLine(3780, 'Mounting modules       ', 400);
+
+    // Cursor line at the end
+    lineTimers.push(setTimeout(() => {
+      if (done) return;
+      addLine(span('bl-cyan', 'root@zeno:~# ') + '<span class="boot-cursor"></span>', '');
+    }, 5050));
+
+    // After cursor appears, hold briefly then show ZENO splash
+    lineTimers.push(setTimeout(() => {
+      if (done) return;
+      showSplash();
+    }, 5800));
+
+    function showSplash() {
+      document.getElementById('boot-logo-wrap').classList.add('show');
+      lineTimers.push(setTimeout(() => {
+        if (!done) finishIntro();
+      }, 1800));
     }
 
     function finishIntro() {
       if (done) return;
       done = true;
-      cancelAnimationFrame(animId);
+      clearInterval(clockTick);
+      lineTimers.forEach(t => clearTimeout(t));
       const intro = document.getElementById('intro');
       intro.classList.add('fade-out');
-      setTimeout(() => { intro.style.display = 'none'; }, 1700);
+      setTimeout(() => {
+        intro.style.display = 'none';
+        maybeShowDisclaimer();
+        startBreathing();
+      }, 1300);
     }
 
     window.skipIntro = function() { finishIntro(); };
-
-    requestAnimationFrame(animate);
   })();
 
+  // ── APP BUTTON BREATHING ANIMATION ──
+  function startBreathing() {
+    const COLORS = [
+      { rgb: '0,245,255' },   // cyan
+      { rgb: '191,0,255' },   // purple
+      { rgb: '0,255,136' },   // green
+      { rgb: '255,0,110' },   // pink
+      { rgb: '255,230,0' },   // yellow
+      { rgb: '191,0,255' },   // purple again
+      { rgb: '0,245,255' },   // cyan
+    ];
+    const btns = Array.from(document.querySelectorAll('.app-btn'));
+    let current = -1;
 
+    function breatheNext() {
+      // Remove from current
+      if (current >= 0 && btns[current]) {
+        btns[current].classList.remove('breathing');
+        btns[current].style.removeProperty('--breath-rgb');
+      }
+      // Pick a random different button
+      let next;
+      do { next = Math.floor(Math.random() * btns.length); } while (next === current && btns.length > 1);
+      current = next;
+      const color = COLORS[next % COLORS.length];
+      btns[current].style.setProperty('--breath-rgb', color.rgb);
+      btns[current].classList.add('breathing');
+      // Hold for one full breath cycle (3s) + random pause before switching
+      setTimeout(breatheNext, 3000 + Math.random() * 2000);
+    }
+
+    // Stagger start slightly so it doesn't fire immediately on load
+    setTimeout(breatheNext, 1200);
+  }
+
+  // ── CREDITS / BROWSER ──
   function openCredits() { document.getElementById('creditsModal').classList.add('open'); }
   function closeCredits() { document.getElementById('creditsModal').classList.remove('open'); }
   function openBrowser(e) {
@@ -857,59 +1487,9 @@
   window.addEventListener('DOMContentLoaded', function() {
     document.getElementById('creditsModal').addEventListener('click', function(e) { if (e.target === this) closeCredits(); });
   });
-
 </script>
 
-<!-- BROWSER OVERLAY -->
-<div class="browser-overlay" id="browserOverlay">
-  <div class="browser-topbar">
-    <button class="browser-back-btn" onclick="closeBrowser()"><i class="fa-solid fa-chevron-left"></i> HOME</button>
-    <div class="browser-title">RECURSION</div>
-  </div>
-  <iframe class="browser-frame" id="browserFrame" src="" allowfullscreen allow="autoplay; fullscreen; clipboard-read; clipboard-write"></iframe>
-</div>
-
-<!-- CREDITS BUTTON -->
-<button class="credits-btn" onclick="openCredits()"><i class="fa-solid fa-circle-info"></i>&nbsp; CREDITS</button>
-
-<!-- CREDITS MODAL -->
-<div class="credits-overlay" id="creditsModal">
-  <div class="credits-box">
-    <div class="credits-logo">ZENO</div>
-    <div class="credits-tagline">// PART OF THE ECLIPSE SUITE</div>
-    <div class="credits-divider"></div>
-
-    <div class="credits-section-label">DEVELOPMENT</div>
-    <div class="credits-row">
-      <span class="credits-name">Mizzery</span>
-      <span class="credits-role">MAIN DEVELOPER</span>
-    </div>
-    <div class="credits-row">
-      <span class="credits-name">GuyThatDidNothing</span>
-      <span class="credits-role">CO-DEVELOPER</span>
-    </div>
-
-    <div style="height:20px"></div>
-    <div class="credits-section-label">PARTNERS</div>
-    <div class="credits-row">
-      <span class="credits-name">GN-Stream</span>
-      <span class="credits-role partner">PARTNER</span>
-    </div>
-
-    <div style="height:20px"></div>
-    <div class="credits-section-label">MOVIE ASSETS</div>
-    <div class="credits-row">
-      <span class="credits-name">TMDB</span>
-      <span class="credits-role partner">METADATA &amp; SEARCH</span>
-    </div>
-    <div class="credits-row">
-      <span class="credits-name">Videasy</span>
-      <span class="credits-role partner">STREAM PLAYER</span>
-    </div>
-
-    <button class="credits-close" onclick="closeCredits()">CLOSE</button>
-  </div>
-</div>
-
+<!-- Cloudflare Pages Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c740984e25ac46bdba9355d049523fd8"}'></script>
 </body>
 </html>
