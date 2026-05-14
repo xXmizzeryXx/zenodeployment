@@ -21,6 +21,7 @@
   --muted: #5a6080;
   --card-radius: 6px;
   --sidebar-w: 240px;
+  --card-blur: 16px;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -184,7 +185,7 @@ body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;mi
 .movie-card.wide .card-poster-wrap{aspect-ratio:16/9}
 
 /* ── PLAYER ── */
-.player-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);backdrop-filter:blur(16px);z-index:500;align-items:center;justify-content:center}
+.player-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);backdrop-filter:blur(var(--card-blur));z-index:500;align-items:center;justify-content:center}
 .player-overlay.open{display:flex}
 .player-shell{position:relative;width:94vw;height:90vh;max-width:1400px;background:#000;border-radius:10px;overflow:hidden;border:1px solid rgba(0,245,255,0.15);box-shadow:0 0 100px rgba(0,245,255,0.05);display:flex;flex-direction:column;animation:popIn .2s ease}
 @keyframes popIn{from{transform:scale(0.96);opacity:0}to{transform:scale(1);opacity:1}}
@@ -351,6 +352,35 @@ body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;mi
 .service-banner-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .service-banner-name{font-family:'Orbitron',monospace;font-size:14px;letter-spacing:4px;font-weight:700}
 .service-banner-sub{font-size:13px;color:var(--muted)}
+
+/* ── EPISODE INFO MODAL ── */
+.ep-info-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);z-index:700;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease}
+.ep-info-overlay.open{display:flex}
+.ep-info-modal{width:100%;max-width:600px;background:#0d0d16;border:1px solid rgba(191,0,255,0.2);border-radius:12px;overflow:hidden;position:relative;box-shadow:0 30px 100px rgba(0,0,0,0.8),0 0 40px rgba(191,0,255,0.05);animation:slideUp .3s cubic-bezier(.2,.8,.3,1)}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.ep-info-close{position:absolute;top:15px;right:15px;z-index:10;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.ep-info-close:hover{background:var(--neon-pink);border-color:var(--neon-pink);transform:rotate(90deg)}
+
+.ep-info-banner{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#000}
+#epInfoStill{width:100%;height:100%;object-fit:cover;display:block}
+.ep-info-banner-grad{position:absolute;inset:0;background:linear-gradient(0deg,#0d0d16 0%,transparent 50%)}
+
+.ep-info-play-btn{position:absolute;bottom:20px;right:25px;width:56px;height:56px;border-radius:50%;background:var(--neon-purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;box-shadow:0 0 30px rgba(191,0,255,0.4);transition:all .2s;border:none}
+.ep-info-play-btn:hover{transform:scale(1.1);background:#fff;color:var(--neon-purple);box-shadow:0 0 40px rgba(191,0,255,0.6)}
+
+.ep-info-content{padding:25px 30px 35px}
+.ep-info-top{margin-bottom:15px}
+#epInfoTitle{font-family:'Orbitron',monospace;font-size:22px;color:#fff;letter-spacing:1px;margin-bottom:8px;line-height:1.2}
+.ep-info-meta{display:flex;align-items:center;gap:15px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted)}
+.ep-info-meta span{display:flex;align-items:center;gap:6px}
+.ep-info-meta i{font-size:12px;color:var(--neon-purple)}
+
+.ep-info-desc{font-size:15px;line-height:1.7;color:rgba(224,232,255,0.7);margin-top:15px;max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(191,0,255,0.2) transparent}
+.ep-info-desc::-webkit-scrollbar{width:4px}
+.ep-info-desc::-webkit-scrollbar-thumb{background:rgba(191,0,255,0.2);border-radius:4px}
+.ep-info-desc em{color:var(--muted);font-style:normal}
 </style>
 </head>
 <body>
@@ -432,7 +462,31 @@ body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;mi
   </div>
 </div>
 
+<!-- EPISODE INFO MODAL -->
+<div class="ep-info-overlay" id="epInfoOverlay">
+  <div class="ep-info-modal">
+    <button class="ep-info-close" onclick="closeEpInfo()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="ep-info-banner">
+        <img id="epInfoStill" src="" alt="">
+        <div class="ep-info-banner-grad"></div>
+        <button class="ep-info-play-btn" id="epInfoPlayBtn"><i class="fa-solid fa-play"></i></button>
+    </div>
+    <div class="ep-info-content">
+        <div class="ep-info-top">
+            <h2 id="epInfoTitle">—</h2>
+            <div class="ep-info-meta">
+                <span id="epInfoNumber"></span>
+                <span id="epInfoRuntime"></span>
+                <span id="epInfoAirdate"></span>
+            </div>
+        </div>
+        <div class="ep-info-desc" id="epInfoDesc"></div>
+    </div>
+  </div>
+</div>
+
 <!-- HOVER PREVIEW -->
+
 <div class="card-hover-preview" id="hoverPreview">
   <div id="hpBackdropWrap"></div>
   <div class="preview-body">
@@ -523,6 +577,28 @@ body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;mi
 </div>
 
 <script>
+// ── GLOBAL SETTINGS ──
+(function(){
+  const accent = localStorage.getItem('zeno-accent-color');
+  if(accent) document.documentElement.style.setProperty('--neon-cyan', accent);
+  const blur = localStorage.getItem('zeno-bg-blur');
+  if(blur) document.documentElement.style.setProperty('--card-blur', blur+'px');
+  const reducedMotion = localStorage.getItem('zeno-reduced-motion') === 'true';
+  if(reducedMotion){
+    const s=document.createElement('style');
+    s.innerHTML='*,*::before,*::after{animation-duration:0s !important;transition-duration:0s !important;animation-delay:0s !important;}';
+    document.head.appendChild(s);
+  }
+  const cloakTitle = localStorage.getItem('zeno-cloak-title');
+  const cloakFav = localStorage.getItem('zeno-cloak-favicon');
+  if(cloakTitle){
+    document.title = cloakTitle;
+    let link = document.querySelector("link[rel~='icon']");
+    if(!link){ link=document.createElement('link'); link.rel='icon'; document.head.appendChild(link); }
+    link.href = cloakFav;
+  }
+})();
+
 const TMDB_KEY='d3b2dfc2f1a5edd7494e2a6f778b4fb9';
 const TMDB='https://api.themoviedb.org/3';
 const IMG='https://image.tmdb.org/t/p/';
@@ -1265,6 +1341,7 @@ async function loadEpisodeCards(showId,seasonNum){
     const card=document.createElement('div');card.className='ep-card fade-up';card.style.animationDelay=(i*0.03)+'s';
     const still=ep.still_path?`${IMG}w400${ep.still_path}`:null;
     const epRating=ep.vote_average&&ep.vote_average>0?ep.vote_average.toFixed(1):null;
+    const useEpInfo = localStorage.getItem('zeno-ep-info-enabled') !== 'false';
     card.innerHTML=`
       <div class="ep-thumb-wrap">
         ${still?`<img class="ep-thumb" src="${still}" alt="${esc(ep.name||'')}" loading="lazy">`:
@@ -1283,7 +1360,10 @@ async function loadEpisodeCards(showId,seasonNum){
         ${ep.air_date?`<div class="ep-card-airdate">${ep.air_date}</div>`:''}
         <div class="ep-card-desc">${ep.overview?esc(ep.overview):'<em>No description.</em>'}</div>
       </div>`;
-    card.addEventListener('click',()=>playEpisodeCard(ep.season_number||seasonNum,ep.episode_number));
+    card.addEventListener('click',()=> {
+      if (useEpInfo) showEpInfo(ep,showId,seasonNum);
+      else playEpisodeCard(ep.season_number||seasonNum,ep.episode_number);
+    });
     grid.appendChild(card);
   });
 }
@@ -1292,6 +1372,7 @@ function closeDetail(){
   document.getElementById('detailPage').classList.remove('open');
   document.body.style.overflow='';
   if(window._savedScroll!==undefined)window.scrollTo({top:window._savedScroll,behavior:'instant'});
+  closeEpInfo();
 }
 async function quickPlay(item){
   if(!item) return;
@@ -1429,6 +1510,27 @@ function closePlayer(){
   }
 }
 function toggleFS(){const shell=document.querySelector('.player-shell');if(!document.fullscreenElement)shell.requestFullscreen?.();else document.exitFullscreen?.()}
+
+// ── EPISODE INFO ──
+function showEpInfo(ep,showId,seasonNum){
+  const overlay=document.getElementById('epInfoOverlay');
+  const still=ep.still_path?`${IMG}original${ep.still_path}`:null;
+  document.getElementById('epInfoStill').src=still||'';
+  document.getElementById('epInfoTitle').textContent=ep.name||`Episode ${ep.episode_number}`;
+  document.getElementById('epInfoNumber').innerHTML=`<i class="fa-solid fa-hashtag"></i> Season ${seasonNum}, Episode ${ep.episode_number}`;
+  document.getElementById('epInfoRuntime').innerHTML=ep.runtime?`<i class="fa-solid fa-clock"></i> ${ep.runtime} min`:'';
+  document.getElementById('epInfoAirdate').innerHTML=ep.air_date?`<i class="fa-solid fa-calendar"></i> ${ep.air_date}`:'';
+  document.getElementById('epInfoDesc').innerHTML=ep.overview?esc(ep.overview):'<em>No description available for this episode.</em>';
+  
+  document.getElementById('epInfoPlayBtn').onclick=()=>{
+    closeEpInfo();
+    playEpisodeCard(seasonNum,ep.episode_number);
+  };
+  
+  overlay.classList.add('open');
+}
+function closeEpInfo(){document.getElementById('epInfoOverlay').classList.remove('open')}
+document.getElementById('epInfoOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('epInfoOverlay'))closeEpInfo()});
 
 // Close on ESC
 window.addEventListener('keydown',e=>{

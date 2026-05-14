@@ -486,11 +486,114 @@ main{position:relative;z-index:1;padding:24px 20px}
 .settings-row:last-child{margin-bottom:0}
 .settings-row-label{font-size:13px;font-weight:600;color:var(--text);flex:1}
 .settings-row-hint{font-size:11px;color:var(--muted)}
+/* ── UI ENHANCEMENTS ── */
+.page-breadcrumb{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);padding:8px 20px 0;position:relative;z-index:1;display:flex;align-items:center;gap:8px}
+.page-breadcrumb .bc-link{color:rgba(0,245,255,.45);text-decoration:none;transition:color .2s}
+.page-breadcrumb .bc-link:hover{color:var(--neon-cyan)}
+.page-breadcrumb .bc-sep{opacity:.35}
+.page-breadcrumb .bc-here{color:var(--neon-cyan)}
+.fav-row{margin-bottom:16px;animation:fadeUp .3s ease both}
+.fav-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.fav-strip::-webkit-scrollbar{display:none}
+.fav-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,200,0,.06);border:1px solid rgba(255,200,0,.2);border-radius:20px;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;font-size:12px;font-weight:600;color:var(--text)}
+.fav-chip:hover{border-color:rgba(255,200,0,.45);box-shadow:0 0 14px rgba(255,200,0,.12)}
+.fav-chip-icon{width:20px;height:20px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:9px;color:#ffc800}
+.fav-chip-icon img{width:100%;height:100%;object-fit:cover}
+.tb-search .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:none;border-radius:4px;background:rgba(255,255,255,.06);color:var(--muted);cursor:pointer;font-size:14px;line-height:1;display:none;align-items:center;justify-content:center;transition:all .15s}
+.tb-search .search-clear:hover{color:var(--neon-cyan);background:rgba(0,245,255,.1)}
+.tb-search.has-text .search-clear{display:flex}
+.search-hl{background:rgba(0,245,255,.28);color:var(--neon-cyan);border-radius:2px;padding:0 2px}
+.skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;padding:8px 0 24px}
+.skeleton-card{height:118px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,.04) 0%,rgba(0,245,255,.08) 50%,rgba(255,255,255,.04) 100%);background-size:200% 100%;animation:sk-shimmer 1.1s ease infinite}
+@keyframes sk-shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.no-results-wrap{grid-column:1/-1;text-align:center;padding:40px 20px}
+.no-results-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.no-results-actions button{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1.5px;padding:8px 14px;border-radius:6px;cursor:pointer;border:1px solid rgba(0,245,255,.2);background:rgba(0,245,255,.06);color:var(--neon-cyan)}
+.game-card.status-playing{border-left:3px solid var(--neon-cyan)}
+.game-card.status-completed{border-left:3px solid var(--neon-green)}
+.game-card.status-backlog{border-left:3px solid #fa0}
+.game-card.status-dropped{border-left:3px solid var(--neon-pink)}
+.game-card .card-quickbar{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:6px;padding:6px;background:linear-gradient(to top,rgba(0,0,0,.78),transparent);opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none}
+.game-card:hover .card-quickbar{opacity:1;transform:translateY(0);pointer-events:auto}
+.card-quickbar button{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;padding:4px 10px;border-radius:4px;border:1px solid rgba(0,245,255,.25);background:rgba(8,8,16,.92);color:var(--neon-cyan);cursor:pointer}
+.card-quickbar button:hover{background:rgba(0,245,255,.15)}
+.coll-pills-on-card{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;max-width:100%;margin-top:2px}
+.modal-steps{display:flex;gap:0;padding:0 18px;border-bottom:1px solid rgba(0,245,255,.07);background:rgba(0,0,0,.2)}
+.modal-step{flex:1;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1.5px;padding:10px 8px;text-align:center;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.modal-step.active{color:var(--neon-cyan);border-bottom-color:var(--neon-cyan)}
+.modal-step.done{color:rgba(0,255,136,.5)}
+.gh-tree-preview{font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--muted);background:rgba(0,0,0,.35);border:1px solid rgba(0,245,255,.1);border-radius:8px;padding:10px 12px;max-height:120px;overflow-y:auto;line-height:1.5;display:none;white-space:pre-wrap}
+.gh-tree-preview.open{display:block}
+.r2-item{cursor:grab;position:relative;padding-left:22px!important}
+.r2-item::before{content:'⋮';position:absolute;left:6px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;opacity:.5}
+.r2-item.dragging{opacity:.45}
+#zenopackDrop.zdrop-animating{animation:zp-pulse 1.2s ease infinite;border-color:rgba(0,245,255,.45)!important}
+@keyframes zp-pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,245,255,.12)}50%{box-shadow:0 0 0 8px rgba(0,245,255,.06)}}
+.game-modal.chrome-minimal .game-modal-header{opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .35s ease,transform .35s ease}
+.game-modal.chrome-minimal:hover .game-modal-header,.game-modal.chrome-minimal:focus-within .game-modal-header{opacity:1;transform:translateY(0);pointer-events:auto}
+.game-modal-loading{position:relative;z-index:5}
+.game-modal-loading .loader-blur{position:absolute;inset:0;backdrop-filter:blur(10px);background:rgba(5,5,8,.35);pointer-events:none}
+.swipe-hint-mobile{display:none;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;color:rgba(0,245,255,.35);text-align:center;padding:4px}
+@media(max-width:720px){.swipe-hint-mobile{display:block}}
+.ptgoal-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);z-index:550;align-items:center;justify-content:center}
+.ptgoal-modal-overlay.open{display:flex}
+.ptgoal-modal-box{background:var(--bg2);border:1px solid rgba(0,245,255,.2);border-radius:14px;padding:24px 28px;width:min(360px,92vw);animation:slideIn .2s ease}
+.ptgoal-modal-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--neon-cyan);margin-bottom:14px}
+.ptgoal-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.ptgoal-preset{font-family:'Orbitron',monospace;font-size:8px;padding:10px;border-radius:8px;border:1px solid rgba(0,245,255,.15);background:rgba(0,245,255,.04);color:var(--muted);cursor:pointer;transition:all .15s}
+.ptgoal-preset:hover{border-color:rgba(0,245,255,.4);color:var(--neon-cyan)}
+.ptgoal-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.toast-stack{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column-reverse;align-items:center;gap:8px;pointer-events:none;max-width:96vw}
+.toast-stack .toast-item{pointer-events:auto;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px 18px;border-radius:7px;background:rgba(8,8,16,.96);border:1px solid rgba(0,245,255,.18);color:var(--neon-cyan);box-shadow:0 0 24px rgba(0,245,255,.08);animation:toast-in .28s ease both;display:flex;align-items:center;gap:10px}
+.toast-stack .toast-item.error{border-color:rgba(255,0,110,.25);color:var(--neon-pink)}
+@keyframes toast-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.toast-undo{margin-left:4px;padding:3px 10px;border-radius:4px;border:1px solid rgba(0,245,255,.3);background:rgba(0,245,255,.1);cursor:pointer;font-size:8px;color:var(--neon-cyan);font-family:'Orbitron',monospace}
+.onboard-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(14px);z-index:12000;align-items:center;justify-content:center;padding:20px}
+.onboard-overlay.open{display:flex}
+.onboard-card{background:var(--bg2);border:1px solid rgba(0,245,255,.18);border-radius:16px;padding:28px 26px;max-width:420px;width:100%}
+.onboard-card h3{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--neon-cyan);margin-bottom:16px}
+.onboard-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;color:var(--text)}
+.onboard-item:last-child{border-bottom:none}
+.onboard-item input{width:18px;height:18px;accent-color:var(--neon-cyan)}
+.whatsnew-bar{display:none;align-items:center;justify-content:space-between;gap:12px;padding:8px 20px;background:rgba(0,245,255,.06);border-bottom:1px solid rgba(0,245,255,.12);font-size:12px;color:var(--text);position:relative;z-index:2}
+.whatsnew-bar.open{display:flex}
+.whatsnew-bar a{color:var(--neon-cyan)}
+.whatsnew-dismiss{background:none;border:1px solid rgba(255,255,255,.15);color:var(--muted);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:10px}
+.sidebar-footer-sticky{padding:12px 18px;border-top:1px solid rgba(0,245,255,.1);background:rgba(5,5,8,.98);display:none;flex-shrink:0}
+.sidebar-footer-sticky.visible{display:block}
+.sidebar-play-btn{width:100%;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:10px;border-radius:8px;border:1px solid rgba(0,255,136,.3);background:rgba(0,255,136,.1);color:var(--neon-green);cursor:pointer}
+.sidebar-notes-tabs{display:flex;gap:6px;margin-bottom:8px}
+.sidebar-notes-tabs button{font-family:'Orbitron',monospace;font-size:7px;padding:5px 10px;border-radius:5px;border:1px solid rgba(0,245,255,.15);background:transparent;color:var(--muted);cursor:pointer}
+.sidebar-notes-tabs button.active{border-color:var(--neon-cyan);color:var(--neon-cyan);background:rgba(0,245,255,.06)}
+.sidebar-notes-preview{min-height:72px;padding:10px;background:rgba(0,0,0,.3);border-radius:7px;font-size:13px;line-height:1.5;color:var(--text);display:none;border:1px solid rgba(0,245,255,.08)}
+.sidebar-notes-preview.open{display:block}
+.banner-fit-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.banner-fit-row button{font-family:'Orbitron',monospace;font-size:7px;padding:5px 10px;border-radius:5px;border:1px solid rgba(0,245,255,.15);background:transparent;color:var(--muted);cursor:pointer}
+.banner-fit-row button.active{border-color:var(--neon-cyan);color:var(--neon-cyan)}
+.pt-mini-chart{display:flex;align-items:flex-end;gap:3px;height:32px;margin-top:8px;padding:8px;background:rgba(0,0,0,.25);border-radius:8px;border:1px solid rgba(0,245,255,.08)}
+.pt-mini-chart .bar{flex:1;background:linear-gradient(to top,rgba(0,245,255,.12),rgba(0,245,255,.45));border-radius:2px 2px 0 0;min-height:4px}
+.console-window{display:flex;flex-direction:column;resize:vertical;overflow:hidden;min-height:120px;max-height:70vh}
+.console-filter-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.console-filter-row button{font-size:7px;font-family:'Orbitron',monospace;padding:3px 8px;border-radius:4px;border:1px solid rgba(255,0,110,.2);background:transparent;color:var(--muted);cursor:pointer}
+.console-filter-row button.active{color:var(--neon-pink);border-color:rgba(255,0,110,.4)}
+.size-btn[data-preview]:hover::before{content:'';position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);width:40px;height:28px;border-radius:6px;border:1px solid rgba(0,245,255,.25);background:repeating-linear-gradient(90deg,rgba(0,245,255,.12) 0,rgba(0,245,255,.12) 1px,transparent 1px,transparent 5px),repeating-linear-gradient(0deg,rgba(0,245,255,.12) 0,rgba(0,245,255,.12) 1px,transparent 1px,transparent 5px),rgba(5,5,8,.95);background-size:5px 5px,5px 5px,100% 100%;box-shadow:0 4px 16px rgba(0,0,0,.5);z-index:50;pointer-events:none}
+.size-btn{position:relative}
+.size-btn[data-size="sm"]:hover::before{background-size:3px 3px,3px 3px,100% 100%}
+.size-btn[data-size="lg"]:hover::before{background-size:7px 7px,7px 7px,100% 100%}
+.size-btn[data-size="list"]:hover::before{background:repeating-linear-gradient(180deg,rgba(0,245,255,.25) 0,rgba(0,245,255,.25) 3px,transparent 3px,transparent 7px),rgba(5,5,8,.95);background-size:100% 100%}
+.kl-item-sub{font-size:10px;color:rgba(0,245,255,.35);margin-top:2px;line-height:1.3}
+body.zeno-reduced-motion *,body.zeno-reduced-motion *::before,body.zeno-reduced-motion *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:50ms!important}
+body.zeno-reduced-motion .skeleton-card{animation:none;background:rgba(255,255,255,.06)}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--neon-cyan);outline-offset:2px}
+.empty-portal-art{width:100px;height:88px;margin:0 auto 8px;opacity:.4}
+.empty-portal-art svg{width:100%;height:100%}
+#toast.legacy-toast{display:none!important}
 </style>
 </head>
 <body>
 <canvas id="bgCanvas"></canvas>
 <div class="scanlines"></div>
+<div class="whatsnew-bar" id="whatsNewBar"><span>New UI: launcher shortcuts, stacked toasts, favorites rail & more — see <kbd style="font-size:10px;padding:2px 6px;border:1px solid rgba(0,245,255,.2);border-radius:4px">?</kbd> on Games</span><button type="button" class="whatsnew-dismiss" onclick="dismissWhatsNew()">DISMISS</button></div>
 
 <!-- WELCOME -->
 <div class="welcome-overlay" id="welcomeModal">
@@ -514,8 +617,8 @@ main{position:relative;z-index:1;padding:24px 20px}
 
 <!-- GAME MODAL -->
 <div class="game-modal-overlay" id="gameModal">
-  <div class="game-modal">
-    <div class="game-modal-header">
+  <div class="game-modal" id="gameModalInner">
+    <div class="game-modal-header" id="gameModalChrome">
       <div class="game-modal-icon" id="gameModalIcon"></div>
       <div class="game-modal-title" id="gameModalTitle">LOADING...</div>
       <button class="game-modal-btn" title="Screenshot" onclick="captureScreenshot()"><i class="fa-solid fa-camera"></i></button>
@@ -524,10 +627,33 @@ main{position:relative;z-index:1;padding:24px 20px}
       <button class="game-modal-btn close" onclick="closeGameModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="game-modal-loading" id="gameModalLoading">
+      <div class="loader-blur"></div>
       <div class="loader-ring"></div>
       <div class="loader-text">LAUNCHING GAME</div>
     </div>
     <iframe id="gameModalFrame" src="" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    <div class="swipe-hint-mobile">Swipe down on backdrop to close</div>
+  </div>
+</div>
+
+<!-- PLAYTIME GOAL PICKER (modal) -->
+<div class="ptgoal-modal-overlay" id="ptgoalModal" onclick="if(event.target===this)closePtGoalModal()">
+  <div class="ptgoal-modal-box" onclick="event.stopPropagation()">
+    <div class="ptgoal-modal-title">SESSION GOAL</div>
+    <div class="ptgoal-presets">
+      <button type="button" class="ptgoal-preset" onclick="applyPtGoalPreset(15)">15m</button>
+      <button type="button" class="ptgoal-preset" onclick="applyPtGoalPreset(30)">30m</button>
+      <button type="button" class="ptgoal-preset" onclick="applyPtGoalPreset(45)">45m</button>
+      <button type="button" class="ptgoal-preset" onclick="applyPtGoalPreset(60)">1h</button>
+      <button type="button" class="ptgoal-preset" onclick="applyPtGoalPreset(90)">1.5h</button>
+      <button type="button" class="ptgoal-preset" onclick="applyPtGoalPreset(120)">2h</button>
+    </div>
+    <div class="field-label">CUSTOM (MINUTES)</div>
+    <input class="field-input" type="number" id="ptgoalCustomInput" min="1" max="999" placeholder="e.g. 25" style="margin-bottom:0"/>
+    <div class="ptgoal-modal-actions">
+      <button type="button" class="btn-secondary" onclick="closePtGoalModal()">CANCEL</button>
+      <button type="button" class="btn-primary" onclick="applyPtGoalCustom()">START</button>
+    </div>
   </div>
 </div>
 
@@ -550,6 +676,11 @@ main{position:relative;z-index:1;padding:24px 20px}
     <div class="console-header">
       <div class="console-title"><i class="fa-solid fa-circle-exclamation" style="margin-right:6px"></i>ERRORS</div>
       <div class="console-count" id="consoleCount">0</div>
+      <div class="console-filter-row" id="consoleFilters">
+        <button type="button" class="active" data-cf="all" onclick="setConsoleFilter('all')">ALL</button>
+        <button type="button" data-cf="error" onclick="setConsoleFilter('error')">ERRORS</button>
+      </div>
+      <button type="button" class="console-clear" onclick="copyConsoleAll()" title="Copy log">COPY</button>
       <div class="console-hint">| TO CLOSE</div>
       <button class="console-clear" onclick="clearConsole()">CLEAR</button>
     </div>
@@ -572,6 +703,7 @@ main{position:relative;z-index:1;padding:24px 20px}
       <div class="kl-key"><kbd>↑↓</kbd> navigate</div>
       <div class="kl-key"><kbd>↵</kbd> launch</div>
       <div class="kl-key"><kbd>/</kbd> open</div>
+      <div class="kl-key"><kbd>Ctrl+↵</kbd> info</div>
     </div>
   </div>
 </div>
@@ -582,6 +714,11 @@ main{position:relative;z-index:1;padding:24px 20px}
     <div class="modal-header">
       <div class="modal-title">ADD GAMES</div>
       <button class="modal-close" onclick="closeAddModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-steps" id="addModalSteps" aria-hidden="true">
+      <div class="modal-step" data-step="1">1 · SOURCE</div>
+      <div class="modal-step" data-step="2">2 · CONFIGURE</div>
+      <div class="modal-step" data-step="3">3 · LOAD</div>
     </div>
     <div class="modal-tabs" id="addModalTabs">
       <button class="modal-tab active" data-tab="folders">FOLDERS</button>
@@ -646,6 +783,7 @@ main{position:relative;z-index:1;padding:24px 20px}
         </div>
       </div>
       <div class="status-line" id="ghStatus"></div>
+      <div class="gh-tree-preview" id="ghTreePreview"></div>
       <div class="gh-list" id="ghGameList" style="display:none"></div>
       <div class="modal-actions" id="ghActions" style="display:none">
         <button class="btn-primary" id="ghLoadBtn" disabled onclick="ghLoadSelected()"><i class="fa-solid fa-bolt"></i>&nbsp; LOAD SELECTED</button>
@@ -707,6 +845,21 @@ main{position:relative;z-index:1;padding:24px 20px}
         </div>
       </div>
       <div class="settings-section">
+        <div class="settings-section-title">APPEARANCE & FEEDBACK</div>
+        <div class="settings-row">
+          <div class="settings-row-label">Reduced motion</div>
+          <input type="checkbox" id="zenoReducedMotion" onchange="toggleReducedMotion(this.checked)"/>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-label">UI sounds</div>
+          <input type="checkbox" id="zenoUiSounds" onchange="localStorage.setItem('zeno-ui-sounds',this.checked?'1':'0')"/>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-label">Collection pills on cards</div>
+          <input type="checkbox" id="zenoCollPills" onchange="localStorage.setItem('zeno-ui-coll-pills',this.checked?'1':'0');renderGrid?.()"/>
+        </div>
+      </div>
+      <div class="settings-section">
         <div class="settings-section-title">PLAYTIME GOAL</div>
         <div class="settings-row">
           <div class="settings-row-label">Default session limit</div>
@@ -734,6 +887,9 @@ main{position:relative;z-index:1;padding:24px 20px}
     <button class="sidebar-close" onclick="closeSidebar()"><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div class="sidebar-body" id="sidebarBody"></div>
+  <div class="sidebar-footer-sticky" id="sidebarFooter">
+    <button type="button" class="sidebar-play-btn" onclick="sidebarFooterPlay()"><i class="fa-solid fa-play"></i> PLAY</button>
+  </div>
 </div>
 
 <!-- AUTH MODAL -->
@@ -765,14 +921,31 @@ main{position:relative;z-index:1;padding:24px 20px}
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+<div class="toast legacy-toast" id="toast" style="display:none"></div>
+
+<!-- ONBOARDING -->
+<div class="onboard-overlay" id="onboardOverlay">
+  <div class="onboard-card">
+    <h3>GET STARTED</h3>
+    <label class="onboard-item"><input type="checkbox" data-onb="name" onchange="markOnboard(this)"/> Set your display name (welcome prompt)</label>
+    <label class="onboard-item"><input type="checkbox" data-onb="app" onchange="markOnboard(this)"/> Add a game from ZenoApps or a folder</label>
+    <label class="onboard-item"><input type="checkbox" data-onb="keys" onchange="markOnboard(this)"/> Press <kbd style="font-size:10px">?</kbd> to see keyboard shortcuts</label>
+    <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px">
+      <button type="button" class="btn-secondary" onclick="closeOnboard()">LATER</button>
+      <button type="button" class="btn-primary" onclick="finishOnboard()">DONE</button>
+    </div>
+  </div>
+</div>
 
 <!-- TOP BAR -->
+<nav class="page-breadcrumb" aria-label="Breadcrumb"><a href="index.html" class="bc-link">ZENO</a><span class="bc-sep">/</span><span class="bc-here">GAMES</span></nav>
 <div class="top-bar">
   <a href="index.html" class="tb-logo">ZENO</a>
-  <div class="tb-search">
+  <div class="tb-search" id="searchWrap">
     <i class="fa-solid fa-search"></i>
-    <input type="text" id="searchInput" placeholder="Search games..." oninput="filterGames()"/>
+    <input type="text" id="searchInput" placeholder="Search games..." oninput="filterGames();syncSearchClear()" autocomplete="off"/>
+    <button type="button" class="search-clear" id="searchClearBtn" onclick="clearSearch()" title="Clear" aria-label="Clear search">×</button>
   </div>
   <div class="tb-right">
     <span class="greeting" id="greeting"></span>
@@ -808,6 +981,15 @@ main{position:relative;z-index:1;padding:24px 20px}
   <div class="empty-state" id="emptyState">
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;gap:0;width:100%;max-width:640px;margin:0 auto;position:relative">
 
+      <div class="empty-portal-art" aria-hidden="true">
+        <svg viewBox="0 0 100 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="50" cy="72" rx="36" ry="8" stroke="rgba(0,245,255,.25)" stroke-width="1.2"/>
+          <circle cx="50" cy="38" r="22" stroke="rgba(0,245,255,.35)" stroke-width="2"/>
+          <circle cx="50" cy="38" r="14" stroke="rgba(191,0,255,.3)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <path d="M38 38 L50 26 L62 38" stroke="rgba(0,255,136,.35)" stroke-width="1.5" fill="none"/>
+          <rect x="44" y="52" width="12" height="14" rx="2" stroke="rgba(0,245,255,.2)" stroke-width="1"/>
+        </svg>
+      </div>
       <div class="empty-icon-wrap" style="margin-bottom:24px">
         <div class="empty-icon-ring"></div>
         <div class="empty-icon-ring2"></div>
@@ -868,6 +1050,11 @@ main{position:relative;z-index:1;padding:24px 20px}
     <div class="recent-strip" id="recentStrip"></div>
   </div>
 
+  <div class="fav-row" id="favRow" style="display:none">
+    <div class="recent-label">FAVORITES</div>
+    <div class="fav-strip" id="favStrip"></div>
+  </div>
+
   <div id="filterBar" class="filter-bar" style="display:none">
     <button class="sort-btn active" data-sort="default" onclick="setSort('default')">DEFAULT</button>
     <button class="sort-btn" data-sort="name" onclick="setSort('name')">A–Z</button>
@@ -878,17 +1065,52 @@ main{position:relative;z-index:1;padding:24px 20px}
     <div class="filter-sep"></div>
     <div id="collFilterBtns"></div>
     <div class="filter-sep" id="collFilterSep" style="display:none"></div>
-    <button class="size-btn active" data-size="md" title="Medium" onclick="setSize('md')"><i class="fa-solid fa-grip"></i></button>
-    <button class="size-btn" data-size="sm" title="Small" onclick="setSize('sm')"><i class="fa-solid fa-border-all"></i></button>
-    <button class="size-btn" data-size="lg" title="Large" onclick="setSize('lg')"><i class="fa-solid fa-square-full"></i></button>
-    <button class="size-btn" data-size="list" title="List" onclick="setSize('list')"><i class="fa-solid fa-list"></i></button>
+    <button class="size-btn active" data-size="md" data-preview="md" title="Medium grid" onclick="setSize('md')"><i class="fa-solid fa-grip"></i></button>
+    <button class="size-btn" data-size="sm" data-preview="sm" title="Compact grid" onclick="setSize('sm')"><i class="fa-solid fa-border-all"></i></button>
+    <button class="size-btn" data-size="lg" data-preview="lg" title="Large cards" onclick="setSize('lg')"><i class="fa-solid fa-square-full"></i></button>
+    <button class="size-btn" data-size="list" data-preview="list" title="List view" onclick="setSize('list')"><i class="fa-solid fa-list"></i></button>
   </div>
+  <div class="skeleton-grid" id="gameSkeletonRow" style="display:none" aria-hidden="true"></div>
   <div class="game-grid size-md" id="gameGrid" style="display:none">
-    <div class="no-results" id="noResults">NO GAMES FOUND</div>
+    <div class="no-results" id="noResults">
+      <div class="no-results-wrap">
+        <div>NO GAMES FOUND</div>
+        <div class="no-results-actions">
+          <button type="button" onclick="document.getElementById('searchInput').value='';filterGames();syncSearchClear()">CLEAR SEARCH</button>
+          <button type="button" onclick="activeCollFilter=null;renderCollFilterBtns();renderGrid()">CLEAR COLLECTION</button>
+          <button type="button" onclick="openAddModal('folders')">ADD GAMES</button>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
+<script>
+// ── GLOBAL SETTINGS ──
+(function applyGlobalSettings() {
+  const accent = localStorage.getItem('zeno-accent-color');
+  if (accent) document.documentElement.style.setProperty('--neon-cyan', accent);
+  const scanlines = localStorage.getItem('zeno-bg-scanlines');
+  if (scanlines === 'false') {
+    const el = document.querySelector('.scanlines');
+    if (el) el.style.display = 'none';
+  }
+  const reducedMotion = localStorage.getItem('zeno-reduced-motion') === 'true';
+  if (reducedMotion) {
+    document.body.classList.add('zeno-reduced-motion');
+  }
+  const cloakTitle = localStorage.getItem('zeno-cloak-title');
+  const cloakFav = localStorage.getItem('zeno-cloak-favicon');
+  if (cloakTitle) {
+    document.title = cloakTitle;
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+    link.href = cloakFav;
+  }
+})();
+</script>
 <script src="games-page.js"></script>
+
 
 <!-- AUTH MODULE -->
 <script type="module">

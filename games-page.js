@@ -68,7 +68,7 @@ function renderCollList() {
   if (!colls.length) { el.innerHTML = '<div style="text-align:center;padding:20px;font-family:\'Orbitron\',monospace;font-size:9px;letter-spacing:2px;color:var(--muted)">NO COLLECTIONS YET</div>'; return; }
   el.innerHTML = colls.map(c => {
     const count = games.filter(g => (getGameMeta(g.id).collections||[]).includes(c.id)).length;
-    return `<div class="coll-item"><div class="coll-item-emoji">${c.emoji}</div><div class="coll-item-name">${esc(c.name)}</div><div class="coll-item-count">${count} GAME${count!==1?'S':''}</div><button class="coll-item-del" onclick="deleteCollection('${c.id}')"><i class="fa-solid fa-trash"></i></button></div>`;
+    return `<div class="coll-item"><div class="coll-item-emoji">${esc(String(c.emoji||''))}</div><div class="coll-item-name">${esc(c.name)}</div><div class="coll-item-count">${count} GAME${count!==1?'S':''}</div><button class="coll-item-del" onclick="deleteCollection('${c.id}')"><i class="fa-solid fa-trash"></i></button></div>`;
   }).join('');
 }
 function renderCollFilterBtns() {
@@ -77,7 +77,7 @@ function renderCollFilterBtns() {
   const sep = document.getElementById('collFilterSep');
   if (!colls.length) { el.innerHTML=''; sep.style.display='none'; return; }
   sep.style.display='block';
-  el.innerHTML = colls.map(c => `<button class="filter-coll-btn${activeCollFilter===c.id?' active':''}" onclick="setCollFilter('${c.id}')">${c.emoji} ${esc(c.name)}</button>`).join('');
+  el.innerHTML = colls.map(c => `<button class="filter-coll-btn${activeCollFilter===c.id?' active':''}" onclick="setCollFilter('${c.id}')">${esc(String(c.emoji||''))} ${esc(c.name)}</button>`).join('');
 }
 function setCollFilter(id) {
   activeCollFilter = activeCollFilter===id ? null : id;
@@ -328,6 +328,12 @@ document.addEventListener('click', e => { if (!e.target.closest('#overflowBtn') 
 function openSettingsModal() {
   const def = localStorage.getItem('zeno-ptgoal-default') || '0';
   document.getElementById('ptgoalDefaultSelect').value = def;
+  const rm = document.getElementById('zenoReducedMotion');
+  if (rm) rm.checked = localStorage.getItem('zeno-reduced-motion') === '1';
+  const snd = document.getElementById('zenoUiSounds');
+  if (snd) snd.checked = localStorage.getItem('zeno-ui-sounds') === '1';
+  const cp = document.getElementById('zenoCollPills');
+  if (cp) cp.checked = localStorage.getItem('zeno-ui-coll-pills') === '1';
   document.getElementById('settingsModal').classList.add('open');
 }
 function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
@@ -335,13 +341,33 @@ document.getElementById('settingsModal').addEventListener('click', e => { if(e.t
 function savePtGoalDefault() {
   localStorage.setItem('zeno-ptgoal-default', document.getElementById('ptgoalDefaultSelect').value);
 }
+function toggleReducedMotion(on) {
+  localStorage.setItem('zeno-reduced-motion', on ? '1' : '0');
+  document.body.classList.toggle('zeno-reduced-motion', on);
+}
 
 // ── ADD MODAL ────────────────────────────────────────────────────
 let pendingFolders = [];
+function updateAddModalSteps(tab) {
+  const steps = document.querySelectorAll('#addModalSteps .modal-step');
+  if (!steps.length) return;
+  const order = ['folders', 'paste', 'zenopack', 'zenoapps', 'git', 'r2'];
+  const idx = Math.max(0, order.indexOf(tab));
+  let main = 0;
+  if (idx <= 1) main = 0;
+  else if (idx <= 3) main = 1;
+  else main = 2;
+  steps.forEach((s, i) => {
+    s.classList.remove('active', 'done');
+    if (i < main) s.classList.add('done');
+    else if (i === main) s.classList.add('active');
+  });
+}
 function openAddModal(tab = 'folders') {
   document.querySelectorAll('.modal-tab').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
   document.querySelectorAll('.modal-pane').forEach(p => p.classList.toggle('active', p.id==='pane-'+tab));
   if (tab==='zenoapps') buildZasGrid();
+  updateAddModalSteps(tab);
   document.getElementById('addModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -354,6 +380,7 @@ document.getElementById('addModalTabs').addEventListener('click', e => {
   tab.classList.add('active');
   document.getElementById('pane-'+tab.dataset.tab).classList.add('active');
   if (tab.dataset.tab==='zenoapps') buildZasGrid();
+  updateAddModalSteps(tab.dataset.tab);
 });
 
 // ── FOLDER DROP ──────────────────────────────────────────────────
@@ -539,9 +566,10 @@ async function importZenopackFiles(fileList) {
 }
 (function(){
   const dz=document.getElementById('zenopackDrop');
+  dz.addEventListener('dragenter',e=>{e.preventDefault();e.stopPropagation();dz.classList.add('dragover','zdrop-animating');});
   dz.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();dz.classList.add('dragover');});
-  dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
-  dz.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();dz.classList.remove('dragover');const files=[...e.dataTransfer.files].filter(f=>f.name.endsWith('.zenopack'));if(files.length) importZenopackFiles(files);else{document.getElementById('zenopackStatus').textContent='DROP .ZENOPACK FILES';document.getElementById('zenopackStatus').className='status-line err';}});
+  dz.addEventListener('dragleave',()=>{dz.classList.remove('dragover','zdrop-animating');});
+  dz.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();dz.classList.remove('dragover','zdrop-animating');const files=[...e.dataTransfer.files].filter(f=>f.name.endsWith('.zenopack'));if(files.length) importZenopackFiles(files);else{document.getElementById('zenopackStatus').textContent='DROP .ZENOPACK FILES';document.getElementById('zenopackStatus').className='status-line err';}});
 })();
 
 // ── RECENTLY PLAYED ROW ──────────────────────────────────────────
@@ -569,22 +597,67 @@ function renderRecentRow() {
     </div>`).join('');
 }
 
-// ── HIGHLIGHT SEARCH ─────────────────────────────────────────────
+// ── HIGHLIGHT SEARCH (all matches) ──────────────────────────────
 function highlightText(text, query) {
   if (!query) return esc(text);
-  const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx < 0) return esc(text);
-  return esc(text.slice(0, idx)) +
-    '<mark style="background:rgba(0,245,255,.25);color:var(--neon-cyan);border-radius:2px;padding:0 1px">' +
-    esc(text.slice(idx, idx + query.length)) +
-    '</mark>' +
-    esc(text.slice(idx + query.length));
+  const lower = text.toLowerCase(), q = query.toLowerCase();
+  let out = '', i = 0;
+  while (i < text.length) {
+    const idx = lower.indexOf(q, i);
+    if (idx < 0) { out += esc(text.slice(i)); break; }
+    out += esc(text.slice(i, idx)) + '<mark class="search-hl">' + esc(text.slice(idx, idx + q.length)) + '</mark>';
+    i = idx + q.length;
+  }
+  return out;
+}
+function fuzzyMatch(str, q) {
+  if (!q) return true;
+  const s = str.toLowerCase(), needle = q.toLowerCase();
+  let si = 0;
+  for (let i = 0; i < needle.length; i++) {
+    const j = s.indexOf(needle[i], si);
+    if (j < 0) return false;
+    si = j + 1;
+  }
+  return true;
+}
+function playUiSound(kind) {
+  if (localStorage.getItem('zeno-ui-sounds') !== '1') return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = kind === 'err' ? 180 : 880;
+    g.gain.setValueAtTime(0.04, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    o.start(); o.stop(ctx.currentTime + 0.12);
+  } catch (e) {}
+}
+function zenoHaptic(ms) {
+  try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (e) {}
+}
+
+function renderFavoritesRail() {
+  const row = document.getElementById('favRow'), strip = document.getElementById('favStrip');
+  if (!row || !strip) return;
+  const metaMap = loadMeta();
+  const favs = games.filter(g => (metaMap[g.id] || {}).fav);
+  if (!favs.length) { row.style.display = 'none'; return; }
+  row.style.display = 'block';
+  strip.innerHTML = favs.map(g => `
+    <div class="fav-chip" onclick="openGameModal(games.find(x=>x.id==='${g.id}'))">
+      <span class="fav-chip-icon">${gameIconHtml(g.icon)}</span>
+      <span>${esc(g.name)}</span>
+    </div>`).join('');
 }
 
 // ── GRID ─────────────────────────────────────────────────────────
 function renderGrid() {
+  const skel = document.getElementById('gameSkeletonRow');
+  if (skel) { skel.style.display = 'none'; skel.innerHTML = ''; }
   const grid=document.getElementById('gameGrid'),empty=document.getElementById('emptyState'),noRes=document.getElementById('noResults'),fb=document.getElementById('filterBar');
-  if(!games.length){empty.style.display='flex';grid.style.display='none';fb.style.display='none';document.getElementById('gameCount').textContent='';document.getElementById('recentRow').style.display='none';return;}
+  const favRowEl = document.getElementById('favRow');
+  if(!games.length){empty.style.display='flex';grid.style.display='none';fb.style.display='none';document.getElementById('gameCount').textContent='';document.getElementById('recentRow').style.display='none';if(favRowEl)favRowEl.style.display='none';return;}
   empty.style.display='none';grid.style.display='grid';fb.style.display='flex';
   grid.className='game-grid size-'+currentSize;
   document.querySelectorAll('.size-btn').forEach(b=>b.classList.toggle('active',b.dataset.size===currentSize));
@@ -594,6 +667,8 @@ function renderGrid() {
   let filtered=q?games.filter(g=>g.name.toLowerCase().includes(q)):[...games];
   if(activeCollFilter) filtered=filtered.filter(g=>(getGameMeta(g.id).collections||[]).includes(activeCollFilter));
   const meta=loadMeta();
+  const showCollPills = localStorage.getItem('zeno-ui-coll-pills') === '1';
+  const collsList = loadCollections();
   if(currentSort==='name') filtered.sort((a,b)=>a.name.localeCompare(b.name));
   else if(currentSort==='recent') filtered.sort((a,b)=>((meta[b.id]||{}).lastPlayed||0)-((meta[a.id]||{}).lastPlayed||0));
   else if(currentSort==='playtime') filtered.sort((a,b)=>((meta[b.id]||{}).playtime||0)-((meta[a.id]||{}).playtime||0));
@@ -610,11 +685,17 @@ function renderGrid() {
     const statusLabels={playing:'PLAYING',completed:'DONE',backlog:'BACKLOG',dropped:'DROPPED'};
     const statusBadge=status?`<span class="game-status-badge ${status}">${statusLabels[status]||status}</span>`:'';
     const stars=[1,2,3,4,5].map(n=>`<span class="s${n<=rating?' lit':''}">★</span>`).join('');
+    const collPillHtml = showCollPills && collsList.length ? (() => {
+      const ids = gm.collections || [];
+      const pills = ids.map(cid => { const c = collsList.find(x => x.id === cid); return c ? `<span class="coll-pill-mini" title="${esc(c.name)}">${esc(String(c.emoji || ''))}</span>` : ''; }).join('');
+      return pills ? `<div class="coll-pills-on-card">${pills}</div>` : '';
+    })() : '';
+    const bannerExtra = gm.bannerFit === 'contain' ? ' style="object-fit:contain"' : '';
     const card=document.createElement('div');
-    card.className='game-card'+(bulkMode?' bulk-mode':'')+(isBulkSel?' bulk-selected':'');
+    card.className='game-card'+(bulkMode?' bulk-mode':'')+(isBulkSel?' bulk-selected':'')+(status&&!bulkMode?' status-'+status:'');
     card.style.animationDelay=(i*.018)+'s';
     card.innerHTML=`
-      ${imgSrcTag(banner,'game-card-banner visible')}
+      ${imgSrcTag(banner,'game-card-banner visible',bannerExtra)}
       ${bulkMode?`<div class="bulk-check${isBulkSel?' checked':''}" onclick="toggleBulkSelect(event,'${g.id}')"><i class="fa-solid fa-${isBulkSel?'check':'square'}"></i></div>`:`<button class="game-fav-btn${isFav?' active':''}" onclick="toggleFavorite(event,'${g.id}')" title="${isFav?'Unfavorite':'Favorite'}"><i class="fa-${isFav?'solid':'regular'} fa-star"></i></button>`}
       <div class="game-actions">
         <button class="game-action-btn info-btn" title="Info / Edit" onclick="openSidebar(event,'${g.id}')"><i class="fa-solid fa-circle-info"></i></button>
@@ -631,12 +712,17 @@ function renderGrid() {
       </div>
       <div class="game-icon">${gameIconHtml(g.icon)}</div>
       <div class="game-name">${highlightText(g.name, q)}</div>
+      ${collPillHtml}
       <div class="game-meta">
         ${statusBadge}
         ${rating>0?`<div class="game-stars">${stars}</div>`:''}
         ${lastPlayed?`<div class="game-last-played">${lastPlayed}</div>`:''}
         ${playtime?`<div class="game-playtime">${playtime}</div>`:''}
-      </div>`;
+      </div>
+      ${bulkMode?'':`<div class="card-quickbar" onclick="event.stopPropagation()">
+        <button type="button" onclick="event.stopPropagation();openSidebar({stopPropagation:function(){}},'${g.id}')">INFO</button>
+        <button type="button" onclick="event.stopPropagation();openGameModal(games.find(x=>x.id==='${g.id}'))">PLAY</button>
+      </div>`}`;
     card.addEventListener('click', () => {
       if (bulkMode) { toggleBulkSelect({stopPropagation:()=>{}}, g.id); return; }
       openGameModal(g);
@@ -656,16 +742,43 @@ function renderGrid() {
   const total = games.length;
   document.getElementById('gameCount').textContent=total+' GAME'+(total!==1?'S':'');
   renderRecentRow();
+  renderFavoritesRail();
   renderCollFilterBtns();
   updateBulkBar();
 }
 function filterGames(){renderGrid();}
+let _undoRemoveTimer = null, _undoRemovePayload = null;
 function removeGame(e,id){
   e.stopPropagation();
+  const idx = games.findIndex(g=>g.id===id);
+  if (idx < 0) return;
+  const removed = games[idx];
   const sw=getSW();if(sw) sw.postMessage({type:'UNREGISTER_GAME',payload:{gameId:id}});
-  games.splice(0,games.length,...games.filter(g=>g.id!==id));
+  games.splice(idx,1);
   deleteGameFromDB(id).catch(console.error);
-  renderGrid();showToast('GAME REMOVED');window._fbDeleteGame?.(id);
+  window._fbDeleteGame?.(id);
+  renderGrid();
+  _undoRemovePayload = { removed, id };
+  clearTimeout(_undoRemoveTimer);
+  showToast('GAME REMOVED', false, () => undoRemoveGame());
+  _undoRemoveTimer = setTimeout(() => { _undoRemovePayload = null; }, 8500);
+}
+function undoRemoveGame() {
+  if (!_undoRemovePayload) return;
+  const { removed } = _undoRemovePayload;
+  _undoRemovePayload = null;
+  clearTimeout(_undoRemoveTimer);
+  if (games.some(g => g.id === removed.id)) return;
+  games.push(removed);
+  if (removed.fileRecords && removed.fileRecords.length) {
+    registerGameWithSW(removed.id, removed.fileRecords).then(ok => {
+      if (!ok) showToast('UNDO: SW REGISTER FAILED', true);
+    });
+  }
+  saveGameToDB(removed).catch(console.error);
+  window._fbSyncGame?.(removed);
+  renderGrid();
+  showToast('GAME RESTORED');
 }
 
 // ── RANDOM GAME ──────────────────────────────────────────────────
@@ -674,6 +787,50 @@ function launchRandomGame() {
   const g = games[Math.floor(Math.random()*games.length)];
   openGameModal(g);
   showToast('🎲 ' + g.name.toUpperCase());
+}
+
+function playtimeSparkHtml(gameId, pt) {
+  let h = 0;
+  for (let i = 0; i < gameId.length; i++) h = (h * 31 + gameId.charCodeAt(i)) | 0;
+  const bars = [];
+  for (let i = 0; i < 7; i++) {
+    const base = 22 + (Math.abs(h >> (i * 3)) % 78);
+    const scale = pt > 120000 ? 1 : pt > 0 ? 0.45 + Math.min(0.55, pt / 400000) : 0.32;
+    bars.push(`<div class="bar" style="height:${Math.round(base * scale)}%"></div>`);
+  }
+  return `<div class="sidebar-section-title" style="margin-top:2px">ACTIVITY</div><div class="pt-mini-chart" title="Visual hint from playtime">${bars.join('')}</div>`;
+}
+function sidebarFooterPlay() {
+  if (!sidebarGameId) return;
+  const g = games.find(x => x.id === sidebarGameId);
+  if (!g) return;
+  closeSidebar();
+  openGameModal(g);
+}
+function sidebarSetBannerFit(fit) {
+  if (!sidebarGameId) return;
+  setGameMeta(sidebarGameId, { bannerFit: fit });
+  openSidebar({ stopPropagation: function() {} }, sidebarGameId);
+  renderGrid();
+}
+function sidebarNotesSetMode(mode) {
+  const ta = document.getElementById('sidebarNotes');
+  const prev = document.getElementById('sidebarNotesPreview');
+  const bEdit = document.getElementById('snTabEdit');
+  const bPrev = document.getElementById('snTabPrev');
+  if (!ta || !prev) return;
+  if (mode === 'preview') {
+    prev.innerHTML = (ta.value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    ta.style.display = 'none';
+    prev.classList.add('open');
+    bEdit?.classList.remove('active');
+    bPrev?.classList.add('active');
+  } else {
+    ta.style.display = 'block';
+    prev.classList.remove('open');
+    bEdit?.classList.add('active');
+    bPrev?.classList.remove('active');
+  }
 }
 
 // ── GAME INFO SIDEBAR ────────────────────────────────────────────
@@ -693,7 +850,8 @@ function openSidebar(e, id) {
   const stars = [1,2,3,4,5].map(n=>`<button class="star-btn${n<=rating?' active':''}" onclick="setSidebarRating(${n})">${n<=rating?'★':'☆'}</button>`).join('');
   const statusMap = {playing:'PLAYING',completed:'DONE',backlog:'BACKLOG',dropped:'DROPPED'};
   const statusBtns = ['playing','completed','backlog','dropped'].map(s=>`<button class="sidebar-status-btn${gm.status===s?' active-'+s:''}" onclick="setSidebarStatus('${s}')">${statusMap[s]}</button>`).join('');
-  const collPills = colls.map(c=>`<div class="sidebar-coll-pill${gameCols.includes(c.id)?' active':''}" onclick="toggleSidebarColl('${c.id}')">${c.emoji} ${esc(c.name)}</div>`).join('');
+  const collPills = colls.map(c=>`<div class="sidebar-coll-pill${gameCols.includes(c.id)?' active':''}" onclick="toggleSidebarColl('${c.id}')">${esc(String(c.emoji||''))} ${esc(c.name)}</div>`).join('');
+  const bf = gm.bannerFit || 'cover';
   document.getElementById('sidebarBody').innerHTML = `
     <div>
       <div class="sidebar-section-title">STATS</div>
@@ -703,6 +861,7 @@ function openSidebar(e, id) {
         <div class="sidebar-stat"><div class="sidebar-stat-label">STATUS</div><div class="sidebar-stat-val cyan">${gm.status?statusMap[gm.status]:'—'}</div></div>
         <div class="sidebar-stat"><div class="sidebar-stat-label">FILES</div><div class="sidebar-stat-val">${game.fileCount||'—'}</div></div>
       </div>
+      ${playtimeSparkHtml(id, playtime)}
     </div>
     <div>
       <div class="sidebar-section-title">RATING</div>
@@ -720,24 +879,37 @@ function openSidebar(e, id) {
       <div class="sidebar-section-title">BANNER IMAGE</div>
       <div class="banner-upload-zone">
         <input type="file" accept="image/*" onchange="handleBannerUpload(this)">
-        ${imgSrcTag(gm.banner,'banner-preview','style="display:block"')}
+        ${imgSrcTag(gm.banner,'banner-preview',(bf==='contain'?'style="display:block;object-fit:contain"':'style="display:block;object-fit:cover"'))}
         <div class="banner-upload-label">${gm.banner?'Click to change banner':'Upload a banner image'}</div>
+      </div>
+      <div class="banner-fit-row">
+        <button type="button" class="${bf==='cover'?'active':''}" onclick="sidebarSetBannerFit('cover')">COVER</button>
+        <button type="button" class="${bf==='contain'?'active':''}" onclick="sidebarSetBannerFit('contain')">CONTAIN</button>
       </div>
     </div>
     <div>
       <div class="sidebar-section-title">NOTES</div>
+      <div class="sidebar-notes-tabs">
+        <button type="button" class="active" id="snTabEdit" onclick="sidebarNotesSetMode('edit')">EDIT</button>
+        <button type="button" id="snTabPrev" onclick="sidebarNotesSetMode('preview')">PREVIEW</button>
+      </div>
       <textarea class="sidebar-notes-input" id="sidebarNotes" placeholder="Your thoughts on this game...">${esc(gm.notes||'')}</textarea>
+      <div class="sidebar-notes-preview" id="sidebarNotesPreview"></div>
       <button class="sidebar-save-btn" onclick="saveSidebarNotes()">SAVE NOTES</button>
     </div>
     <div>
       <button class="sidebar-screenshot-btn" onclick="openGameAndScreenshot('${id}')"><i class="fa-solid fa-camera"></i> OPEN & SCREENSHOT</button>
     </div>`;
+  const foot = document.getElementById('sidebarFooter');
+  if (foot) foot.classList.add('visible');
   document.getElementById('sidebarOverlay').classList.add('open');
   document.getElementById('sidebar').classList.add('open');
 }
 function closeSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('open');
   document.getElementById('sidebar').classList.remove('open');
+  const foot = document.getElementById('sidebarFooter');
+  if (foot) foot.classList.remove('visible');
   sidebarGameId = null;
 }
 function setSidebarRating(n) {
@@ -814,10 +986,23 @@ function captureScreenshot() {
 // ── PLAYTIME GOAL ────────────────────────────────────────────────
 let ptGoalMs = 0, ptGoalInterval = null, ptGoalStart = 0;
 function openPtGoalSetup() {
-  const def = parseInt(localStorage.getItem('zeno-ptgoal-default')||'0');
-  const mins = def || parseInt(prompt('Set session goal (minutes):', '30')||'0');
-  if (!mins || isNaN(mins) || mins<=0) return;
+  document.getElementById('ptgoalModal')?.classList.add('open');
+  const inp = document.getElementById('ptgoalCustomInput');
+  if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 80); }
+}
+function closePtGoalModal() {
+  document.getElementById('ptgoalModal')?.classList.remove('open');
+}
+function applyPtGoalPreset(mins) {
+  closePtGoalModal();
+  if (!mins || mins < 1) return;
   startPtGoal(mins);
+}
+function applyPtGoalCustom() {
+  const v = parseInt(document.getElementById('ptgoalCustomInput')?.value || '0', 10);
+  if (!v || v < 1 || v > 999) { showToast('ENTER 1–999 MINUTES', true); return; }
+  closePtGoalModal();
+  startPtGoal(v);
 }
 function startPtGoal(mins) {
   ptGoalMs = mins*60000; ptGoalStart = Date.now();
@@ -856,16 +1041,24 @@ function openKL() {
 function closeKL() { document.getElementById('klOverlay').classList.remove('open'); }
 function klFilter() {
   const q = document.getElementById('klInput').value.toLowerCase();
-  klFiltered = q ? games.filter(g=>g.name.toLowerCase().includes(q)) : [...games].slice(0,12);
+  klFiltered = q ? games.filter(g => fuzzyMatch(g.name, q)) : [...games].slice(0, 12);
   klIndex = -1;
   const el = document.getElementById('klResults');
   if (!klFiltered.length) { el.innerHTML='<div class="kl-empty">NO GAMES FOUND</div>'; return; }
-  el.innerHTML = klFiltered.map((g,i)=>`
+  const meta = loadMeta();
+  el.innerHTML = klFiltered.map((g,i)=>{
+    const gm = meta[g.id]||{};
+    const st = gm.status ? String(gm.status).toUpperCase() : '';
+    const cols = (gm.collections||[]).map(cid=>{const c=loadCollections().find(x=>x.id===cid);return c?c.emoji:'';}).filter(Boolean).join(' ');
+    return `
     <div class="kl-item" id="kl-${i}" onclick="klLaunch(${i})">
       <div class="kl-item-icon">${gameIconHtml(g.icon)}</div>
-      <div class="kl-item-name">${esc(g.name)}</div>
-      <div class="kl-item-meta">${formatLastPlayed((loadMeta()[g.id]||{}).lastPlayed)||''}</div>
-    </div>`).join('');
+      <div style="flex:1;min-width:0">
+        <div class="kl-item-name">${highlightText(g.name, document.getElementById('klInput').value.trim())}</div>
+        <div class="kl-item-sub">${cols ? cols + ' · ' : ''}${st ? st + ' · ' : ''}${formatLastPlayed(gm.lastPlayed)||'Never played'}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 function klLaunch(i) {
   const g = klFiltered[i];
@@ -876,6 +1069,11 @@ function klLaunch(i) {
 document.getElementById('klInput').addEventListener('keydown', e=>{
   if (e.key==='ArrowDown') { klIndex=Math.min(klIndex+1,klFiltered.length-1); klHighlight(); e.preventDefault(); }
   else if (e.key==='ArrowUp') { klIndex=Math.max(klIndex-1,0); klHighlight(); e.preventDefault(); }
+  else if (e.key==='Enter' && (e.ctrlKey||e.metaKey)) {
+    const g = klFiltered[klIndex >= 0 ? klIndex : 0];
+    if (g) { closeKL(); openSidebar({stopPropagation:()=>{}}, g.id); }
+    e.preventDefault();
+  }
   else if (e.key==='Enter') { klLaunch(klIndex>=0?klIndex:0); }
   else if (e.key==='Escape') { closeKL(); }
 });
@@ -887,8 +1085,21 @@ function klHighlight() {
 
 // ── GAME MODAL ───────────────────────────────────────────────────
 let _gameSessionStart=null,_gameSessionId=null;
+let _gameModalChromeTimer = null;
 async function openGameModal(g) {
   const frame=document.getElementById('gameModalFrame');
+  const inner = document.getElementById('gameModalInner');
+  if (inner) {
+    inner.classList.remove('chrome-minimal');
+    clearTimeout(_gameModalChromeTimer);
+    const armChromeIdle = () => {
+      clearTimeout(_gameModalChromeTimer);
+      _gameModalChromeTimer = setTimeout(() => { inner.classList.add('chrome-minimal'); }, 4000);
+    };
+    inner.onmousemove = () => { inner.classList.remove('chrome-minimal'); armChromeIdle(); };
+    armChromeIdle();
+  }
+  zenoHaptic(10);
   document.getElementById('gameModalTitle').textContent=g.name;
   document.getElementById('gameModalIcon').innerHTML=gameIconHtml(g.icon);
   document.getElementById('gameModalLoading').classList.remove('hidden');
@@ -910,6 +1121,9 @@ async function openGameModal(g) {
   if(def>0) startPtGoal(def);
 }
 function closeGameModal() {
+  clearTimeout(_gameModalChromeTimer);
+  const inner = document.getElementById('gameModalInner');
+  if (inner) { inner.onmousemove = null; inner.classList.remove('chrome-minimal'); }
   if(_gameSessionStart&&_gameSessionId){
     const elapsed=Date.now()-_gameSessionStart;
     const cur=getGameMeta(_gameSessionId).playtime||0;
@@ -942,8 +1156,25 @@ document.getElementById('gameModal').addEventListener('click',e=>{if(e.target===
 })();
 
 // ── CONSOLE ──────────────────────────────────────────────────────
-let consoleErrors=[],consoleOpen=false;
-function toggleConsole(){consoleOpen=!consoleOpen;document.getElementById('consoleOverlay').classList.toggle('open',consoleOpen);if(consoleOpen){const b=document.getElementById('consoleBody');b.scrollTop=b.scrollHeight;}}
+let consoleErrors=[],consoleOpen=false,consoleFilterMode='all';
+function toggleConsole(){consoleOpen=!consoleOpen;document.getElementById('consoleOverlay').classList.toggle('open',consoleOpen);if(consoleOpen){const b=document.getElementById('consoleBody');b.scrollTop=b.scrollHeight;applyConsoleFilter();}}
+function setConsoleFilter(mode){
+  consoleFilterMode=mode;
+  document.querySelectorAll('#consoleFilters button').forEach(b=>b.classList.toggle('active',b.dataset.cf===mode));
+  applyConsoleFilter();
+}
+function applyConsoleFilter(){
+  document.querySelectorAll('#consoleBody .console-entry').forEach(el=>{
+    const t=el.classList.contains('type-error')?'error':el.classList.contains('type-warn')?'warn':'log';
+    const show=consoleFilterMode==='all'||(consoleFilterMode==='error'&&(t==='error'||t==='warn'));
+    el.style.display=show?'':'none';
+  });
+}
+function copyConsoleAll(){
+  const lines=[...document.querySelectorAll('#consoleBody .console-entry')].filter(e=>e.style.display!=='none').map(e=>e.innerText.replace(/\s+/g,' ').trim());
+  if(!lines.length){showToast('NOTHING TO COPY');return;}
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>showToast('COPIED LOG')).catch(()=>showToast('COPY FAILED',true));
+}
 function clearConsole(){consoleErrors=[];document.getElementById('consoleBody').innerHTML='<div class="console-empty" id="consoleEmpty"><i class="fa-solid fa-circle-check"></i>&nbsp;NO ERRORS</div>';document.getElementById('consoleCount').textContent='0';}
 function consoleLog(type,msg,src,lineno,colno){
   consoleErrors.push({type,msg,src,lineno,colno,time:new Date()});
@@ -956,17 +1187,18 @@ function consoleLog(type,msg,src,lineno,colno){
   const entry=document.createElement('div');entry.className='console-entry type-'+type;
   entry.innerHTML=`<i class="fa-solid ${icon} console-entry-icon"></i><div class="console-entry-body"><div class="console-entry-msg">${esc(String(msg))}</div>${srcShort?`<div class="console-entry-src">${esc(srcShort)}${esc(loc)}</div>`:''}</div><div class="console-entry-time">${timeStr}</div>`;
   const body=document.getElementById('consoleBody');body.appendChild(entry);
+  applyConsoleFilter();
   if(consoleOpen) body.scrollTop=body.scrollHeight;
   if(type==='error'&&!consoleOpen) toggleConsole();
 }
 (function(){['log','warn','error'].forEach(fn=>{const orig=console[fn].bind(console);console[fn]=function(){const args=Array.prototype.slice.call(arguments);if(document.getElementById('gameModal').classList.contains('open')) consoleLog(fn,args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' '),'',0,0,false);orig.apply(console,args);};});})();
 window.addEventListener('error',e=>{if(!document.getElementById('gameModal').classList.contains('open')) return;consoleLog('error',e.message,e.filename,e.lineno,e.colno,false);},true);
 window.addEventListener('unhandledrejection',e=>{if(!document.getElementById('gameModal').classList.contains('open')) return;consoleLog('error','Promise rejection: '+(e.reason?.message||String(e.reason)),'',0,0,false);});
-window.addEventListener('message',e=>{if(!e.data?.__zenoConsole) return;consoleLog(e.data.level||'log',e.data.msg,e.data.src,e.data.lineno,e.data.colno,true);});
+window.addEventListener('message',e=>{if(e.origin!==window.location.origin)return;if(!e.data?.__zenoConsole) return;consoleLog(e.data.level||'log',e.data.msg,e.data.src,e.data.lineno,e.data.colno,true);});
 document.getElementById('gameModalFrame').addEventListener('load',function(){
   clearConsole();
   const src=this.src;if(!src||src==='about:blank'||src===window.location.href) return;
-  try{const iwin=this.contentWindow;if(!iwin) return;const script=iwin.document.createElement('script');script.textContent='(function(){function send(l,m,s,ln,c){parent.postMessage({__zenoConsole:true,level:l,msg:m,src:s||"",lineno:ln||0,colno:c||0},"*");}window.addEventListener("error",function(e){send("error",e.message,e.filename,e.lineno,e.colno);},true);window.addEventListener("unhandledrejection",function(e){send("error","Promise: "+(e.reason&&e.reason.message?e.reason.message:String(e.reason)),"",0,0);});["log","warn","error"].forEach(function(fn){var orig=console[fn].bind(console);console[fn]=function(){var args=Array.prototype.slice.call(arguments);send(fn,args.map(function(a){return typeof a==="object"?JSON.stringify(a):String(a);}).join(" "),"",0,0);orig.apply(console,args);};});})();';iwin.document.head.appendChild(script);}catch(err){}
+  try{const iwin=this.contentWindow;if(!iwin) return;const origin=window.location.origin;const script=iwin.document.createElement('script');script.textContent='(function(){var O='+JSON.stringify(origin)+';function send(l,m,s,ln,c){parent.postMessage({__zenoConsole:true,level:l,msg:m,src:s||"",lineno:ln||0,colno:c||0},O||"*");}window.addEventListener("error",function(e){send("error",e.message,e.filename,e.lineno,e.colno);},true);window.addEventListener("unhandledrejection",function(e){send("error","Promise: "+(e.reason&&e.reason.message?e.reason.message:String(e.reason)),"",0,0);});["log","warn","error"].forEach(function(fn){var orig=console[fn].bind(console);console[fn]=function(){var args=Array.prototype.slice.call(arguments);send(fn,args.map(function(a){return typeof a==="object"?JSON.stringify(a):String(a);}).join(" "),"",0,0);orig.apply(console,args);};});})();';iwin.document.head.appendChild(script);}catch(err){}
 });
 
 // ── PROGRESS ─────────────────────────────────────────────────────
@@ -983,10 +1215,32 @@ function skipUsername(){localStorage.setItem('zeno-username','');document.getEle
 document.getElementById('welcomeInput').addEventListener('keydown',e=>{if(e.key==='Enter') saveUsername();});
 if(localStorage.getItem('zeno-username')===null){document.getElementById('welcomeModal').classList.add('open');setTimeout(()=>document.getElementById('welcomeInput').focus(),100);}
 
-// ── TOAST ─────────────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' error':'');void t.offsetWidth;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
-window.showToast=showToast;
+// ── TOAST (stacked) ─────────────────────────────────────────────
+function showToast(msg, err, onUndo) {
+  const stack = document.getElementById('toastStack');
+  playUiSound(err ? 'err' : 'ok');
+  if (!stack) {
+    const t = document.getElementById('toast');
+    if (t) { t.textContent = msg; t.className = 'toast' + (err ? ' error' : ''); void t.offsetWidth; t.classList.add('show'); }
+    return;
+  }
+  const item = document.createElement('div');
+  item.className = 'toast-item' + (err ? ' error' : '');
+  const span = document.createElement('span');
+  span.textContent = msg;
+  item.appendChild(span);
+  if (typeof onUndo === 'function') {
+    const u = document.createElement('button');
+    u.type = 'button';
+    u.className = 'toast-undo';
+    u.textContent = 'UNDO';
+    u.onclick = () => { onUndo(); item.remove(); };
+    item.appendChild(u);
+  }
+  stack.appendChild(item);
+  setTimeout(() => { item.remove(); }, onUndo ? 8000 : 3800);
+}
+window.showToast = showToast;
 
 // ── GIT IMPORT ────────────────────────────────────────────────────
 let ghFoundGames=[],ghCurrentCfg=null,ghCurrentBranch=null;
@@ -996,20 +1250,29 @@ async function getDefaultBranch(cfg){if(cfg.type==='github'){const d=await gitAp
 async function getRepoTree(cfg,branch){if(cfg.type==='github'){const d=await gitApiFetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/git/trees/${branch}?recursive=1`,'github');return(d.tree||[]).map(f=>({path:f.path,type:f.type==='blob'?'blob':'tree'}));}if(cfg.type==='gitlab'){const pid=encodeURIComponent(cfg.owner+'/'+cfg.repo);let page=1,items=[];while(true){const d=await gitApiFetch(`https://${cfg.host}/api/v4/projects/${pid}/repository/tree?recursive=true&per_page=100&page=${page}`,'gitlab');if(!Array.isArray(d)||!d.length) break;items=items.concat(d);if(d.length<100) break;page++;}return items.map(f=>({path:f.path,type:f.type==='blob'?'blob':'tree'}));}const d=await gitApiFetch(`https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}/git/trees/${branch}?recursive=true`,'forgejo');return(d.tree||[]).map(f=>({path:f.path,type:f.type}));}
 function getRawUrl(cfg,branch,filePath){if(cfg.type==='github') return`https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${branch}/${filePath}`;if(cfg.type==='gitlab') return`https://${cfg.host}/api/v4/projects/${encodeURIComponent(cfg.owner+'/'+cfg.repo)}/repository/files/${encodeURIComponent(filePath)}/raw?ref=${branch}`;return`https://${cfg.host}/${cfg.owner}/${cfg.repo}/raw/branch/${branch}/${filePath}`;}
 async function gitFetchFile(url,cfg,branch,filePath){try{const res=await fetch(url);if(res.ok) return res;}catch(e){}if(cfg?.type==='forgejo'){try{const apiUrl=`https://${cfg.host}/api/v1/repos/${cfg.owner}/${cfg.repo}/contents/${filePath}?ref=${branch}`;const res=await fetch(apiUrl);if(res.ok){const json=await res.json();if(json.content){const binary=atob(json.content.replace(/\n/g,''));const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);return new Response(bytes.buffer,{status:200});}}}catch(e){}}return null;}
-async function ghScan(){const raw=document.getElementById('ghUrlInput').value;const cfg=parseRepoUrl(raw);if(!cfg){setGHStatus('INVALID URL','err');return;}const btn=document.getElementById('ghScanBtn');btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i>';setGHStatus(`SCANNING ${cfg.owner}/${cfg.repo}...`);document.getElementById('ghGameList').style.display='none';document.getElementById('ghActions').style.display='none';ghFoundGames=[];ghCurrentCfg=cfg;try{const branch=await getDefaultBranch(cfg);ghCurrentBranch=branch;const tree=await getRepoTree(cfg,branch);const folderMap={};for(const item of tree){if(item.type!=='blob') continue;const parts=item.path.split('/');if(parts.length===2&&parts[1].toLowerCase()==='index.html') folderMap[parts[0]]=[];}if(tree.some(f=>f.path==='index.html')) folderMap['[root]']=[];if(!Object.keys(folderMap).length){setGHStatus('NO GAME FOLDERS FOUND','err');btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';return;}for(const item of tree){if(item.type!=='blob') continue;const parts=item.path.split('/');if(parts.length===1&&'[root]' in folderMap) folderMap['[root]'].push({path:item.path,url:getRawUrl(cfg,branch,item.path)});else if(parts.length>=2&&parts[0] in folderMap) folderMap[parts[0]].push({path:parts.slice(1).join('/'),url:getRawUrl(cfg,branch,item.path)});}ghFoundGames=Object.entries(folderMap).map(([name,files])=>({name,files,selected:false}));setGHStatus(`${ghFoundGames.length} GAME${ghFoundGames.length!==1?'S':''} FOUND`,'ok');renderGHList();}catch(e){setGHStatus(e.message||'SCAN FAILED','err');}btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';}
+async function ghScan(){const raw=document.getElementById('ghUrlInput').value;const cfg=parseRepoUrl(raw);if(!cfg){setGHStatus('INVALID URL','err');return;}const btn=document.getElementById('ghScanBtn');btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i>';setGHStatus(`SCANNING ${cfg.owner}/${cfg.repo}...`);document.getElementById('ghGameList').style.display='none';document.getElementById('ghActions').style.display='none';ghFoundGames=[];ghCurrentCfg=cfg;try{const branch=await getDefaultBranch(cfg);ghCurrentBranch=branch;const tree=await getRepoTree(cfg,branch);const folderMap={};for(const item of tree){if(item.type!=='blob') continue;const parts=item.path.split('/');if(parts.length===2&&parts[1].toLowerCase()==='index.html') folderMap[parts[0]]=[];}if(tree.some(f=>f.path==='index.html')) folderMap['[root]']=[];if(!Object.keys(folderMap).length){setGHStatus('NO GAME FOLDERS FOUND','err');btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';const gtp=document.getElementById('ghTreePreview');if(gtp){gtp.classList.remove('open');gtp.textContent='';}return;}for(const item of tree){if(item.type!=='blob') continue;const parts=item.path.split('/');if(parts.length===1&&'[root]' in folderMap) folderMap['[root]'].push({path:item.path,url:getRawUrl(cfg,branch,item.path)});else if(parts.length>=2&&parts[0] in folderMap) folderMap[parts[0]].push({path:parts.slice(1).join('/'),url:getRawUrl(cfg,branch,item.path)});}ghFoundGames=Object.entries(folderMap).map(([name,files])=>({name,files,selected:false}));setGHStatus(`${ghFoundGames.length} GAME${ghFoundGames.length!==1?'S':''} FOUND`,'ok');renderGHList();}catch(e){setGHStatus(e.message||'SCAN FAILED','err');const gtp2=document.getElementById('ghTreePreview');if(gtp2){gtp2.classList.remove('open');gtp2.textContent='';}}btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-magnifying-glass"></i>&nbsp; SCAN';}
 function setGHStatus(msg,cls=''){const el=document.getElementById('ghStatus');el.textContent=msg;el.className='status-line'+(cls?' '+cls:'');}
-function renderGHList(){const list=document.getElementById('ghGameList');list.innerHTML='';list.style.display='grid';for(let i=0;i<ghFoundGames.length;i++){const g=ghFoundGames[i];const item=document.createElement('div');item.className='gh-item'+(g.selected?' selected':'');item.innerHTML=`<div class="gh-check">${g.selected?'<i class="fa-solid fa-check"></i>':''}</div><div class="gh-name">${esc(g.name==='[root]'?'Root':g.name)}</div><div class="gh-count">${g.files.length}F</div>`;item.addEventListener('click',()=>{ghFoundGames[i].selected=!ghFoundGames[i].selected;renderGHList();});list.appendChild(item);}document.getElementById('ghActions').style.display='flex';const sel=ghFoundGames.filter(g=>g.selected).length;document.getElementById('ghLoadBtn').disabled=sel===0;document.getElementById('ghLoadBtn').innerHTML=sel>0?`<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${sel}`:'<i class="fa-solid fa-bolt"></i>&nbsp; LOAD SELECTED';document.getElementById('ghSelectAll').textContent=ghFoundGames.every(g=>g.selected)?'DESELECT ALL':'SELECT ALL';}
+function updateGhTreePreview(){
+  const el=document.getElementById('ghTreePreview');if(!el)return;
+  if(!ghFoundGames.length){el.classList.remove('open');el.textContent='';return;}
+  el.textContent=ghFoundGames.map(g=>`📁 ${g.name==='[root]'?'[repo root]':g.name} — ${g.files.length} files`).join('\n');
+  el.classList.add('open');
+}
+function renderGHList(){const list=document.getElementById('ghGameList');list.innerHTML='';list.style.display='grid';for(let i=0;i<ghFoundGames.length;i++){const g=ghFoundGames[i];const item=document.createElement('div');item.className='gh-item'+(g.selected?' selected':'');item.innerHTML=`<div class="gh-check">${g.selected?'<i class="fa-solid fa-check"></i>':''}</div><div class="gh-name">${esc(g.name==='[root]'?'Root':g.name)}</div><div class="gh-count">${g.files.length}F</div>`;item.addEventListener('click',()=>{ghFoundGames[i].selected=!ghFoundGames[i].selected;renderGHList();});list.appendChild(item);}document.getElementById('ghActions').style.display='flex';const sel=ghFoundGames.filter(g=>g.selected).length;document.getElementById('ghLoadBtn').disabled=sel===0;document.getElementById('ghLoadBtn').innerHTML=sel>0?`<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${sel}`:'<i class="fa-solid fa-bolt"></i>&nbsp; LOAD SELECTED';document.getElementById('ghSelectAll').textContent=ghFoundGames.every(g=>g.selected)?'DESELECT ALL':'SELECT ALL';updateGhTreePreview();}
 function ghToggleAll(){const all=ghFoundGames.every(g=>g.selected);ghFoundGames.forEach(g=>g.selected=!all);renderGHList();}
 async function ghLoadSelected(){const toLoad=ghFoundGames.filter(g=>g.selected);if(!toLoad.length) return;if(!swReady){await initSW();if(!swReady) return;}if(!getSW()){showToast('ACTIVATING SW — reloading...');setTimeout(()=>location.reload(),1200);return;}closeAddModal();buildPips(toLoad.length);showProgress(true,`Downloading ${toLoad.length} game${toLoad.length!==1?'s':''}...`);let added=0;for(let i=0;i<toLoad.length;i++){const g=toLoad[i];const displayName=g.name==='[root]'?(ghCurrentCfg?.repo||'Game'):g.name;setPip(i,'active');showProgress(true,`Downloading: ${displayName} (${i+1}/${toLoad.length})`);const ok=await ghDownloadAndLoad(displayName,g.files,i,toLoad.length);setPip(i,ok?'done':'fail');if(ok) added++;}showProgress(false);if(added>0){showToast(`+${added} GAME${added>1?'S':''} ADDED`);renderGrid();}else showToast('NO GAMES LOADED',true);}
 async function ghDownloadAndLoad(name,fileList,gameIdx,total){const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const iconNames=new Set(['favicon.ico','favicon.png','icon.png','logo.png','thumbnail.png','cover.png','icon.jpg']);const fileRecords=[];let iconUrl=null;for(let i=0;i<fileList.length;i++){const f=fileList[i];setProgress(Math.round((i/fileList.length)*80),`${name}: ${i+1}/${fileList.length}`);try{const repoPath=name==='[root]'?f.path:`${name}/${f.path}`;const res=await gitFetchFile(f.url,ghCurrentCfg,ghCurrentBranch,repoPath);if(!res) continue;const buf=await res.arrayBuffer();const mime=getMime(f.path.split('/').pop());const fileName=f.path.split('/').pop();const file=new File([buf],fileName,{type:mime});Object.defineProperty(file,'webkitRelativePath',{value:name+'/'+f.path,writable:false,configurable:true});fileRecords.push({file,path:f.path,mimeType:mime});if(!iconUrl&&iconNames.has(fileName.toLowerCase())) iconUrl=await blobToDataUrl(new Blob([buf],{type:mime}));}catch(e){}}if(!fileRecords.some(r=>r.path.split('/').pop().toLowerCase()==='index.html')){showToast(`FAILED: ${name}`,true);return false;}setProgress(88,`${name}: registering...`);const ok=await registerGameWithSW(id,fileRecords);if(!ok) return false;setProgress(100,`${name}: ready!`);await sleep(150);const gameEntry={id,name,icon:iconUrl,entryPath:`./zeno-games/${id}/index.html`,fileCount:fileRecords.length,fileRecords};games.push(gameEntry);saveGameToDB(gameEntry).catch(console.error);return true;}
 
 // ── R2 IMPORT ────────────────────────────────────────────────────
-const R2_BASE_KEY='zeno-r2-base';let r2Queue=[];
+const R2_BASE_KEY='zeno-r2-base';let r2Queue=[],r2DragIdx=null;
 document.getElementById('r2BaseInput').value=localStorage.getItem(R2_BASE_KEY)||'';
 function r2ParseLink(raw){raw=raw.trim().replace(/\/+$/,'');const baseRaw=document.getElementById('r2BaseInput').value.trim().replace(/\/+$/,'');if(baseRaw) localStorage.setItem(R2_BASE_KEY,baseRaw);if(raw.startsWith('http')){try{const u=new URL(raw);const parts=u.pathname.split('/').filter(Boolean);const idxPos=parts.findIndex(p=>p.toLowerCase()==='index.html');const name=idxPos>0?parts[idxPos-1]:parts[parts.length-1];return{name,indexUrl:raw.endsWith('index.html')?raw:raw.replace(/\/?$/,'/index.html')};}catch(e){return null;}}if(!baseRaw) return{error:'PASTE A BASE URL FIRST'};return{name:raw,indexUrl:`${baseRaw}/${raw}/index.html`};}
 function r2AddLink(){const raw=document.getElementById('r2LinkInput').value;if(!raw.trim()) return;const parsed=r2ParseLink(raw);if(!parsed){setR2Status('INVALID LINK','err');return;}if(parsed.error){setR2Status(parsed.error,'err');return;}if(r2Queue.some(g=>g.name===parsed.name)){setR2Status(`"${parsed.name}" ALREADY QUEUED`,'err');return;}r2Queue.push(parsed);document.getElementById('r2LinkInput').value='';setR2Status('');renderR2Queue();}
 function r2RemoveItem(i){r2Queue.splice(i,1);renderR2Queue();}
-function renderR2Queue(){const el=document.getElementById('r2Queue');if(!r2Queue.length){el.innerHTML='';document.getElementById('r2Actions').style.display='none';return;}el.innerHTML=r2Queue.map((g,i)=>`<div class="r2-item"><i class="fa-solid fa-cloud" style="color:#f6821f;font-size:12px;flex-shrink:0"></i><div style="flex:1;min-width:0"><div class="r2-item-name">${esc(g.name)}</div><div class="r2-item-url">${esc(g.indexUrl)}</div></div><button class="r2-remove" onclick="r2RemoveItem(${i})"><i class="fa-solid fa-xmark"></i></button></div>`).join('');document.getElementById('r2Actions').style.display='flex';document.getElementById('r2LoadBtn').innerHTML=`<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${r2Queue.length} GAME${r2Queue.length!==1?'S':''}`;}
+function r2DragStart(e,i){r2DragIdx=i;e.dataTransfer.effectAllowed='move';}
+function r2DragOver(e){e.preventDefault();}
+function r2Drop(e,toIdx){e.preventDefault();if(r2DragIdx===null||r2DragIdx===toIdx)return;const[m]=r2Queue.splice(r2DragIdx,1);r2Queue.splice(toIdx,0,m);r2DragIdx=null;renderR2Queue();}
+function renderR2Queue(){const el=document.getElementById('r2Queue');if(!r2Queue.length){el.innerHTML='';document.getElementById('r2Actions').style.display='none';return;}el.innerHTML=r2Queue.map((g,i)=>`<div class="r2-item" draggable="true" data-r2i="${i}" ondragstart="r2DragStart(event,${i})" ondragover="r2DragOver(event)" ondrop="r2Drop(event,${i})"><i class="fa-solid fa-cloud" style="color:#f6821f;font-size:12px;flex-shrink:0"></i><div style="flex:1;min-width:0"><div class="r2-item-name">${esc(g.name)}</div><div class="r2-item-url">${esc(g.indexUrl)}</div></div><button type="button" class="r2-remove" onclick="event.stopPropagation();r2RemoveItem(${i})"><i class="fa-solid fa-xmark"></i></button></div>`).join('');document.getElementById('r2Actions').style.display='flex';document.getElementById('r2LoadBtn').innerHTML=`<i class="fa-solid fa-bolt"></i>&nbsp; LOAD ${r2Queue.length} GAME${r2Queue.length!==1?'S':''}`;}
 function setR2Status(msg,cls=''){const el=document.getElementById('r2Status');el.textContent=msg;el.className='status-line'+(cls?' '+cls:'');}
 function r2LoadAll(){if(!r2Queue.length) return;const toLoad=[...r2Queue];closeAddModal();let added=0;for(const g of toLoad){const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const gameEntry={id,name:g.name,icon:null,entryPath:g.indexUrl,fileCount:0,fileRecords:[],r2:true};games.push(gameEntry);saveR2GameToDB(gameEntry).catch(console.error);added++;}if(added>0){showToast(`+${added} GAME${added>1?'S':''} ADDED`);renderGrid();}}
 async function saveR2GameToDB(game){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE_META,'readwrite');tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);tx.objectStore(STORE_META).put({id:game.id,name:game.name,icon:game.icon,entryPath:game.entryPath,fileCount:0,r2:true});});}
@@ -1035,13 +1298,14 @@ function idbDelete(store,key){return new Promise((res,rej)=>{const r=store.delet
 async function saveGameToDB(game){const fileData=[];if(game.fileRecords&&game.fileRecords.length) for(const r of game.fileRecords){const buf=await r.file.arrayBuffer();fileData.push({path:r.path,mimeType:r.mimeType,buffer:buf});}const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction([STORE_META,STORE_FILES],'readwrite');tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);tx.onabort=e=>rej(e.target.error);tx.objectStore(STORE_META).put({id:game.id,name:game.name,icon:game.icon,entryPath:game.entryPath,fileCount:game.fileCount,r2:game.r2||false,zenoapp:game.zenoapp||false});for(const f of fileData) tx.objectStore(STORE_FILES).put({id:game.id+':'+f.path,gameId:game.id,path:f.path,mimeType:f.mimeType,buffer:f.buffer});});}
 window.saveGameToDB=saveGameToDB;
 async function deleteGameFromDB(gameId){const db=await openDB();const tx=db.transaction([STORE_META,STORE_FILES],'readwrite');const metaStore=tx.objectStore(STORE_META);const fileStore=tx.objectStore(STORE_FILES);await idbDelete(metaStore,gameId);const fileEntries=await idbGetAllByIndex(fileStore,'gameId',gameId);for(const f of fileEntries) await idbDelete(fileStore,f.id);}
-async function loadGamesFromDB(){try{const db=await openDB();const tx=db.transaction([STORE_META,STORE_FILES],'readonly');const metas=await idbGetAll(tx.objectStore(STORE_META));if(!metas.length) return;showProgress(true,'Restoring saved games...');buildPips(metas.length);for(let i=0;i<metas.length;i++){const meta=metas[i];setPip(i,'active');showProgress(true,`Restoring: ${meta.name}`);try{if(meta.r2){games.push({...meta,fileRecords:[]});setPip(i,'done');continue;}if(meta.zenoapp){games.push({...meta,fileRecords:null});setPip(i,'done');continue;}const tx2=db.transaction(STORE_FILES,'readonly');const fileEntries=await idbGetAllByIndex(tx2.objectStore(STORE_FILES),'gameId',meta.id);const fileRecords=fileEntries.map(fe=>({path:fe.path,mimeType:fe.mimeType,file:new File([fe.buffer],fe.path.split('/').pop(),{type:fe.mimeType})}));const ok=await registerGameWithSW(meta.id,fileRecords);if(ok){games.push({...meta,fileRecords});setPip(i,'done');}else setPip(i,'fail');}catch(e){console.error('Restore failed:',meta.name,e);setPip(i,'fail');}}showProgress(false);renderGrid();if(games.length) showToast(`${games.length} GAME${games.length>1?'S':''} RESTORED`);}catch(e){console.error('loadGamesFromDB failed:',e);showProgress(false);}}
+async function loadGamesFromDB(){try{const db=await openDB();const tx=db.transaction([STORE_META,STORE_FILES],'readonly');const metas=await idbGetAll(tx.objectStore(STORE_META));if(!metas.length) return;const skel=document.getElementById('gameSkeletonRow');if(skel){skel.style.display='grid';skel.innerHTML=Array(Math.min(metas.length,12)).fill(0).map(()=>'<div class="skeleton-card"></div>').join('');}showProgress(true,'Restoring saved games...');buildPips(metas.length);for(let i=0;i<metas.length;i++){const meta=metas[i];setPip(i,'active');showProgress(true,`Restoring: ${meta.name}`);try{if(meta.r2){games.push({...meta,fileRecords:[]});setPip(i,'done');continue;}if(meta.zenoapp){games.push({...meta,fileRecords:null});setPip(i,'done');continue;}const tx2=db.transaction(STORE_FILES,'readonly');const fileEntries=await idbGetAllByIndex(tx2.objectStore(STORE_FILES),'gameId',meta.id);const fileRecords=fileEntries.map(fe=>({path:fe.path,mimeType:fe.mimeType,file:new File([fe.buffer],fe.path.split('/').pop(),{type:fe.mimeType})}));const ok=await registerGameWithSW(meta.id,fileRecords);if(ok){games.push({...meta,fileRecords});setPip(i,'done');}else setPip(i,'fail');}catch(e){console.error('Restore failed:',meta.name,e);setPip(i,'fail');}}showProgress(false);renderGrid();if(games.length) showToast(`${games.length} GAME${games.length>1?'S':''} RESTORED`);}catch(e){console.error('loadGamesFromDB failed:',e);showProgress(false);}}
 
 // ── KEYBOARD SHORTCUTS ────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
   const active=document.activeElement;
   const inInput=active&&(active.tagName==='INPUT'||active.tagName==='TEXTAREA'||active.tagName==='SELECT');
   if(e.key==='Escape'){
+    if(document.getElementById('ptgoalModal')?.classList.contains('open')){closePtGoalModal();return;}
     if(bulkMode){toggleBulkMode();return;}
     closeGameModal();closeAddModal();closeCollModal();closeSettingsModal();closeSidebar();
     if(consoleOpen)toggleConsole();closeOverflow();closeKL();closeCtxMenu();
@@ -1069,6 +1333,7 @@ function openShortcutsModal() {
           ${[
             ['/','Open game launcher'],
             ['Ctrl+K','Open game launcher'],
+            ['Ctrl+Enter','Game info (launcher)'],
             ['B','Toggle bulk select mode'],
             ['|','Toggle error console'],
             ['?','Show this help'],
@@ -1249,6 +1514,66 @@ function closeShortcutsModal() {
     overflowMenu.appendChild(bulkBtn);
   }
 })();
+
+function syncSearchClear() {
+  const w = document.getElementById('searchWrap');
+  const inp = document.getElementById('searchInput');
+  if (w && inp) w.classList.toggle('has-text', !!inp.value.trim());
+}
+function clearSearch() {
+  const inp = document.getElementById('searchInput');
+  if (inp) { inp.value = ''; filterGames(); syncSearchClear(); }
+}
+function dismissWhatsNew() {
+  localStorage.setItem('zeno-whatsnew-v2', '1');
+  document.getElementById('whatsNewBar')?.classList.remove('open');
+}
+function markOnboard(ch) {
+  localStorage.setItem('zeno-onboard-' + ch.dataset.onb, ch.checked ? '1' : '0');
+  syncOnboardChecks();
+}
+function syncOnboardChecks() {
+  document.querySelectorAll('.onboard-item input[type="checkbox"]').forEach(ch => {
+    ch.checked = localStorage.getItem('zeno-onboard-' + ch.dataset.onb) === '1';
+  });
+}
+function closeOnboard() {
+  document.getElementById('onboardOverlay')?.classList.remove('open');
+}
+function finishOnboard() {
+  localStorage.setItem('zeno-onboard-done', '1');
+  closeOnboard();
+}
+
+(function initZenoUiExtras() {
+  if (localStorage.getItem('zeno-reduced-motion') === '1') document.body.classList.add('zeno-reduced-motion');
+  if (!localStorage.getItem('zeno-whatsnew-v2')) document.getElementById('whatsNewBar')?.classList.add('open');
+  if (!localStorage.getItem('zeno-onboard-done')) {
+    setTimeout(() => {
+      if (localStorage.getItem('zeno-username') !== null) document.getElementById('onboardOverlay')?.classList.add('open');
+    }, 900);
+  }
+  syncOnboardChecks();
+  const si = document.getElementById('searchInput');
+  if (si) si.addEventListener('input', syncSearchClear);
+})();
+
+window.renderGrid = renderGrid;
+window.dismissWhatsNew = dismissWhatsNew;
+window.clearSearch = clearSearch;
+window.markOnboard = markOnboard;
+window.closeOnboard = closeOnboard;
+window.finishOnboard = finishOnboard;
+window.copyConsoleAll = copyConsoleAll;
+window.setConsoleFilter = setConsoleFilter;
+window.r2DragStart = r2DragStart;
+window.r2DragOver = r2DragOver;
+window.r2Drop = r2Drop;
+window.closePtGoalModal = closePtGoalModal;
+window.applyPtGoalPreset = applyPtGoalPreset;
+window.applyPtGoalCustom = applyPtGoalCustom;
+window.toggleReducedMotion = toggleReducedMotion;
+window.syncSearchClear = syncSearchClear;
 
 // ── INIT ─────────────────────────────────────────────────────────
 initSW();
