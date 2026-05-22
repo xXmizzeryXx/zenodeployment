@@ -170,6 +170,7 @@ main {
 .color-opt.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
 .color-opt i { color: #000; font-size: 12px; opacity: 0; transition: opacity .2s; }
 .color-opt.active i { opacity: 1; }
+.color-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Select */
 .setting-select {
@@ -244,6 +245,7 @@ main {
 .cloak-preset:hover { border-color: var(--neon-gold); background: rgba(255,215,0,0.05); }
 .cloak-preset.active { border-color: var(--neon-gold); background: rgba(255,215,0,0.1); }
 .cloak-preset img { width: 24px; height: 24px; margin-bottom: 8px; border-radius: 4px; }
+.cloak-preset:focus-visible { outline: 2px solid var(--neon-gold); outline-offset: 2px; }
 .cloak-preset span { display: block; font-size: 11px; color: var(--muted); letter-spacing: .5px; }
 
 /* ── TOAST ── */
@@ -307,7 +309,7 @@ main {
 
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-name">Display Name</div>
+        <label class="setting-name" for="settingUsername">Display Name</label>
         <div class="setting-desc">The name used in greetings and profile headers</div>
       </div>
       <div class="setting-control">
@@ -322,18 +324,18 @@ main {
         </div>
         <div class="setting-control">
           <div class="color-grid" id="colorGrid">
-            <div class="color-opt" style="background:var(--neon-cyan)" data-color="#00f5ff" onclick="setAccent('#00f5ff', this)"><i class="fa-solid fa-check"></i></div>
-            <div class="color-opt" style="background:var(--neon-pink)" data-color="#ff006e" onclick="setAccent('#ff006e', this)"><i class="fa-solid fa-check"></i></div>
-            <div class="color-opt" style="background:var(--neon-purple)" data-color="#bf00ff" onclick="setAccent('#bf00ff', this)"><i class="fa-solid fa-check"></i></div>
-            <div class="color-opt" style="background:var(--neon-green)" data-color="#00ff88" onclick="setAccent('#00ff88', this)"><i class="fa-solid fa-check"></i></div>
-            <div class="color-opt" style="background:var(--neon-gold)" data-color="#ffd700" onclick="setAccent('#ffd700', this)"><i class="fa-solid fa-check"></i></div>
+            <div class="color-opt" tabindex="0" role="button" style="background:var(--neon-cyan)" data-color="#00f5ff" onclick="setAccent('#00f5ff', this)" onkeydown="if(event.key==='Enter') setAccent('#00f5ff', this)"><i class="fa-solid fa-check"></i></div>
+            <div class="color-opt" tabindex="0" role="button" style="background:var(--neon-pink)" data-color="#ff006e" onclick="setAccent('#ff006e', this)" onkeydown="if(event.key==='Enter') setAccent('#ff006e', this)"><i class="fa-solid fa-check"></i></div>
+            <div class="color-opt" tabindex="0" role="button" style="background:var(--neon-purple)" data-color="#bf00ff" onclick="setAccent('#bf00ff', this)" onkeydown="if(event.key==='Enter') setAccent('#bf00ff', this)"><i class="fa-solid fa-check"></i></div>
+            <div class="color-opt" tabindex="0" role="button" style="background:var(--neon-green)" data-color="#00ff88" onclick="setAccent('#00ff88', this)" onkeydown="if(event.key==='Enter') setAccent('#00ff88', this)"><i class="fa-solid fa-check"></i></div>
+            <div class="color-opt" tabindex="0" role="button" style="background:var(--neon-gold)" data-color="#ffd700" onclick="setAccent('#ffd700', this)" onkeydown="if(event.key==='Enter') setAccent('#ffd700', this)"><i class="fa-solid fa-check"></i></div>
           </div>
         </div>
       </div>
 
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-name">Grid Background</div>
+        <label class="setting-name" for="settingGrid">Grid Background</label>
         <div class="setting-desc">Show the retro digital grid overlay</div>
       </div>
       <div class="setting-control">
@@ -347,7 +349,7 @@ main {
 
     <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-name">Scanlines Effect</div>
+          <label class="setting-name" for="settingScanlines">Scanlines Effect</label>
           <div class="setting-desc">Enable subtle CRT scanline texture</div>
         </div>
         <div class="setting-control">
@@ -361,7 +363,7 @@ main {
 
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-name">Interface Blur (Glassmorphism)</div>
+          <label class="setting-name" for="settingBlur">Interface Blur (Glassmorphism)</label>
           <div class="setting-desc">Control the intensity of background blur on cards</div>
         </div>
         <div class="setting-control">
@@ -376,7 +378,7 @@ main {
 
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-name">Preferred Service</div>
+        <label class="setting-name" for="settingService">Preferred Service</label>
         <div class="setting-desc">Default provider when browsing the Movies section</div>
       </div>
       <div class="setting-control">
@@ -392,7 +394,7 @@ main {
 
     <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-name">Continue Watching Row</div>
+          <label class="setting-name" for="settingCW">Continue Watching Row</label>
           <div class="setting-desc">Show recently watched items on the home screen</div>
         </div>
         <div class="setting-control">
@@ -406,7 +408,7 @@ main {
 
     <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-name">Episode Info Cards</div>
+          <label class="setting-name" for="settingEpInfo">Episode Info Cards</label>
           <div class="setting-desc">Show detailed information before playing an episode</div>
         </div>
         <div class="setting-control">
@@ -425,7 +427,7 @@ main {
 
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-name">Default Startup App</div>
+        <label class="setting-name" for="settingDefaultApp">Default Startup App</label>
         <div class="setting-desc">Primary application for system shortcuts</div>
       </div>
       <div class="setting-control">
@@ -440,7 +442,7 @@ main {
 
     <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-name">Reduced Motion</div>
+          <label class="setting-name" for="settingReducedMotion">Reduced Motion</label>
           <div class="setting-desc">Disable complex animations for better performance</div>
         </div>
         <div class="setting-control">
@@ -454,7 +456,7 @@ main {
 
     <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-name">Desktop Mode</div>
+          <label class="setting-name" for="settingDesktopMode">Desktop Mode</label>
           <div class="setting-desc">Switch to a full-screen desktop layout with a taskbar</div>
         </div>
         <div class="setting-control">
@@ -477,23 +479,23 @@ main {
           <div class="setting-desc">Quickly mask your tab to appear as a different website</div>
         </div>
         <div class="cloak-grid" id="cloakGrid">
-            <div class="cloak-preset" onclick="setCloak('Google Classroom', 'https://ssl.gstatic.com/classroom/favicon.png', this)">
+            <div class="cloak-preset" tabindex="0" role="button" onclick="setCloak('Google Classroom', 'https://ssl.gstatic.com/classroom/favicon.png', this)" onkeydown="if(event.key==='Enter') setCloak('Google Classroom', 'https://ssl.gstatic.com/classroom/favicon.png', this)">
                 <img src="https://ssl.gstatic.com/classroom/favicon.png">
                 <span>Classroom</span>
             </div>
-            <div class="cloak-preset" onclick="setCloak('Google Docs', 'https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x16.png', this)">
+            <div class="cloak-preset" tabindex="0" role="button" onclick="setCloak('Google Docs', 'https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x16.png', this)" onkeydown="if(event.key==='Enter') setCloak('Google Docs', 'https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x16.png', this)">
                 <img src="https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x16.png">
                 <span>Docs</span>
             </div>
-            <div class="cloak-preset" onclick="setCloak('Khan Academy', 'https://www.khanacademy.org/favicon.ico', this)">
+            <div class="cloak-preset" tabindex="0" role="button" onclick="setCloak('Khan Academy', 'https://www.khanacademy.org/favicon.ico', this)" onkeydown="if(event.key==='Enter') setCloak('Khan Academy', 'https://www.khanacademy.org/favicon.ico', this)">
                 <img src="https://www.khanacademy.org/favicon.ico">
                 <span>Khan Academy</span>
             </div>
-            <div class="cloak-preset" onclick="setCloak('Google', 'https://www.google.com/favicon.ico', this)">
+            <div class="cloak-preset" tabindex="0" role="button" onclick="setCloak('Google', 'https://www.google.com/favicon.ico', this)" onkeydown="if(event.key==='Enter') setCloak('Google', 'https://www.google.com/favicon.ico', this)">
                 <img src="https://www.google.com/favicon.ico">
                 <span>Google Search</span>
             </div>
-            <div class="cloak-preset" id="cloakNone" onclick="setCloak('', '', this)">
+            <div class="cloak-preset" id="cloakNone" tabindex="0" role="button" onclick="setCloak('', '', this)" onkeydown="if(event.key==='Enter') setCloak('', '', this)">
                 <div style="height:24px; display:flex; align-items:center; justify-content:center; margin-bottom:8px"><i class="fa-solid fa-ban"></i></div>
                 <span>None</span>
             </div>
