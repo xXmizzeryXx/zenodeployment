@@ -3565,11 +3565,19 @@
     // ── INTRO — TERMINAL BOOT ──
     (function () {
       if (sessionStorage.getItem('zeno-intro-played')) {
-        document.getElementById('intro').style.display = 'none';
-        maybeShowDisclaimer();
-        startBreathing();
-        return;
-      }
+  document.getElementById('intro').style.display = 'none';
+  maybeShowDisclaimer();
+  startBreathing();
+  if (localStorage.getItem('zeno-desktop-mode') === 'true') {
+    document.body.classList.add('desktop-mode');
+    initDesktopInteractions();
+    initWidgets();
+  }
+  const user = localStorage.getItem('zeno-username') || 'GUEST';
+  const label = document.getElementById('startUserLabel');
+  if (label) label.textContent = user.toUpperCase();
+  return;
+}
       sessionStorage.setItem('zeno-intro-played', '1');
 
       // Live clock in topbar
