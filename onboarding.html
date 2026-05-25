@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZENO V2 - Setup</title>
+<script>
+  const t = localStorage.getItem('zeno_theme') || 'default';
+  const a = localStorage.getItem('zeno_accent') || '#00f5ff';
+  document.documentElement.className = 'theme-' + t;
+  document.documentElement.style.setProperty('--accent', a);
+  if (localStorage.getItem('zeno_v2_setup_complete') === 'true' && !location.search.includes('preview')) {
+    location.replace('index.html');
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="css/zeno-v2-core.css">
+<style>
+body.ob-wrap{min-height:100vh;overflow:hidden;background:#050508}
+.ob-shell{min-height:100vh;display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);position:relative}
+.ob-shell::before{content:"";position:fixed;inset:0;pointer-events:none;background:
+  radial-gradient(circle at 12% 15%,color-mix(in srgb,var(--accent) 20%,transparent),transparent 28%),
+  radial-gradient(circle at 88% 82%,rgba(255,0,110,.14),transparent 30%),
+  linear-gradient(135deg,rgba(255,255,255,.04),transparent 45%,rgba(255,255,255,.03));z-index:-1}
+.ob-aside{padding:32px 28px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid var(--surface-border);background:rgba(5,5,8,.52);backdrop-filter:blur(22px) saturate(170%)}
+.ob-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text)}
+.ob-mark{width:42px;height:42px;border-radius:14px;border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);display:grid;place-items:center;color:var(--accent);background:rgba(0,0,0,.22);box-shadow:0 0 24px var(--accent-glow)}
+.ob-word{font-family:var(--font-display);font-size:15px;font-weight:900;letter-spacing:5px;color:var(--accent)}
+.ob-version{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:3px}
+.ob-aside-copy{margin:54px 0 34px}
+.ob-aside-copy h1{font-family:var(--font-display);font-size:clamp(30px,3.4vw,46px);line-height:1;letter-spacing:1px;color:var(--text);max-width:280px}
+.ob-aside-copy p{margin-top:16px;color:var(--muted);font-size:16px;line-height:1.5;max-width:270px}
+.ob-progress-card{border:1px solid var(--surface-border);border-radius:18px;background:rgba(255,255,255,.045);padding:16px}
+.ob-progress-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;font-family:var(--font-display);font-size:10px;letter-spacing:2px;color:var(--muted)}
+.ob-progress-track{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.ob-progress-bar{height:100%;width:16.66%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 18px var(--accent-glow);transition:width .35s ease}
+.ob-rail{display:grid;gap:8px;margin-top:16px}
+.ob-rail-item{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;padding:9px;border-radius:12px;color:var(--muted);border:1px solid transparent;transition:all .2s ease}
+.ob-rail-num{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-family:var(--font-mono);font-size:11px;background:rgba(255,255,255,.05)}
+.ob-rail-label{font-size:13px;font-weight:600}
+.ob-rail-item.active{color:var(--text);border-color:color-mix(in srgb,var(--accent) 38%,transparent);background:rgba(255,255,255,.055)}
+.ob-rail-item.active .ob-rail-num{background:var(--accent);color:#000}
+.ob-aside-foot{font-size:12px;color:var(--muted);line-height:1.5}
+.ob-main{min-width:0;display:grid;grid-template-rows:1fr auto;min-height:100vh;padding:34px}
+.ob-stage{min-height:0;display:grid;place-items:center;position:relative}
+.ob-step{width:min(860px,100%);min-width:0;display:none;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:24px;align-items:stretch}
+.ob-step.active{display:grid;animation:obIn .34s ease both}
+@keyframes obIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.ob-panel,.ob-preview{border:1px solid var(--surface-border);border-radius:24px;background:rgba(255,255,255,.06);backdrop-filter:blur(26px) saturate(170%);box-shadow:0 24px 70px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.12)}
+.ob-panel{padding:34px;min-height:500px;display:flex;flex-direction:column}
+.ob-preview{padding:22px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
+.ob-preview::after{content:"";position:absolute;inset:auto -40px -70px -40px;height:180px;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 24%,transparent),transparent 68%);pointer-events:none}
+.ob-kicker{font-family:var(--font-display);font-size:10px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
+.ob-title{font-family:var(--font-display);font-size:clamp(34px,5vw,60px);line-height:1;letter-spacing:1px;color:var(--text);margin:0}
+.ob-heading{font-family:var(--font-display);font-size:clamp(25px,3vw,38px);line-height:1.05;color:var(--text);margin:0}
+.ob-sub{color:var(--muted);font-size:17px;line-height:1.55;max-width:560px;margin:16px 0 0;overflow-wrap:anywhere}
+.ob-actions{margin-top:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:28px}
+.ob-form{display:grid;gap:15px;margin-top:28px}
+.ob-field span{display:block;margin-bottom:7px;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+.ob-file-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ob-avatar{width:78px;height:78px;border-radius:24px;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);display:grid;place-items:center;overflow:hidden;background:rgba(0,0,0,.22);color:var(--accent);font-size:28px;box-shadow:0 0 24px var(--accent-glow)}
+.ob-avatar img{width:100%;height:100%;object-fit:cover}
+.ob-hidden-file{position:absolute;opacity:0;pointer-events:none}
+.ob-note{font-size:12px;color:var(--muted);line-height:1.45}
+.ob-error{min-height:20px;color:var(--accent2);font-size:13px;margin-top:8px}
+.theme-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}
+.theme-card{border:1px solid var(--surface-border);border-radius:18px;background:rgba(255,255,255,.045);padding:18px;min-height:170px;cursor:pointer;text-align:left;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.theme-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.theme-card.selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,rgba(255,255,255,.045));box-shadow:0 0 26px var(--accent-glow)}
+.theme-swatch{height:76px;border-radius:14px;margin-bottom:14px;border:1px solid rgba(255,255,255,.12)}
+.theme-swatch.default{background:radial-gradient(circle at 30% 25%,rgba(0,245,255,.32),transparent 35%),#050508}
+.theme-swatch.glass{background:linear-gradient(135deg,rgba(255,255,255,.26),rgba(255,255,255,.06));backdrop-filter:blur(16px)}
+.theme-swatch.blend{background:linear-gradient(135deg,rgba(0,245,255,.22),rgba(255,0,110,.16)),rgba(5,5,8,.42)}
+.theme-card h3{font-family:var(--font-display);font-size:12px;letter-spacing:2px;margin:0 0 8px;color:var(--text)}
+.theme-card p{font-size:13px;color:var(--muted);line-height:1.35;margin:0}
+.game-mode-cards{display:grid;gap:14px;margin-top:28px}
+.game-mode-card{border:1px solid var(--surface-border);border-radius:22px;background:rgba(255,255,255,.045);padding:18px;display:grid;grid-template-columns:46px 1fr auto;gap:14px;align-items:center;text-align:left;cursor:pointer;color:var(--text);transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.game-mode-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.game-mode-card.selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,rgba(255,255,255,.045));box-shadow:0 0 26px var(--accent-glow)}
+.game-mode-card i{width:46px;height:46px;border-radius:18px;display:grid;place-items:center;background:rgba(0,0,0,.22);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.game-mode-card strong{display:block;font-family:var(--font-display);font-size:12px;letter-spacing:2px;margin-bottom:6px}
+.game-mode-card span{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.game-mode-card::after{content:"";width:14px;height:14px;border-radius:50px;border:1px solid var(--surface-border)}
+.game-mode-card.selected::after{background:var(--accent);border-color:var(--accent);box-shadow:0 0 14px var(--accent-glow)}
+.ob-picker-wrap{margin-top:28px;max-width:540px}
+.ob-picker-wrap .accent-grid{grid-template-columns:repeat(6,1fr);gap:12px}
+.ob-picker-wrap .accent-swatch{border-radius:16px}
+.ob-picker-wrap .wallpaper-grid{grid-template-columns:repeat(2,1fr);max-height:330px;gap:12px;padding-right:4px}
+.ob-picker-wrap .wp-thumb{border-radius:16px}
+.ob-review{display:grid;gap:12px;margin-top:28px}
+.summary-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--surface-border);font-size:15px;color:var(--muted)}
+.summary-row strong{color:var(--text);font-weight:600}
+.summary-swatch{width:28px;height:28px;border-radius:10px;display:inline-block;vertical-align:middle;border:1px solid rgba(255,255,255,.22);box-shadow:0 0 16px var(--accent-glow)}
+.ob-mini-window{position:relative;z-index:1;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(0,0,0,.22);padding:14px}
+.ob-mini-top{display:flex;gap:6px;margin-bottom:16px}
+.ob-mini-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ob-mini-dot:nth-child(2){background:var(--accent2)}
+.ob-mini-dot:nth-child(3){background:rgba(255,255,255,.35)}
+.ob-mini-card{height:74px;border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 20%,transparent),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.12);margin-bottom:10px}
+.ob-mini-lines{display:grid;gap:8px}
+.ob-mini-lines span{display:block;height:8px;border-radius:999px;background:rgba(255,255,255,.15)}
+.ob-mini-lines span:nth-child(1){width:76%}
+.ob-mini-lines span:nth-child(2){width:52%}
+.ob-preview-title{font-family:var(--font-display);font-size:13px;letter-spacing:2px;color:var(--accent);position:relative;z-index:1}
+.ob-preview-text{font-size:13px;color:var(--muted);line-height:1.5;position:relative;z-index:1;margin-top:16px}
+.ob-nav{display:flex;justify-content:space-between;align-items:center;gap:14px;padding-top:22px}
+.ob-dots{display:flex;gap:8px}
+.ob-dot{width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.14);transition:all .2s ease}
+.ob-dot.active{width:28px;background:var(--accent);box-shadow:0 0 14px var(--accent-glow)}
+.ob-nav-actions{display:flex;gap:12px}
+.ob-skip{border:none;background:none;color:var(--muted);font:600 13px var(--font-body);cursor:pointer}
+.ob-skip:hover{color:var(--text)}
+@media(max-width:920px){
+  body.ob-wrap{overflow:auto}
+  .ob-shell{display:block}
+  .ob-aside{position:relative;border-right:0;border-bottom:1px solid var(--surface-border);padding:22px;overflow:hidden}
+  .ob-aside-copy,.ob-aside-foot{display:none}
+  .ob-progress-card{margin-top:18px}
+  .ob-rail{grid-template-columns:repeat(3,1fr)}
+  .ob-rail-item{grid-template-columns:1fr;padding:8px}
+  .ob-rail-label{font-size:11px}
+  .ob-main{min-height:auto;padding:22px;overflow:hidden}
+  .ob-stage{display:block}
+  .ob-step{grid-template-columns:1fr}
+  .ob-preview{display:none}
+  .ob-panel{min-height:0;min-width:0;padding:24px}
+}
+@media(max-width:640px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .ob-shell{min-height:100vh}
+  .ob-aside{padding:20px 16px}
+  .ob-brand{margin-left:6px}
+  .ob-progress-card{padding:14px;overflow:hidden}
+  .ob-progress-top{font-size:9px}
+  .ob-rail{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .ob-rail-item{min-width:0}
+  .ob-rail-label{overflow:hidden;text-overflow:ellipsis}
+  .ob-main{padding:16px;overflow:hidden}
+  .ob-panel{padding:20px;border-radius:20px}
+  .ob-title{font-size:40px}
+  .ob-heading{font-size:28px}
+  .ob-sub{font-size:15px}
+  .theme-cards{grid-template-columns:1fr}
+  .ob-picker-wrap .accent-grid{grid-template-columns:repeat(3,1fr)}
+  .ob-picker-wrap .wallpaper-grid{grid-template-columns:1fr}
+  .ob-nav{align-items:stretch;flex-direction:column}
+  .ob-nav-actions{display:grid;grid-template-columns:1fr 1fr}
+  .ob-nav-actions .zeno-btn{justify-content:center}
+}
+@media(max-width:420px){
+  .ob-progress-card,.ob-step,.ob-panel{width:100%;max-width:calc(100vw - 32px);margin-left:auto;margin-right:auto}
+  .ob-rail{grid-template-columns:1fr 1fr}
+  .ob-rail-item{padding:7px}
+  .ob-title{font-size:34px}
+}
+</style>
+</head>
+<body class="ob-wrap">
+<div id="zeno-wallpaper"></div>
+<div id="zeno-grid"></div>
+<div id="zeno-scanlines"></div>
+
+<main class="ob-shell">
+  <aside class="ob-aside">
+    <div>
+      <a class="ob-brand" href="index.html" aria-label="Zeno home">
+        <div class="ob-mark"><i class="fa-solid fa-bolt"></i></div>
+        <div>
+          <div class="ob-word">ZENO</div>
+          <div class="ob-version">V2 SETUP</div>
+        </div>
+      </a>
+      <div class="ob-aside-copy">
+        <h1>Make it yours before launch.</h1>
+        <p>Choose the profile, look, and workspace style that Zeno V2 will use across the app.</p>
+      </div>
+      <div class="ob-progress-card">
+        <div class="ob-progress-top">
+          <span id="obProgressLabel">STEP 1 OF 6</span>
+          <span id="obProgressName">WELCOME</span>
+        </div>
+        <div class="ob-progress-track"><div class="ob-progress-bar" id="obBar"></div></div>
+        <div class="ob-rail" id="obRail"></div>
+      </div>
+    </div>
+    <p class="ob-aside-foot">Everything is saved locally on this browser. You can change it later in Settings.</p>
+  </aside>
+
+  <section class="ob-main">
+    <div class="ob-stage" id="obSteps">
+      <section class="ob-step active" data-step="0">
+        <div class="ob-panel">
+          <div class="ob-kicker">Welcome</div>
+          <h1 class="ob-title">ZENO V2</h1>
+          <p class="ob-sub">A cleaner setup for your private launcher, games, movies, tools, and visual style.</p>
+          <div class="ob-actions">
+            <button class="zeno-btn" id="obBegin"><i class="fa-solid fa-arrow-right"></i>Begin Setup</button>
+            <button class="zeno-btn zeno-btn-ghost" type="button" onclick="openAuthModal?.()"><i class="fa-solid fa-user"></i><span data-auth-label>Sign In</span></button>
+          </div>
+        </div>
+        <div class="ob-preview">
+          <div class="ob-preview-title">LIVE WORKSPACE PREVIEW</div>
+          <div class="ob-mini-window">
+            <div class="ob-mini-top"><span class="ob-mini-dot"></span><span class="ob-mini-dot"></span><span class="ob-mini-dot"></span></div>
+            <div class="ob-mini-card"></div>
+            <div class="ob-mini-lines"><span></span><span></span></div>
+          </div>
+          <p class="ob-preview-text">Your choices update the page as you go, so the final screen already feels like your Zeno.</p>
+        </div>
+      </section>
+
+      <section class="ob-step" data-step="1">
+        <div class="ob-panel">
+          <div class="ob-kicker">Profile</div>
+          <h2 class="ob-heading">Set your identity.</h2>
+          <p class="ob-sub">This name and picture show in the top bar, lock screen, and profile areas.</p>
+          <div class="ob-form">
+            <label class="ob-field">
+              <span>Display name</span>
+              <input class="zeno-input" id="obName" placeholder="Guest">
+            </label>
+            <div class="ob-field">
+              <span>Profile picture</span>
+              <div class="ob-file-row">
+                <div class="ob-avatar" id="obAvatarBox"><i class="fa-solid fa-user"></i></div>
+                <input type="file" accept="image/*" id="obAvatarFile" class="ob-hidden-file">
+                <button class="zeno-btn zeno-btn-ghost" type="button" id="obAvatarPick"><i class="fa-solid fa-image"></i>Choose Image</button>
+                <p class="ob-note">PNG, JPG, or WebP. Stored only in this browser.</p>
+              </div>
+            </div>
+            <label class="ob-field">
+              <span>Local password (optional)</span>
+              <input type="password" class="zeno-input" id="obPin1" placeholder="Set password">
+            </label>
+            <label class="ob-field">
+              <span>Confirm password</span>
+              <input type="password" class="zeno-input" id="obPin2" placeholder="Confirm password">
+            </label>
+            <div class="ob-error" id="obProfileError"></div>
+          </div>
+        </div>
+        <div class="ob-preview">
+          <div class="ob-preview-title">PROFILE CARD</div>
+          <div class="ob-mini-window">
+            <div class="ob-avatar" id="obPreviewAvatar"><i class="fa-solid fa-user"></i></div>
+            <div class="ob-mini-lines" style="margin-top:16px"><span id="obPreviewNameLine"></span><span></span></div>
+          </div>
+          <p class="ob-preview-text">A password turns on the local lock screen. Leave both fields blank to skip it.</p>
+        </div>
+      </section>
+
+      <section class="ob-step" data-step="2">
+        <div class="ob-panel">
+          <div class="ob-kicker">Theme</div>
+          <h2 class="ob-heading">Pick the interface mood.</h2>
+          <p class="ob-sub">Default is sharp and dark. Glass is softer. Blend keeps the neon edge with more depth.</p>
+          <div class="theme-cards">
+            <button class="theme-card" type="button" data-theme="default">
+              <div class="theme-swatch default"></div>
+              <h3>Default</h3>
+              <p>High contrast, cyber, clean.</p>
+            </button>
+            <button class="theme-card" type="button" data-theme="glass">
+              <div class="theme-swatch glass"></div>
+              <h3>Glass</h3>
+              <p>Soft panels and frosted depth.</p>
+            </button>
+            <button class="theme-card" type="button" data-theme="blend">
+              <div class="theme-swatch blend"></div>
+              <h3>Blend</h3>
+              <p>Wallpaper driven with neon UI.</p>
+            </button>
+          </div>
+        </div>
+        <div class="ob-preview">
+          <div class="ob-preview-title">THEME PREVIEW</div>
+          <div class="ob-mini-window">
+            <div class="ob-mini-card"></div>
+            <div class="ob-mini-lines"><span></span><span></span></div>
+          </div>
+          <p class="ob-preview-text">You can swap themes anytime from Settings without losing your other choices.</p>
+        </div>
+      </section>
+
+      <section class="ob-step" data-step="3">
+        <div class="ob-panel">
+          <div class="ob-kicker">Accent</div>
+          <h2 class="ob-heading">Choose the glow color.</h2>
+          <p class="ob-sub">The accent powers buttons, focus rings, profile borders, and highlight effects.</p>
+          <div class="ob-picker-wrap" id="obAccentPicker"></div>
+        </div>
+        <div class="ob-preview">
+          <div class="ob-preview-title">ACCENT PREVIEW</div>
+          <div class="ob-mini-window">
+            <div class="ob-mini-card"></div>
+            <button class="zeno-btn" type="button" style="margin-top:14px;width:100%;justify-content:center">Sample Button</button>
+          </div>
+          <p class="ob-preview-text">Use the text field for a custom hex color if none of the presets fit.</p>
+        </div>
+      </section>
+
+      <section class="ob-step" data-step="4">
+        <div class="ob-panel">
+          <div class="ob-kicker">Wallpaper</div>
+          <h2 class="ob-heading">Set the background.</h2>
+          <p class="ob-sub">Choose a built-in wallpaper now, or leave it clean and add your own image later.</p>
+          <div class="ob-picker-wrap" id="obWallpaperPicker"></div>
+        </div>
+        <div class="ob-preview">
+          <div class="ob-preview-title">BACKGROUND LAYER</div>
+          <div class="ob-mini-window">
+            <div class="ob-mini-card"></div>
+            <div class="ob-mini-lines"><span></span><span></span></div>
+          </div>
+          <p class="ob-preview-text">Wallpaper sits behind the liquid glass surfaces and respects each theme filter.</p>
+        </div>
+      </section>
+
+      <section class="ob-step" data-step="5">
+        <div class="ob-panel">
+          <div class="ob-kicker">Games</div>
+          <h2 class="ob-heading">Choose game sources.</h2>
+          <p class="ob-sub">Keep Games simple with only built-in ZenoApps, allow local uploads, or unlock every import source.</p>
+          <div class="game-mode-cards">
+            <button class="game-mode-card" type="button" data-game-mode="zenoapps">
+              <i class="fa-solid fa-store"></i>
+              <span><strong>ZenoApps only</strong>Built-in games only. Cleanest and safest library setup.</span>
+            </button>
+            <button class="game-mode-card" type="button" data-game-mode="zenoapps_upload">
+              <i class="fa-solid fa-folder-plus"></i>
+              <span><strong>ZenoApps + upload</strong>Use built-ins plus folders, HTML files, ZIPs, pasted HTML, and Zenopacks.</span>
+            </button>
+            <button class="game-mode-card" type="button" data-game-mode="full_upload">
+              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <span><strong>Full upload</strong>Everything above, plus URL, GitHub, and R2/CDN imports.</span>
+            </button>
+          </div>
+        </div>
+        <div class="ob-preview">
+          <div class="ob-preview-title">GAMES IMPORT MODE</div>
+          <div class="ob-mini-window">
+            <div class="ob-mini-card"></div>
+            <div class="ob-mini-lines"><span></span><span></span></div>
+          </div>
+          <p class="ob-preview-text">This controls which Add Game options appear on the Games page.</p>
+        </div>
+      </section>
+
+      <section class="ob-step" data-step="6">
+        <div class="ob-panel">
+          <div class="ob-kicker">Ready</div>
+          <h2 class="ob-heading">You are all set.</h2>
+          <p class="ob-sub">Review the setup and enter Zeno V2.</p>
+          <div class="ob-review" id="obSummary"></div>
+          <div class="ob-actions">
+            <button class="zeno-btn" id="obFinish"><i class="fa-solid fa-arrow-right"></i>Enter Zeno</button>
+          </div>
+        </div>
+        <div class="ob-preview">
+          <div class="ob-preview-title">SETUP COMPLETE</div>
+          <div class="ob-mini-window">
+            <div class="ob-avatar" id="obFinalAvatar"><i class="fa-solid fa-user"></i></div>
+            <div class="ob-mini-lines" style="margin-top:16px"><span></span><span></span></div>
+          </div>
+          <p class="ob-preview-text">The next page opens with your profile, theme, accent, and wallpaper already applied.</p>
+        </div>
+      </section>
+    </div>
+
+    <nav class="ob-nav" aria-label="Onboarding navigation">
+      <div class="ob-dots" id="obDots"></div>
+      <div class="ob-nav-actions">
+        <button class="zeno-btn zeno-btn-ghost" id="obBack" style="display:none"><i class="fa-solid fa-arrow-left"></i>Back</button>
+        <button class="zeno-btn" id="obNext" style="display:none">Next<i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </nav>
+  </section>
+</main>
+
+<script src="js/zeno-v2-core.js"></script>
+<script>
+const stepsMeta = ['Welcome', 'Profile', 'Theme', 'Accent', 'Wallpaper', 'Games', 'Ready'];
+let step = 0;
+const total = stepsMeta.length;
+let draft = {
+  theme: ZenoStore.theme || 'default',
+  accent: ZenoStore.accent || '#00f5ff',
+  name: ZenoStore.username || '',
+  avatar: ZenoStore.avatar || '',
+  gameImportMode: localStorage.getItem('zeno_games_import_mode') || 'full_upload',
+};
+const gameModeLabels = {
+  zenoapps: 'ZENOAPPS ONLY',
+  zenoapps_upload: 'ZENOAPPS + UPLOAD',
+  full_upload: 'FULL UPLOAD',
+};
+
+function setButtonState() {
+  document.getElementById('obBack').style.display = step > 0 ? 'inline-flex' : 'none';
+  document.getElementById('obNext').style.display = step > 0 && step < total - 1 ? 'inline-flex' : 'none';
+}
+
+function updateProgress() {
+  document.getElementById('obBar').style.width = ((step + 1) / total * 100) + '%';
+  document.getElementById('obProgressLabel').textContent = `STEP ${step + 1} OF ${total}`;
+  document.getElementById('obProgressName').textContent = stepsMeta[step].toUpperCase();
+  document.querySelectorAll('.ob-dot').forEach((d, i) => d.classList.toggle('active', i === step));
+  document.querySelectorAll('.ob-rail-item').forEach((d, i) => d.classList.toggle('active', i === step));
+  setButtonState();
+}
+
+function goTo(n) {
+  if (n < 0 || n >= total || n === step) return;
+  document.querySelectorAll('.ob-step')[step].classList.remove('active');
+  step = n;
+  document.querySelectorAll('.ob-step')[step].classList.add('active');
+  if (step === total - 1) renderSummary();
+  updateProgress();
+}
+
+function renderAvatar(target) {
+  const el = document.getElementById(target);
+  if (!el) return;
+  el.innerHTML = draft.avatar ? `<img src="${draft.avatar}" alt="">` : '<i class="fa-solid fa-user"></i>';
+}
+
+function syncProfilePreview() {
+  const name = document.getElementById('obName').value.trim();
+  draft.name = name;
+  document.getElementById('obPreviewNameLine').style.width = name ? Math.min(92, Math.max(38, name.length * 7)) + '%' : '58%';
+  renderAvatar('obAvatarBox');
+  renderAvatar('obPreviewAvatar');
+  renderAvatar('obFinalAvatar');
+}
+
+async function saveProfileStep() {
+  const error = document.getElementById('obProfileError');
+  error.textContent = '';
+  draft.name = document.getElementById('obName').value.trim() || 'Guest';
+  const p1 = document.getElementById('obPin1').value;
+  const p2 = document.getElementById('obPin2').value;
+  if ((p1 || p2) && p1 !== p2) {
+    error.textContent = 'Passwords do not match.';
+    return false;
+  }
+  ZenoStore.set('zeno_username', draft.name);
+  localStorage.setItem('zeno-username', draft.name);
+  if (draft.avatar) ZenoStore.set('zeno_avatar', draft.avatar);
+  if (p1) {
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p1));
+    ZenoStore.set('zeno_pin_hash', [...new Uint8Array(h)].map(b => b.toString(16).padStart(2,'0')).join(''));
+  }
+  return true;
+}
+
+function saveTheme() {
+  ZenoStore.set('zeno_theme', draft.theme);
+  ZenoStore.set('zeno_accent', draft.accent);
+  document.documentElement.style.setProperty('--accent', draft.accent);
+  applyTheme(draft.theme, draft.accent);
+}
+
+function saveGameMode() {
+  localStorage.setItem('zeno_games_import_mode', draft.gameImportMode);
+}
+
+function renderSummary() {
+  document.getElementById('obSummary').innerHTML = `
+    <div class="summary-row"><span>Profile</span><strong>${draft.name || 'Guest'}</strong></div>
+    <div class="summary-row"><span>Theme</span><strong>${(draft.theme || 'default').toUpperCase()}</strong></div>
+    <div class="summary-row"><span>Accent</span><strong><span class="summary-swatch" style="background:${draft.accent}"></span></strong></div>
+    <div class="summary-row"><span>Wallpaper</span><strong>${(ZenoStore.wallpaperType || 'none').toUpperCase()}</strong></div>
+    <div class="summary-row"><span>Games</span><strong>${gameModeLabels[draft.gameImportMode] || gameModeLabels.full_upload}</strong></div>`;
+  renderAvatar('obFinalAvatar');
+}
+
+document.getElementById('obRail').innerHTML = stepsMeta.map((label, i) => `
+  <div class="ob-rail-item${i === 0 ? ' active' : ''}" data-i="${i}">
+    <div class="ob-rail-num">${i + 1}</div>
+    <div class="ob-rail-label">${label}</div>
+  </div>`).join('');
+document.getElementById('obDots').innerHTML = stepsMeta.map((_, i) => `<span class="ob-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+
+document.getElementById('obRail').addEventListener('click', async (e) => {
+  const item = e.target.closest('.ob-rail-item');
+  if (!item) return;
+  const target = Number(item.dataset.i);
+  if (target <= step) goTo(target);
+});
+
+document.getElementById('obBegin').onclick = () => goTo(1);
+document.getElementById('obBack').onclick = () => goTo(step - 1);
+document.getElementById('obNext').onclick = async () => {
+  if (step === 1 && !(await saveProfileStep())) return;
+  if (step === 2 || step === 3) saveTheme();
+  if (step === 5) saveGameMode();
+  goTo(step + 1);
+};
+
+document.getElementById('obName').value = draft.name === 'Guest' ? '' : draft.name;
+document.getElementById('obName').addEventListener('input', syncProfilePreview);
+document.getElementById('obAvatarPick').onclick = () => document.getElementById('obAvatarFile').click();
+document.getElementById('obAvatarFile').onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { draft.avatar = r.result; syncProfilePreview(); };
+  r.readAsDataURL(f);
+};
+
+document.querySelectorAll('.theme-card').forEach(c => {
+  c.classList.toggle('selected', c.dataset.theme === draft.theme);
+  c.onclick = () => {
+    document.querySelectorAll('.theme-card').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+    draft.theme = c.dataset.theme;
+    saveTheme();
+  };
+});
+
+document.querySelectorAll('.game-mode-card').forEach(c => {
+  c.classList.toggle('selected', c.dataset.gameMode === draft.gameImportMode);
+  c.onclick = () => {
+    document.querySelectorAll('.game-mode-card').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+    draft.gameImportMode = c.dataset.gameMode;
+    saveGameMode();
+  };
+});
+
+buildAccentPicker(document.getElementById('obAccentPicker'), (hex) => {
+  draft.accent = hex;
+  saveTheme();
+});
+buildWallpaperPicker(document.getElementById('obWallpaperPicker'), () => applyWallpaper());
+
+document.getElementById('obFinish').onclick = async () => {
+  if (!(await saveProfileStep())) return;
+  saveTheme();
+  saveGameMode();
+  ZenoStore.set('zeno_v2_setup_complete', 'true');
+  await window.ZenoAuth?.syncOnboarding?.();
+  document.body.style.opacity = '0';
+  document.body.style.transition = 'opacity .35s ease';
+  setTimeout(() => location.href = 'index.html', 360);
+};
+
+applyWallpaper();
+saveTheme();
+syncProfilePreview();
+updateProgress();
+</script>
+<script type="module" src="js/zeno-auth.js?v=20260525-account-sync"></script>
+</body>
+</html>
