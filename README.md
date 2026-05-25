@@ -5,6 +5,7 @@
 **A browser-native gaming and media operating system.**
 
 *Your platform. Your rules.*
+<br>
 *Part of the [Eclipse Suite](https://eclipsesuite.org)*
 
 ![Version](https://img.shields.io/badge/version-2.0.0-00f5ff?style=flat-square)
