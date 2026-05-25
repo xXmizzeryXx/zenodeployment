@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZENO V2</title>
+<script>
+  const t = localStorage.getItem('zeno_theme') || 'default';
+  const a = localStorage.getItem('zeno_accent') || '#00f5ff';
+  document.documentElement.className = 'theme-' + t;
+  document.documentElement.style.setProperty('--accent', a);
+  if (!localStorage.getItem('zeno_v2_setup_complete') && !location.pathname.endsWith('onboarding.html'))
+    location.replace('onboarding.html');
+  if (localStorage.getItem('zeno_cloak_active') === 'true') {
+    document.title = localStorage.getItem('zeno_cloak_title') || 'Google Classroom';
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="css/zeno-v2-core.css">
+<link rel="stylesheet" href="css/index-v2.css">
+</head>
+<body class="home-page">
+<div id="zeno-wallpaper"></div>
+<div id="zeno-grid"></div>
+<div id="zeno-scanlines"></div>
+<div class="home-glow" aria-hidden="true"></div>
+<div class="home-glow-pink" aria-hidden="true"></div>
+
+<main class="home-main">
+  <div class="home-container">
+    <header class="home-header">
+      <div class="home-greeting" id="greeting">
+        <span class="home-greeting-label">HELLO,</span>
+        <span class="home-greeting-name" id="dashName">GUEST</span>
+      </div>
+      <div class="home-time" id="timeContainer">
+        <button type="button" class="home-clock-toggle" id="clockLayoutBtn" title="Toggle date above/below clock" aria-label="Toggle clock layout">⇅</button>
+        <div class="home-clock" id="dashClock">00:00</div>
+        <div class="home-date" id="dashDate"></div>
+      </div>
+    </header>
+
+    <nav class="home-app-grid" id="appGrid" aria-label="Applications">
+      <a class="home-app games" href="games.html" data-app="games" aria-label="Games" title="Games" onclick="navigateTo('games.html');return false">
+        <i class="fa-solid fa-gamepad"></i>
+      </a>
+      <button type="button" class="home-app browser" data-app="browser" id="btnHomeBrowser" aria-label="Browser" title="Browser">
+        <i class="fa-solid fa-globe"></i>
+      </button>
+      <a class="home-app terminal" href="console.html" data-app="terminal" aria-label="Terminal" title="Terminal" onclick="navigateTo('console.html');return false">
+        <i class="fa-solid fa-terminal"></i>
+      </a>
+      <a class="home-app movies" href="movies.html" data-app="movies" aria-label="Stream" title="Stream" onclick="navigateTo('movies.html');return false">
+        <i class="fa-solid fa-film"></i>
+      </a>
+      <a class="home-app settings" href="settings.html" data-app="settings" aria-label="Settings" title="Settings" onclick="navigateTo('settings.html');return false">
+        <i class="fa-solid fa-gear"></i>
+      </a>
+      <button type="button" class="home-app cloak" id="cloakBtn" data-app="cloak" aria-label="Presence" title="Presence">
+        <i class="fa-solid fa-user-secret"></i>
+      </button>
+      <a class="home-app ai" href="ai.html" data-app="ai" aria-label="AI" title="AI" onclick="navigateTo('ai.html');return false">
+        <i class="fa-solid fa-robot"></i>
+      </a>
+    </nav>
+
+    <section class="home-recent" id="recentSection" hidden>
+      <div class="home-recent-label">RECENTLY PLAYED</div>
+      <div class="home-recent-scroll" id="recentScroll"></div>
+    </section>
+
+    <footer class="home-bottom-bar" role="toolbar" aria-label="Quick settings">
+      <button type="button" class="home-bar-btn" id="btnCredits" aria-label="Credits" title="Credits"><i class="fa-solid fa-circle-info"></i></button>
+      <button type="button" class="home-bar-btn" id="btnWallpaper" aria-label="Wallpaper" title="Wallpaper"><i class="fa-solid fa-image"></i></button>
+      <button type="button" class="home-bar-btn" id="btnAccents" aria-label="Accents" title="Accents"><i class="fa-solid fa-palette"></i></button>
+    </footer>
+  </div>
+</main>
+
+<!-- Cloak modal (v1-style flow) -->
+<div class="zeno-modal-overlay" id="cloakModal">
+  <div class="zeno-modal home-cloak-modal">
+    <div class="zeno-modal-title">PRESENCE CLOAK</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Disguise this tab as another site</p>
+    <div class="home-cloak-presets">
+      <button type="button" class="home-preset-btn" data-title="Google Classroom" data-favicon="https://ssl.gstatic.com/classroom/favicon.png">Google Classroom</button>
+      <button type="button" class="home-preset-btn" data-title="Khan Academy" data-favicon="https://www.khanacademy.org/favicon.ico">Khan Academy</button>
+      <button type="button" class="home-preset-btn" data-title="Google Docs" data-favicon="https://ssl.gstatic.com/docs/doclist/images/mediatype/icon_1_document_x16.png">Google Docs</button>
+      <button type="button" class="home-preset-btn" data-title="Desmos Graphing" data-favicon="https://www.desmos.com/assets/img/icons/favicon.ico">Desmos</button>
+      <button type="button" class="home-preset-btn" data-title="Wikipedia" data-favicon="https://en.wikipedia.org/favicon.ico">Wikipedia</button>
+      <button type="button" class="home-preset-btn" data-title="Quizlet" data-favicon="https://quizlet.com/favicon.ico">Quizlet</button>
+    </div>
+    <label class="home-field-label">Custom title</label>
+    <input class="zeno-input" type="text" id="cloakTitleInput" maxlength="60" placeholder="Tab title..." autocomplete="off">
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      <button type="button" class="zeno-btn" id="cloakApply">Apply</button>
+      <button type="button" class="zeno-btn zeno-btn-ghost" id="cloakRemove">Remove</button>
+      <button type="button" class="zeno-btn zeno-btn-ghost" onclick="ZenoModal.close('cloakModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Recursion browser -->
+<div class="home-browser-shell" id="homeBrowserShell" aria-hidden="true">
+  <header class="home-browser-header">
+    <button type="button" class="home-browser-back" id="homeBrowserBack">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Home</span>
+    </button>
+    <span class="home-browser-title"><i class="fa-solid fa-globe"></i> Recursion</span>
+  </header>
+  <div class="home-browser-frame-wrap">
+    <iframe id="homeBrowserFrame" class="home-browser-frame" title="Recursion Browser" src="Website Assets/Browser/Recursion.html" allow="fullscreen; clipboard-read; clipboard-write; autoplay"></iframe>
+  </div>
+</div>
+
+<div id="zenoCreditsModal" class="zeno-modal-overlay">
+  <div class="zeno-modal" style="max-width:400px">
+    <div class="zeno-modal-title">CREDITS</div>
+    <p style="font-size:14px;line-height:1.6;color:var(--text)">ZENO V2 — Eclipse Family<br>Built on zenodeployment v1.<br>Wallpapers from Unsplash.<br>Service Worker by Mizzery / Eclipse Developers.</p>
+    <button class="zeno-btn" style="margin-top:16px" onclick="ZenoModal.close('zenoCreditsModal')">CLOSE</button>
+  </div>
+</div>
+
+<script src="js/zeno-v2-core.js"></script>
+<script>
+zenoBoot({ page: 'index', nav: 'HOME', lock: true, ai: true });
+
+function updateHomeGreeting() {
+  const name = (ZenoStore.username || 'Guest').trim();
+  document.getElementById('dashName').textContent = name.toUpperCase();
+}
+updateHomeGreeting();
+
+if (ZenoStore.avatar) {
+  /* avatar lives in nav from zenoBoot */
+}
+
+function tick() {
+  const n = new Date();
+  if (ZenoStore.get('zeno_show_clock') !== 'false') {
+    const use12 = ZenoStore.get('zeno_clock_format') === '12';
+    let clock;
+    if (use12) {
+      const h = n.getHours() % 12 || 12;
+      const m = String(n.getMinutes()).padStart(2, '0');
+      clock = h + ':' + m + (n.getHours() < 12 ? ' AM' : ' PM');
+    } else {
+      clock = n.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    document.getElementById('dashClock').textContent = clock;
+    document.getElementById('dashDate').textContent = n.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+  }
+}
+tick();
+setInterval(tick, 1000);
+
+const timeContainer = document.getElementById('timeContainer');
+const clockLayoutBtn = document.getElementById('clockLayoutBtn');
+if (ZenoStore.get('zeno_clock_date_first') === '1') timeContainer.classList.add('date-first');
+clockLayoutBtn?.addEventListener('click', () => {
+  timeContainer.classList.toggle('date-first');
+  ZenoStore.set('zeno_clock_date_first', timeContainer.classList.contains('date-first') ? '1' : '0');
+});
+
+const recent = ZenoStore.json('zeno_recent_games', []);
+if (recent.length) {
+  document.getElementById('recentSection').hidden = false;
+  document.getElementById('recentScroll').innerHTML = recent.map(g => `
+    <button type="button" class="home-recent-card" onclick="navigateTo('games.html')">
+      ${g.thumbnail ? `<img src="${g.thumbnail.replace(/"/g, '&quot;')}" alt="">` : '<i class="fa-solid fa-gamepad"></i>'}
+      <span class="home-rc-name">${String(g.name).replace(/</g, '&lt;')}</span>
+      <span class="home-rc-time">${relativeTime(g.lastPlayed)}</span>
+    </button>`).join('');
+}
+
+/* Cloak */
+const cloakPresets = document.querySelectorAll('.home-preset-btn');
+let selectedCloakFavicon = '';
+document.getElementById('cloakBtn').onclick = () => {
+  const saved = ZenoStore.get('zeno_cloak_title') || '';
+  document.getElementById('cloakTitleInput').value = saved;
+  cloakPresets.forEach(b => b.classList.toggle('selected', b.dataset.title === saved));
+  ZenoModal.open('cloakModal');
+};
+cloakPresets.forEach(btn => {
+  btn.addEventListener('click', () => {
+    cloakPresets.forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('cloakTitleInput').value = btn.dataset.title;
+    selectedCloakFavicon = btn.dataset.favicon || '';
+  });
+});
+function applyHomeCloak() {
+  const title = document.getElementById('cloakTitleInput').value.trim() || 'Google Classroom';
+  ZenoStore.set('zeno_cloak_active', 'true');
+  ZenoStore.set('zeno_cloak_title', title);
+  if (selectedCloakFavicon) ZenoStore.set('zeno_cloak_favicon', selectedCloakFavicon);
+  applyCloak();
+  ZenoModal.close('cloakModal');
+}
+function removeHomeCloak() {
+  ZenoStore.set('zeno_cloak_active', 'false');
+  localStorage.removeItem('zeno_cloak_favicon');
+  document.title = 'ZENO V2';
+  ZenoModal.close('cloakModal');
+}
+document.getElementById('cloakApply').onclick = applyHomeCloak;
+document.getElementById('cloakRemove').onclick = removeHomeCloak;
+
+const HOME_BROWSER_URL = 'Website Assets/Browser/Recursion.html';
+
+function openHomeBrowser() {
+  const shell = document.getElementById('homeBrowserShell');
+  const frame = document.getElementById('homeBrowserFrame');
+  if (!shell) return;
+  if (frame && !frame.getAttribute('src')) frame.src = HOME_BROWSER_URL;
+  shell.classList.add('open');
+  shell.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('home-browser-active');
+}
+
+function closeHomeBrowser() {
+  const shell = document.getElementById('homeBrowserShell');
+  if (!shell) return;
+  shell.classList.remove('open');
+  shell.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('home-browser-active');
+}
+
+document.getElementById('btnHomeBrowser')?.addEventListener('click', openHomeBrowser);
+document.getElementById('homeBrowserBack')?.addEventListener('click', closeHomeBrowser);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('homeBrowserShell')?.classList.contains('open')) {
+    closeHomeBrowser();
+  }
+});
+
+function bindHomeBar() {
+  const bar = document.querySelector('.home-bottom-bar');
+  if (!bar) return;
+  bar.addEventListener('click', (e) => {
+    const credits = e.target.closest('#btnCredits');
+    const wallpaper = e.target.closest('#btnWallpaper');
+    const accents = e.target.closest('#btnAccents');
+    if (credits) {
+      e.preventDefault();
+      e.stopPropagation();
+      ZenoModal.open('zenoCreditsModal');
+      return;
+    }
+    if (wallpaper) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof openWallpaperPickerModal === 'function') openWallpaperPickerModal();
+      return;
+    }
+    if (accents) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof openAccentPickerModal === 'function') openAccentPickerModal();
+    }
+  });
+}
+bindHomeBar();
+ZenoModal.bind('zenoCreditsModal');
+ZenoModal.bind('cloakModal');
+
+ZenoAI.registerHandler('navigate', a => navigateTo(a.target));
+ZenoAI.registerHandler('set_theme', a => { ZenoStore.set('zeno_theme', a.value); applyTheme(a.value); });
+ZenoAI.registerHandler('set_accent', a => { ZenoStore.set('zeno_accent', a.value); applyTheme(ZenoStore.theme, a.value); });
+ZenoAI.registerHandler('open_wallpaper_picker', () => openWallpaperPickerModal());
+ZenoAI.registerHandler('open_accent_picker', () => openAccentPickerModal());
+window.zenoPageContextExtra = { availableActions: ['navigate','set_theme','set_accent','open_wallpaper_picker','open_accent_picker'] };
+</script>
+</body>
+</html>
