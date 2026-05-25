@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ ZENO V2
+# ZENO V2
 
 **A browser-native gaming and media operating system.**
 
