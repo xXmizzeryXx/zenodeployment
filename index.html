@@ -9,6 +9,11 @@
   (() => {
     const accent = localStorage.getItem('zeno_accent') || '#ffd86f';
     document.documentElement.style.setProperty('--accent', accent);
+    try {
+      localStorage.setItem('zeno_v2_setup_complete', 'true');
+    } catch (err) {
+      console.warn('Unable to set onboarding bypass flag', err);
+    }
   })();
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
